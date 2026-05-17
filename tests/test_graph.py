@@ -115,6 +115,27 @@ def test_graph_to_model_skips_unmapped_fields():
     assert m.mystery == ""
 
 
+def test_all_from_graph_empty_when_no_mapped_predicates():
+    class IdOnly(TripleModel):
+        class Rdf:
+            namespace = EX
+            id_field = "slug"
+            type_uri = ""
+
+        slug: str
+
+    g = Graph()
+    assert IdOnly.all_from_graph(g) == []
+
+
+def test_graph_to_model_accepts_uri_ref_subject():
+    g = Person(slug="alice", name="Alice").to_graph()
+    uri = URIRef(EX + "alice")
+    m = graph_to_model(g, Person, uri)
+    assert m.slug == "alice"
+    assert m.name == "Alice"
+
+
 def test_all_from_graph_type_uri_override():
     class Worker(TripleModel):
         class Rdf:

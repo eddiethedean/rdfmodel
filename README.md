@@ -225,7 +225,7 @@ Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/do
 ## Limitations (0.2.x)
 
 - **Scalar duplicates** — multiple objects on a non-collection field still warn/error via `on_duplicate` (collections import all values).
-- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred until 0.3.
+- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred until 0.3. `replace`/`patch` may leave orphan blank-node subgraphs.
 - **RDF lists** — use `list[T]` for multiple objects per predicate, not `rdf:List` syntax ([0.3.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)).
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **Stale triples on re-export** — use [`sync_to_graph`](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/04-updating-graphs.md) or `to_graph(..., mode="replace")` to remove cleared fields; default `mode="add"` only appends.
@@ -238,7 +238,7 @@ Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/do
 - **BNode subjects** — skipped in `all_from_graph()`.
 - **Non-XSD boolean literals** — `bool` fields without `xsd:boolean` use a loose truthiness heuristic on import.
 - **Union field types** (e.g. `str | int`) rely on rdflib `toPython()` when the annotation is not a single scalar type.
-- **`Rdf.graph_mode`** — parsed into config but not wired; `to_graph()` / `sync_to_graph()` still use explicit `mode=` (default `"add"` / `"replace"`).
+- **`Rdf.graph_mode`** — used when `mode=` is omitted on `to_graph()` / `model_to_graph()`; `sync_to_graph()` uses it when not `"add"`, otherwise defaults to `"replace"`.
 - **Multi-value collections** — `list[T]` / `set[T]` are for scalar `T` only; `list[TripleModel]` / `set[TripleModel]` are rejected until a future release.
 
 ## Development

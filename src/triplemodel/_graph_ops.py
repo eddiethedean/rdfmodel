@@ -6,6 +6,7 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
+from rdflib.term import Node
 
 from triplemodel._cardinality import scalar_python_type
 from triplemodel._fields import predicate_for_field, predicate_from_annotation
@@ -56,6 +57,20 @@ def graph_set(
         graph.remove((subj, pred, obj))
     if value is not None:
         graph.add((subj, pred, python_to_term(value)))
+
+
+def graph_set_many(
+    graph: Graph,
+    subject: Node,
+    predicate: str,
+    values: list[object],
+) -> None:
+    """Set multiple objects for ``(subject, predicate)`` (remove-then-add)."""
+    pred = URIRef(predicate)
+    for obj in list(graph.objects(subject, pred)):
+        graph.remove((subject, pred, obj))
+    for value in values:
+        graph.add((subject, pred, python_to_term(value)))
 
 
 def objects_for_field(

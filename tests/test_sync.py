@@ -57,6 +57,13 @@ def test_instance_sync_to_graph():
     assert len(g) >= 2
 
 
+def test_sync_to_graph_defaults_to_replace_when_mode_omitted():
+    p = Person(slug="a", name="A", age=25)
+    g = Graph()
+    sync_to_graph(p, g)
+    assert len(g) >= 2
+
+
 def test_patch_clears_curie_predicate_empty_list():
     class CuriePerson(TripleModel):
         class Rdf:
@@ -89,3 +96,56 @@ def test_sync_to_graph_bind_false_skips_prefix_bind():
     g = Graph()
     sync_to_graph(p, g, mode="replace", bind=False)
     assert len(g) >= 2
+
+
+def test_patch_preserves_multiple_nick_values():
+    class NickPerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+        slug: str
+        nick: list[str] = rdf_field(f"{FOAF}nick", default_factory=list)
+
+    p = NickPerson(slug="a", nick=["Al", "Alice"])
+    g = Graph()
+    sync_to_graph(p, g, mode="patch")
+    subj = URIRef(EX + "a")
+    nicks = sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick")))
+    assert nicks == ["Al", "Alice"]
+
+
+def test_patch_updates_nick_without_touching_name():
+    class NickPerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+        nick: list[str] = rdf_field(f"{FOAF}nick", default_factory=list)
+
+    g = NickPerson(slug="a", name="A", nick=["x"]).to_graph()
+    sync_to_graph(NickPerson(slug="a", name="A", nick=["y", "z"]), g, mode="patch")
+    subj = URIRef(EX + "a")
+    assert sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick"))) == ["y", "z"]
+    assert any(str(o) == "A" for o in g.objects(subj, URIRef(f"{FOAF}name")))
+
+
+def test_to_graph_patch_preserves_multiple_values():
+    class NickPerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+        slug: str
+        nick: list[str] = rdf_field(f"{FOAF}nick", default_factory=list)
+
+    p = NickPerson(slug="a", nick=["a", "b"])
+    g = Graph()
+    p.to_graph(g, mode="patch")
+    subj = URIRef(EX + "a")
+    assert sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick"))) == ["a", "b"]

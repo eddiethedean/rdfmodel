@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import cast
 
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
+from rdflib.term import Node
 
-from triplemodel._config import GraphMode, RdfConfig, get_rdf_config
+from triplemodel._config import (
+    GraphMode,
+    RdfConfig,
+    effective_graph_mode,
+    get_rdf_config,
+)
 from triplemodel._fields import owned_predicates, resolve_field_predicate
+from triplemodel._graph_ops import graph_set_many
 from triplemodel._namespaces import bind_namespaces
 
 
@@ -41,6 +49,50 @@ def remove_owned_triples(
         predicates if predicates is not None else owned_predicates(model_cls, config)
     )
     remove_triples_for_predicates(graph, _subject_ref(uri), set(preds))
+
+
+def _clear_stale_nested_iri_children(
+    model: BaseModel,
+    graph: Graph,
+    parent_uri: str,
+    *,
+    config: RdfConfig,
+) -> None:
+    """Remove owned triples for nested IRI children no longer linked from the parent."""
+    from triplemodel._cardinality import field_cardinality, nested_model_type
+
+    if config.embed != "iri":
+        return
+    parent_ref = _subject_ref(parent_uri)
+    cls = type(model)
+    prefixes = config.prefixes_dict
+    for name, field_info in cls.model_fields.items():
+        if config.id_field and name == config.id_field:
+            continue
+        if field_cardinality(field_info) != "nested":
+            continue
+        pred = resolve_field_predicate(field_info, prefixes)
+        if pred is None:
+            continue
+        nested_cls = nested_model_type(field_info)
+        if nested_cls is None:
+            continue
+        nested_cfg = get_rdf_config(nested_cls)
+        pred_ref = URIRef(pred)
+        in_graph = {
+            str(obj)
+            for obj in graph.objects(parent_ref, pred_ref)
+            if isinstance(obj, URIRef)
+        }
+        value = getattr(model, name)
+        keep = {nested_cfg.subject_uri(value)} if value is not None else set()
+        for stale_uri in in_graph - keep:
+            remove_owned_triples(
+                graph,
+                stale_uri,
+                cast(type[BaseModel], nested_cls),
+                config=nested_cfg,
+            )
 
 
 def _clear_nested_iri_children(
@@ -110,7 +162,7 @@ def sync_to_graph(
     graph: Graph | None = None,
     *,
     uri: str | None = None,
-    mode: GraphMode = "replace",
+    mode: GraphMode | None = None,
     config: RdfConfig | None = None,
     bind: bool = True,
 ) -> Graph:
@@ -118,11 +170,11 @@ def sync_to_graph(
     from rdflib.term import Node
 
     from triplemodel._graph import _subject_node, model_to_graph, model_to_triples
-    from triplemodel._types import python_to_term
 
     g = Graph() if graph is None else graph
     cls = type(model)
     cfg = config or get_rdf_config(cls)
+    mode = effective_graph_mode(mode, cfg, sync=True)
     subject = uri or cfg.subject_uri(model)
     subject_ref = _subject_ref(subject)
 
@@ -133,18 +185,21 @@ def sync_to_graph(
         return model_to_graph(model, g, uri=uri, config=cfg, mode="add")
 
     if mode == "replace":
+        _clear_stale_nested_iri_children(model, g, subject, config=cfg)
         remove_owned_triples(g, subject, cls, config=cfg)
         _clear_nested_iri_children(model, g, config=cfg)
         return model_to_graph(model, g, uri=uri, config=cfg, mode="add")
 
-    # patch: clear empty fields, then replace triples per updated predicate
+    # patch: clear empty fields, then replace triples per (subject, predicate)
     to_clear = predicates_to_patch(model, config=cfg)
+    _clear_stale_nested_iri_children(model, g, subject, config=cfg)
     remove_triples_for_predicates(g, subject_ref, to_clear)
 
+    by_sp: dict[tuple[Node, str], list[object]] = defaultdict(list)
     for subj, pred, obj in model_to_triples(model, uri=subject, config=cfg):
-        pred_ref = URIRef(pred)
         subj_ref = subj if isinstance(subj, Node) else _subject_node(subj)
-        for existing in list(g.objects(subj_ref, pred_ref)):
-            g.remove((subj_ref, pred_ref, existing))
-        g.add((subj_ref, pred_ref, python_to_term(obj)))
+        by_sp[(subj_ref, pred)].append(obj)
+
+    for (subj_ref, pred), objects in by_sp.items():
+        graph_set_many(g, subj_ref, pred, objects)
     return g

@@ -66,6 +66,8 @@ def test_config_subject_uri_full_iri_id():
 
 
 def test_get_rdf_config_invalid_embed_and_mode():
+    import warnings
+
     class Weird(TripleModel):
         class Rdf:
             namespace = EX
@@ -74,9 +76,57 @@ def test_get_rdf_config_invalid_embed_and_mode():
 
         slug: str
 
-    cfg = get_rdf_config(Weird)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        cfg = get_rdf_config(Weird)
     assert cfg.embed == "iri"
     assert cfg.graph_mode == "add"
+    assert len(w) == 2
+
+
+def test_rdf_graph_mode_drives_to_graph_without_explicit_mode():
+    class PatchPerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+            graph_mode = "patch"
+
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+        age: int | None = rdf_field(f"{FOAF}age", default=None)
+
+    p = PatchPerson(slug="a", name="A", age=30)
+    g = p.to_graph()
+    p2 = PatchPerson(slug="a", name="A", age=None)
+    p2.to_graph(g)
+    from rdflib import URIRef
+
+    subj = URIRef(EX + "a")
+    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+
+
+def test_rdf_graph_mode_patch_on_sync_to_graph():
+    from rdflib import URIRef
+
+    from triplemodel import sync_to_graph
+
+    class PatchPerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+            graph_mode = "patch"
+
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+        age: int | None = rdf_field(f"{FOAF}age", default=None)
+
+    p = PatchPerson(slug="a", name="A", age=30)
+    g = p.to_graph()
+    sync_to_graph(PatchPerson(slug="a", name="A", age=None), g, mode=None)
+    subj = URIRef(EX + "a")
+    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
 
 
 def test_freeze_prefixes_non_mapping():

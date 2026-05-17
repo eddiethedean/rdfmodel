@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Literal, Mapping
@@ -75,6 +76,20 @@ class RdfConfig:
         return f"{base}{segment}"
 
 
+def effective_graph_mode(
+    mode: GraphMode | None,
+    cfg: RdfConfig,
+    *,
+    sync: bool = False,
+) -> GraphMode:
+    """Resolve ``mode``; default sync to ``replace`` when ``graph_mode`` is unset (``add``)."""
+    if mode is not None:
+        return mode
+    if sync and cfg.graph_mode == "add":
+        return "replace"
+    return cfg.graph_mode
+
+
 def get_rdf_config(model_cls: type) -> RdfConfig:
     for cls in model_cls.__mro__:
         if cls is object:
@@ -83,13 +98,27 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
         if rdf is not None:
             embed = getattr(rdf, "embed", "iri") or "iri"
             mode = getattr(rdf, "graph_mode", "add") or "add"
+            if embed not in ("iri", "bnode"):
+                warnings.warn(
+                    f"{cls.__name__}.Rdf.embed={embed!r} is invalid; using 'iri'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                embed = "iri"
+            if mode not in ("add", "replace", "patch"):
+                warnings.warn(
+                    f"{cls.__name__}.Rdf.graph_mode={mode!r} is invalid; using 'add'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                mode = "add"
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
                 id_field=getattr(rdf, "id_field", None),
                 prefixes=_freeze_prefixes(getattr(rdf, "prefixes", None)),
-                embed=embed if embed in ("iri", "bnode") else "iri",
-                graph_mode=mode if mode in ("add", "replace", "patch") else "add",
+                embed=embed,
+                graph_mode=mode,
             )
     return RdfConfig()
 

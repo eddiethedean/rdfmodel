@@ -8,7 +8,7 @@ Re-exporting with `to_graph()` alone **adds** triples; it does not remove stale 
 |------|-----------|
 | `"add"` | Default for `to_graph()`. Append triples only (0.1 behaviour). |
 | `"replace"` | Remove all **owned** triples for the subject, then write current state. |
-| `"patch"` | Remove triples only for fields that are `None` or empty `list` / `set`; add/update others. |
+| `"patch"` | Remove triples only for fields that are `None` or empty `list` / `set`; replace all objects for other mapped predicates (including every value of multi-valued fields). |
 
 **Owned predicates** = every mapped field predicate on the model plus `rdf:type` when `type_uri` is set. Triples with other predicates on the same subject are left untouched.
 
@@ -69,6 +69,6 @@ See [Ecosystem](../ECOSYSTEM.md) for the full split.
 
 ## Nested resources
 
-`replace` on a parent clears the parent’s `foaf:mbox` **link** when `mbox=None`. Triples about the child subject may remain in the graph until you delete or sync the child separately. See [Nested models](05-nested-models.md).
+With **`embed="iri"`**, `replace` and `patch` remove owned triples on nested child subjects that are no longer linked (for example when `mbox=None` or the child `slug` changes). **`embed="bnode"`** is experimental: `replace`/`patch` may leave orphan blank-node subgraphs; prefer IRI embed until 0.3. See [Nested models](05-nested-models.md).
 
 **Next:** [Nested models →](05-nested-models.md)

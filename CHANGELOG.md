@@ -9,9 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`patch` sync for multi-valued fields** — `sync_to_graph(..., mode="patch")` and `to_graph(..., mode="patch")` now replace all objects per predicate in one step, so `list`/`set` fields keep every value instead of only the last.
 - **Nested IRI embed + `replace` sync** — `sync_to_graph` / `to_graph(..., mode="replace")` now clears owned triples on embedded child subjects before re-export, so updating nested field values no longer leaves duplicate predicates on the child IRI.
+- **Stale nested IRI children** — `replace` and `patch` remove owned triples for nested child subjects that are no longer linked (identity change or `mbox=None`).
 - **`set` export** — `None` elements are skipped on export, matching `list` behaviour.
-- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` instead of emitting invalid literals.
+- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` on export and import instead of emitting invalid literals.
+- **`graph_to_model` with `URIRef` subjects** — `id_field` is derived from the subject URI when the URI is passed as a `URIRef`.
+
+### Added
+
+- **`Rdf.graph_mode`** — when `to_graph()` / `sync_to_graph()` / `model_to_graph()` omit `mode=`, they use the class `Rdf.graph_mode` (`sync_to_graph` still defaults to `"replace"` when `graph_mode` is `"add"`).
+- **`all_from_graph` without `type_uri`** — discovers subjects that have triples for mapped field predicates when no RDF type is configured.
+- **`graph_set_many`** — internal helper for multi-object predicate updates (used by patch sync).
+
+### Changed
+
+- Invalid `Rdf.embed` / `Rdf.graph_mode` values emit a `UserWarning` and fall back to `"iri"` / `"add"`.
 
 ## [0.2.0] - 2026-05-17
 

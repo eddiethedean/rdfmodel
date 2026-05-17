@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from rdflib import URIRef
+
 from triplemodel import (
     TripleModel,
     graph_set,
@@ -10,6 +12,7 @@ from triplemodel import (
     objects_for_field,
     rdf_field,
 )
+from triplemodel._graph_ops import graph_set_many
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -49,3 +52,13 @@ def test_objects_for_field():
     g = p.to_graph()
     objs = objects_for_field(g, p.subject_uri(), Person, "nick")
     assert set(objs) == {"x", "y"}
+
+
+def test_graph_set_many():
+    p = Person(slug="a", name="A")
+    g = p.to_graph()
+    subj = URIRef(p.subject_uri())
+    pred = f"{FOAF}nick"
+    graph_set_many(g, subj, pred, ["x", "y"])
+    nicks = sorted(str(o) for o in g.objects(subj, URIRef(pred)))
+    assert nicks == ["x", "y"]

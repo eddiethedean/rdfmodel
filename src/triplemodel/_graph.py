@@ -23,11 +23,16 @@ from triplemodel._config import (
     RDF_TYPE,
     GraphMode,
     RdfConfig,
+    effective_graph_mode,
     get_rdf_config,
     id_from_subject_uri,
 )
 from triplemodel._embed import export_nested_triples, import_nested_value
-from triplemodel._fields import id_field_is_iri_id, resolve_field_predicate
+from triplemodel._fields import (
+    id_field_is_iri_id,
+    owned_predicates,
+    resolve_field_predicate,
+)
 from triplemodel._namespaces import bind_namespaces
 from triplemodel._types import python_to_term, term_to_python
 
@@ -113,10 +118,15 @@ def model_to_graph(
     *,
     uri: str | None = None,
     config: RdfConfig | None = None,
-    mode: GraphMode = "add",
+    mode: GraphMode | None = None,
     bind: bool | None = None,
 ) -> Graph:
-    """Add triples for ``model`` to ``graph`` (or a new graph) and return it."""
+    """Add triples for ``model`` to ``graph`` (or a new graph) and return it.
+
+    When ``mode`` is omitted, uses ``Rdf.graph_mode`` (default ``"add"``).
+    """
+    cfg = config or get_rdf_config(type(model))
+    mode = effective_graph_mode(mode, cfg, sync=False)
     if mode != "add":
         from triplemodel._sync import sync_to_graph
 
@@ -125,12 +135,11 @@ def model_to_graph(
             graph,
             uri=uri,
             mode=mode,
-            config=config,
+            config=cfg,
             bind=bind if bind is not None else graph is None,
         )
 
     g = Graph() if graph is None else graph
-    cfg = config or get_rdf_config(type(model))
     if bind if bind is not None else graph is None:
         if cfg.prefixes:
             bind_namespaces(g, cfg.prefixes_dict)
@@ -257,7 +266,7 @@ def graph_to_model(
 
     data: dict[str, Any] = {}
 
-    if cfg.id_field and isinstance(uri, str):
+    if cfg.id_field:
         extracted = (
             id_from_subject_uri(cfg.namespace, uri_str) if cfg.namespace else None
         )
@@ -278,19 +287,16 @@ def graph_to_model(
         if not objects:
             continue
         card = field_cardinality(field_info)
-        try:
-            data[name] = _import_field_value(
-                graph,
-                objects,
-                field_info,
-                name,
-                predicate,
-                uri_str,
-                embed=cfg.embed,
-                on_duplicate=on_duplicate if card in ("scalar", "nested") else "ignore",
-            )
-        except ValueError as exc:
-            raise exc
+        data[name] = _import_field_value(
+            graph,
+            objects,
+            field_info,
+            name,
+            predicate,
+            uri_str,
+            embed=cfg.embed,
+            on_duplicate=on_duplicate if card in ("scalar", "nested") else "ignore",
+        )
 
     try:
         return model_cls.model_validate(data)
@@ -298,6 +304,24 @@ def graph_to_model(
         raise ValueError(
             f"Cannot validate {model_cls.__name__} from graph for subject {uri_str!r}: {exc}"
         ) from exc
+
+
+def _discover_subject_uris(
+    graph: Graph,
+    model_cls: type[T],
+    cfg: RdfConfig,
+) -> list[str]:
+    """URIRef subjects with at least one owned predicate triple (excluding ``rdf:type``)."""
+    owned = owned_predicates(model_cls, cfg)
+    predicates = {p for p in owned if p != RDF_TYPE}
+    if not predicates:
+        return []
+    subjects: set[str] = set()
+    for pred in predicates:
+        for subj in graph.subjects(predicate=URIRef(pred)):
+            if isinstance(subj, URIRef):
+                subjects.add(str(subj))
+    return sorted(subjects)
 
 
 def graph_to_models(
@@ -309,25 +333,41 @@ def graph_to_models(
     validate_type: bool = True,
     on_duplicate: OnDuplicate = "warn",
 ) -> list[T]:
-    """Load all resources of ``type_uri`` (or the model's configured type) as models."""
+    """Load all resources of ``type_uri`` (or the model's configured type) as models.
+
+    When no ``type_uri`` is configured or passed, discovers subjects that have at
+    least one triple for a mapped field predicate.
+    """
     cfg = config or get_rdf_config(model_cls)
-    rdf_type = type_uri or cfg.type_uri
-    if not rdf_type:
-        raise ValueError("type_uri is required when the model has no Rdf.type_uri.")
+    rdf_type = type_uri if type_uri is not None else cfg.type_uri
 
     instances: list[T] = []
-    for subject in graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type)):
-        if isinstance(subject, URIRef):
-            instances.append(
-                graph_to_model(
-                    graph,
-                    model_cls,
-                    str(subject),
-                    config=cfg,
-                    validate_type=validate_type,
-                    on_duplicate=on_duplicate,
+    if rdf_type:
+        for subject in graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type)):
+            if isinstance(subject, URIRef):
+                instances.append(
+                    graph_to_model(
+                        graph,
+                        model_cls,
+                        str(subject),
+                        config=cfg,
+                        validate_type=validate_type,
+                        on_duplicate=on_duplicate,
+                    )
                 )
+        return instances
+
+    for uri in _discover_subject_uris(graph, model_cls, cfg):
+        instances.append(
+            graph_to_model(
+                graph,
+                model_cls,
+                uri,
+                config=cfg,
+                validate_type=validate_type,
+                on_duplicate=on_duplicate,
             )
+        )
     return instances
 
 

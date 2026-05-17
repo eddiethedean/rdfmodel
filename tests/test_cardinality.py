@@ -5,8 +5,10 @@ from __future__ import annotations
 from typing import Annotated
 
 import pytest
+from rdflib import Graph, URIRef
 
 from triplemodel import Predicate, TripleModel, rdf_field
+from triplemodel._config import RDF_TYPE
 from triplemodel._cardinality import (
     _safe_issubclass,
     element_type,
@@ -18,7 +20,6 @@ from triplemodel._cardinality import (
     unwrap_annotation,
 )
 from triplemodel._fields import owned_predicates
-from triplemodel._config import RDF_TYPE
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -111,6 +112,27 @@ def test_list_of_triple_model_raises_on_export():
 
     with pytest.raises(ValueError, match="not supported in 0.2"):
         Team(slug="t", members=[Child(slug="c", label="x")]).to_graph()
+
+
+def test_list_of_triple_model_raises_on_import():
+    from triplemodel._graph import graph_to_model
+
+    class Team(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+        slug: str
+        members: list[Child] = rdf_field(
+            "http://example.org/member", default_factory=list
+        )
+
+    g = Graph()
+    subj = URIRef(EX + "t")
+    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
+    with pytest.raises(ValueError, match="not supported in 0.2"):
+        graph_to_model(g, Team, str(subj))
 
 
 def test_set_of_triple_model_raises_on_export():

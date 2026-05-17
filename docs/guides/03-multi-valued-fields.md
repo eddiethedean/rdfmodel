@@ -46,6 +46,8 @@ Person.from_graph(graph, uri, on_duplicate="error")  # raise on duplicate scalar
 
 Exporting `nick=[]` writes no new nick triples, but **does not remove** old nick triples in an existing graph unless you use a sync mode — see [Updating graphs](04-updating-graphs.md).
 
+`sync_to_graph(..., mode="patch")` replaces **all** nick values for that subject in one step (not one-at-a-time), so `nick=["a", "b"]` round-trips correctly after a patch.
+
 ## Not RDF lists (`rdf:List`)
 
 `list[str]` means “many objects for **one predicate**”, not linked-list `rdf:first` / `rdf:rest` structures. Native RDF list support is on the [roadmap](../ROADMAP.md) for **0.3**.

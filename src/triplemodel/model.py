@@ -64,9 +64,12 @@ class TripleModel(BaseModel):
         graph: Graph | None = None,
         *,
         uri: str | None = None,
-        mode: GraphMode = "add",
+        mode: GraphMode | None = None,
     ) -> Graph:
-        """Serialize this instance into an rdflib ``Graph``."""
+        """Serialize this instance into an rdflib ``Graph``.
+
+        When ``mode`` is omitted, uses ``Rdf.graph_mode`` (default ``"add"``).
+        """
         return model_to_graph(self, graph, uri=uri, mode=mode)
 
     def sync_to_graph(
@@ -74,9 +77,13 @@ class TripleModel(BaseModel):
         graph: Graph,
         *,
         uri: str | None = None,
-        mode: GraphMode = "replace",
+        mode: GraphMode | None = None,
     ) -> Graph:
-        """Update ``graph`` with owned triples for this instance (see ``mode``)."""
+        """Update ``graph`` with owned triples for this instance (see ``mode``).
+
+        When ``mode`` is omitted, uses ``Rdf.graph_mode`` if set to something other
+        than ``"add"``; otherwise defaults to ``"replace"``.
+        """
         return sync_to_graph(self, graph, uri=uri, mode=mode)
 
     @classmethod

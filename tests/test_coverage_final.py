@@ -10,7 +10,7 @@ from rdflib import BNode, Graph, Literal, URIRef
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
 from triplemodel._cardinality import scalar_python_type
-from triplemodel._graph import _subject_node, graph_to_model
+from triplemodel._graph import _subject_node, graph_to_model, model_to_triples
 from triplemodel._namespaces import bind_namespaces, resolve_predicate
 from triplemodel._registry import literal_to_python, register_literal_type
 from triplemodel._sync import predicates_to_patch
@@ -120,8 +120,10 @@ def test_nested_none_omitted_on_export():
         slug: str
         box: Box | None = None
 
-    t = model_to_graph(P(slug="p", box=None), mode="add").serialize(format="nt")
-    assert "box" not in t or True  # no link triple
+    g = model_to_graph(P(slug="p", box=None), mode="add")
+    preds = {str(p) for _, p, _ in g}
+    assert not any("box" in p for p in preds)
+    assert len(list(model_to_triples(P(slug="p", box=None)))) == 0
 
 
 def test_nested_import_invalid_term_type():

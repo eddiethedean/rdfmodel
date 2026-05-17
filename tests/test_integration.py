@@ -226,6 +226,7 @@ def test_replace_clears_nested_mbox_link_on_parent():
     sync_to_graph(Person(slug="a", name="A", mbox=None), g, mode="replace")
     subj = URIRef(p.subject_uri())
     assert list(g.objects(subj, URIRef(f"{FOAF_NS}mbox"))) == []
+    assert list(g.triples((URIRef(child_uri), None, None))) == []
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is None
 

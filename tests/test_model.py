@@ -82,18 +82,24 @@ def test_explicit_uri_override():
     assert all(s == uri for s, _, _ in triples)
 
 
-def test_graph_to_models_requires_type():
+def test_all_from_graph_without_type_uri_discovers_subjects():
     class Untyped(TripleModel):
         class Rdf:
             namespace = EX
             id_field = "slug"
+            type_uri = ""
 
         slug: str
         name: str = rdf_field(f"{FOAF}name")
 
-    g = Graph()
-    with pytest.raises(ValueError, match="type_uri"):
-        Untyped.all_from_graph(g)
+    g = models_to_graph(
+        [
+            Untyped(slug="a", name="A"),
+            Untyped(slug="b", name="B"),
+        ]
+    )
+    loaded = Untyped.all_from_graph(g)
+    assert {p.slug for p in loaded} == {"a", "b"}
 
 
 def test_id_extraction_rejects_prefix_collision():
