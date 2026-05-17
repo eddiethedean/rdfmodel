@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Pydantic models ↔ RDF graphs via rdflib (alpha). SparqlModel ORM integration planned from 0.2."
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "RDFModel contributors" }]
 keywords = ["rdf", "rdflib", "pydantic", "semantic-web", "linked-data"]
@@ -42,10 +43,10 @@ target-version = "py310"
 src = ["src", "tests"]
 
 [project.urls]
-Homepage = "https://github.com/RDFModel/RDFModel"
-Documentation = "https://github.com/RDFModel/RDFModel#readme"
-Repository = "https://github.com/RDFModel/RDFModel"
-Changelog = "https://github.com/RDFModel/RDFModel/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/eddiethedean/rdfmodel"
+Documentation = "https://github.com/eddiethedean/rdfmodel#readme"
+Repository = "https://github.com/eddiethedean/rdfmodel"
+Changelog = "https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rdfmodel"]
@@ -56,6 +57,7 @@ include = [
     "tests",
     "README.md",
     "CHANGELOG.md",
+    "RELEASING.md",
     "docs/PLAN.md",
     "docs/ROADMAP.md",
     "docs/ECOSYSTEM.md",

@@ -41,4 +41,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Alpha:** API may change until 1.0. Multi-value fields, nested models, sync/remove, and file I/O are planned for **0.2+**.
 - **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** integration (optional `rdfmodel` dependency) is targeted from **0.2**; see `docs/ECOSYSTEM.md`.
 
-[0.1.0]: https://github.com/RDFModel/RDFModel/releases/tag/v0.1.0
+[0.1.0]: https://github.com/eddiethedean/rdfmodel/releases/tag/v0.1.0

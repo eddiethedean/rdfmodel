@@ -9,6 +9,7 @@ Roadmap for **RDFModel** (Python package: `rdfmodel`). This document tracks plan
 | Document | Purpose |
 |----------|---------|
 | [CHANGELOG.md](../CHANGELOG.md) | Release history |
+| [RELEASING.md](../RELEASING.md) | PyPI publish checklist |
 | [PLAN.md](PLAN.md) | Strategy, principles, priorities |
 | [ECOSYSTEM.md](ECOSYSTEM.md) | Boundary contract (both packages) |
 | [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | SparqlModel maintainer guide (copy to SparqlModel repo) |

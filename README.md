@@ -14,9 +14,9 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 | Parse triples by hand into dataclasses | `Person.from_graph(graph, uri)` |
 | Repeat predicate IRIs and subject logic per project | `rdf_field()` + nested `Rdf` config |
 
-RDFModel is a thin bridge: it does not replace rdflib parsers, stores, or SPARQL — it orchestrates them around **Pydantic-shaped** domain models. See [docs/ROADMAP.md](docs/ROADMAP.md) for planned releases through **1.0.0**.
+RDFModel is a thin bridge: it does not replace rdflib parsers, stores, or SPARQL — it orchestrates them around **Pydantic-shaped** domain models. See the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) for planned releases through **1.0.0**.
 
-For ecosystem strategy and SparqlModel integration, see **[docs/PLAN.md](docs/PLAN.md)** and **[docs/ECOSYSTEM.md](docs/ECOSYSTEM.md)** — RDFModel is the stateless mapping layer; [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) is the session/query ORM layer (future `rdfmodel` dependency).
+For ecosystem strategy and SparqlModel integration, see the [project plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) and [ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md) — RDFModel is the stateless mapping layer; [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) is the session/query ORM layer (future `rdfmodel` dependency).
 
 ## Requirements
 
@@ -30,7 +30,7 @@ For ecosystem strategy and SparqlModel integration, see **[docs/PLAN.md](docs/PL
 pip install rdfmodel
 ```
 
-**0.1.0 is an alpha release.** The public API may change until 1.0. See [CHANGELOG.md](CHANGELOG.md) and [docs/ROADMAP.md](docs/ROADMAP.md). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) integration is planned from **0.2** ([docs/ECOSYSTEM.md](docs/ECOSYSTEM.md)).
+**0.1.0 is an alpha release.** The public API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) integration is planned from **0.2** ([ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md)).
 
 ## Quick start
 
@@ -164,20 +164,20 @@ models_to_graph(people, graph)
 - Subject IRI derivation with safe prefix matching on import
 - `rdf:type` from `Rdf.type_uri`
 - Round-trip for XSD scalars: `str`, `int`, `float`, `bool`, `date`, `datetime`
-- In-memory `Graph` I/O only (parse/serialize and SPARQL are on the [roadmap](docs/ROADMAP.md))
+- In-memory `Graph` I/O only (parse/serialize and SPARQL are on the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md))
 
 ## Current limitations
 
-- **Single value per predicate** — multiple objects for the same predicate import only the first ([0.2.0](docs/ROADMAP.md)).
+- **Single value per predicate** — multiple objects for the same predicate import only the first (planned [0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md)).
 - **Unmapped fields are omitted** — no predicate mapping means no triples.
-- **Blank nodes** — `BNode` objects cannot be imported into `str` fields ([0.3.0](docs/ROADMAP.md)).
+- **Blank nodes** — `BNode` objects cannot be imported into `str` fields (planned [0.3.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md)).
 - **Flat models only** — no nested `RdfModel` embedding or RDF lists yet.
 
 ## Development
 
 ```bash
-git clone https://github.com/RDFModel/RDFModel.git
-cd RDFModel
+git clone https://github.com/eddiethedean/rdfmodel.git
+cd rdfmodel
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
@@ -187,7 +187,7 @@ ruff check src tests
 
 CI runs on Python 3.10, 3.12, and 3.13.
 
-Planning: [CHANGELOG.md](CHANGELOG.md) · [docs/ROADMAP.md](docs/ROADMAP.md) · [docs/PLAN.md](docs/PLAN.md) · [docs/ECOSYSTEM.md](docs/ECOSYSTEM.md)
+Planning: [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) · [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) · [plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) · [ecosystem](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md) · [releasing](https://github.com/eddiethedean/rdfmodel/blob/main/RELEASING.md)
 
 ## License
 
