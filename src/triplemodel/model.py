@@ -9,6 +9,7 @@ from rdflib import Graph
 
 from triplemodel._config import RdfConfig, get_rdf_config
 from triplemodel._graph import (
+    OnDuplicate,
     graph_to_model,
     graph_to_models,
     model_to_graph,
@@ -55,9 +56,22 @@ class TripleModel(BaseModel):
         return model_to_graph(self, graph, uri=uri)
 
     @classmethod
-    def from_graph(cls, graph: Graph, uri: str) -> Self:
+    def from_graph(
+        cls,
+        graph: Graph,
+        uri: str,
+        *,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+    ) -> Self:
         """Construct an instance from triples about ``uri``."""
-        return graph_to_model(graph, cls, uri)
+        return graph_to_model(
+            graph,
+            cls,
+            uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+        )
 
     @classmethod
     def all_from_graph(
@@ -65,9 +79,17 @@ class TripleModel(BaseModel):
         graph: Graph,
         *,
         type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
     ) -> list[Self]:
         """Load every resource of this model's RDF type from ``graph``."""
-        return graph_to_models(graph, cls, type_uri=type_uri)
+        return graph_to_models(
+            graph,
+            cls,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+        )
 
     @classmethod
     def rdf_config(cls) -> RdfConfig:

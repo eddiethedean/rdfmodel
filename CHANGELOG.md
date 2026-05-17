@@ -7,16 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Rename PyPI/import package **`tripletyped` → `triplemodel`** (project **TripleModel**)
-- Rename base class **`TripleTyped` → `TripleModel`**
-- Rename GitHub repository **`tripletyped` → `triplemodel`**
-
-### Documentation
-
-- Align README, plan, roadmap, and ecosystem docs with `triplemodel` / `TripleModel` naming
-
 ## [0.1.0] - 2026-05-17
 
 ### Added
@@ -28,10 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Public subject-IRI helpers: `subject_base()`, `id_from_subject_uri()`
 - XSD scalar round-trip (`str`, `int`, `float`, `bool`, `date`, `datetime`)
 - Package constants: `RDF`, `RDFS`, `XSD`, `RDF_TYPE`
-- `py.typed` marker for type checkers
+- `py.typed` PEP 561 marker for type checkers
+- `from_graph` / `all_from_graph` / `graph_to_model` options: `validate_type` (default `True`), `on_duplicate` (`"warn"` | `"ignore"` | `"error"`)
 
 ### Fixed
 
+- `get_rdf_config` walks the class MRO so subclasses inherit a parent’s nested `Rdf` config
+- `from_graph` checks `rdf:type` against `Rdf.type_uri` when set (pass `validate_type=False` to skip)
+- Pydantic validation failures on import are raised as `ValueError` with model class and subject URI context
+- Duplicate predicate objects on import emit a warning by default (first value still used until 0.2 multi-value support)
 - Safe subject-id extraction (no false matches when one namespace is a prefix of another)
 - Percent-encoding of id segments on subject IRI export; decode on import
 - Plain string literals use `xsd:string`

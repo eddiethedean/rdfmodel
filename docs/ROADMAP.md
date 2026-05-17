@@ -115,7 +115,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **rdflib parity:** minimal `Graph.add` path via serialization; most of the matrix still open.
 
-**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `TripleModel`; CI + `py.typed` + 100% coverage.
+**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `TripleModel`; CI + `py.typed` + 100% coverage; MRO-inherited `Rdf` config; `validate_type` on import; duplicate-predicate warning (`on_duplicate`); unified validation error messages.
 
 **SparqlModel (SM-0):** Optional local/dev pin on `triplemodel==0.1.*` for experiments; **no** required `triplemodel` dependency in `sparqlmodel` until **0.2** (SM-1).
 

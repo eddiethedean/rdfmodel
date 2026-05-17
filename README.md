@@ -113,6 +113,8 @@ title: Annotated[str, Predicate("http://purl.org/dc/terms/title")]
 
 Fields **without** a predicate mapping are skipped on export and import (handy for computed or app-only fields).
 
+Subclasses **inherit** a parent’s nested `Rdf` class (walked via the MRO); override `class Rdf` on the child to replace metadata.
+
 ### Term conversion
 
 | Python | RDF (export) |
@@ -132,8 +134,8 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 | Instance | `subject_uri(uri=None)` | Subject IRI |
 | Instance | `to_triples(uri=None)` | `(subject, predicate, object)` tuples |
 | Instance | `to_graph(graph=None, uri=None)` | Serialize into a `Graph` |
-| Class | `from_graph(graph, uri)` | Load one resource |
-| Class | `all_from_graph(graph, type_uri=None)` | Load all resources of this `type_uri` |
+| Class | `from_graph(graph, uri, validate_type=True, on_duplicate="warn")` | Load one resource |
+| Class | `all_from_graph(graph, type_uri=None, validate_type=True, on_duplicate="warn")` | Load all resources of this `type_uri` |
 | Class | `rdf_config()` | Resolved `RdfConfig` |
 
 ### Module-level API
@@ -213,12 +215,15 @@ assert restored == bob
 
 Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-## Limitations (0.1.0)
+## Limitations (0.1.x)
 
-- **Single value per predicate** — multiple objects import only the first ([0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md) adds multi-value fields).
+- **Single value per predicate** — multiple objects import only the first; a warning is emitted by default (`on_duplicate="warn"`). Full multi-value fields land in [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **Flat models** — no nested `TripleModel` or RDF lists yet.
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+- **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.
+- **IRI-like strings** — only `http://`, `https://`, and `urn:` are treated as `URIRef` on export.
+- **Union field types** (e.g. `str | int`) rely on rdflib `toPython()` when the annotation is not a single scalar type.
 
 ## Development
 

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Sequence
-from typing import Any, TypeVar, get_args, get_origin
+from typing import Any, Literal, TypeVar, get_args, get_origin
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from rdflib import Graph, URIRef
 
 from triplemodel._config import RDF_TYPE, RdfConfig, get_rdf_config, id_from_subject_uri
@@ -13,6 +14,8 @@ from triplemodel._fields import predicate_for_field, predicate_from_annotation
 from triplemodel._types import python_to_term, term_to_python
 
 T = TypeVar("T", bound=BaseModel)
+
+OnDuplicate = Literal["ignore", "warn", "error"]
 
 
 def model_to_triples(
@@ -92,10 +95,21 @@ def graph_to_model(
     uri: str,
     *,
     config: RdfConfig | None = None,
+    validate_type: bool = True,
+    on_duplicate: OnDuplicate = "warn",
 ) -> T:
     """Hydrate a single model instance from triples about ``uri``."""
     cfg = config or get_rdf_config(model_cls)
     subject = URIRef(uri)
+
+    if validate_type and cfg.type_uri:
+        type_ref = URIRef(cfg.type_uri)
+        if (subject, URIRef(RDF_TYPE), type_ref) not in graph:
+            raise ValueError(
+                f"Subject {uri!r} does not have rdf:type {cfg.type_uri!r} required by "
+                f"{model_cls.__name__}."
+            )
+
     data: dict[str, Any] = {}
 
     if cfg.id_field and cfg.namespace:
@@ -115,6 +129,16 @@ def graph_to_model(
         objects = list(graph.objects(subject, pred_ref))
         if not objects:
             continue
+        if len(objects) > 1:
+            dup_msg = (
+                f"Multiple objects ({len(objects)}) for field {name!r} "
+                f"(predicate {predicate!r}, subject {uri!r}); using the first only "
+                f"(multi-value fields planned for 0.2.0)."
+            )
+            if on_duplicate == "error":
+                raise ValueError(dup_msg)
+            if on_duplicate == "warn":
+                warnings.warn(dup_msg, stacklevel=2)
         # Multi-valued predicates: first object only until 0.2.0.
         target = _unwrap_optional(field_info.annotation)
         py_type = target if isinstance(target, type) else None
@@ -126,7 +150,12 @@ def graph_to_model(
                 f"(predicate {predicate!r}, subject {uri!r}): {exc}"
             ) from exc
 
-    return model_cls.model_validate(data)
+    try:
+        return model_cls.model_validate(data)
+    except ValidationError as exc:
+        raise ValueError(
+            f"Cannot validate {model_cls.__name__} from graph for subject {uri!r}: {exc}"
+        ) from exc
 
 
 def graph_to_models(
@@ -135,6 +164,8 @@ def graph_to_models(
     *,
     type_uri: str | None = None,
     config: RdfConfig | None = None,
+    validate_type: bool = True,
+    on_duplicate: OnDuplicate = "warn",
 ) -> list[T]:
     """Load all resources of ``type_uri`` (or the model's configured type) as models."""
     cfg = config or get_rdf_config(model_cls)
@@ -145,5 +176,14 @@ def graph_to_models(
     instances: list[T] = []
     for subject in graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type)):
         if isinstance(subject, URIRef):
-            instances.append(graph_to_model(graph, model_cls, str(subject), config=cfg))
+            instances.append(
+                graph_to_model(
+                    graph,
+                    model_cls,
+                    str(subject),
+                    config=cfg,
+                    validate_type=validate_type,
+                    on_duplicate=on_duplicate,
+                )
+            )
     return instances

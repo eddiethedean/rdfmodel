@@ -5,6 +5,7 @@ from __future__ import annotations
 from rdflib import BNode, Graph, Literal, URIRef
 
 from triplemodel import TripleModel, models_to_graph, rdf_field
+from triplemodel._config import RDF_TYPE
 from triplemodel._graph import _unwrap_optional, graph_to_model, model_to_triples
 
 FOAF = "http://xmlns.com/foaf/0.1/"
@@ -94,6 +95,7 @@ def test_graph_to_model_skips_unmapped_fields():
 
     g = Graph()
     subj = URIRef(EX + "alice")
+    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
     g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
     m = graph_to_model(g, WithExtra, str(subj))
     assert m.name == "Alice"

@@ -63,3 +63,22 @@ def test_get_rdf_config_without_rdf_class():
     assert cfg.namespace == ""
     assert cfg.type_uri is None
     assert cfg.id_field is None
+
+
+def test_get_rdf_config_inherits_from_base():
+    FOAF = "http://xmlns.com/foaf/0.1/"
+
+    class Base(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+    class Employee(Base):
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+
+    cfg = get_rdf_config(Employee)
+    assert cfg.namespace == EX
+    assert cfg.type_uri == f"{FOAF}Person"
+    assert cfg.id_field == "slug"

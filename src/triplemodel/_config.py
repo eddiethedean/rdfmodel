@@ -51,14 +51,17 @@ class RdfConfig:
 
 
 def get_rdf_config(model_cls: type) -> RdfConfig:
-    rdf = getattr(model_cls, "Rdf", None)
-    if rdf is None:
-        return RdfConfig()
-    return RdfConfig(
-        namespace=getattr(rdf, "namespace", "") or "",
-        type_uri=getattr(rdf, "type_uri", None),
-        id_field=getattr(rdf, "id_field", None),
-    )
+    for cls in model_cls.__mro__:
+        if cls is object:
+            continue
+        rdf = getattr(cls, "Rdf", None)
+        if rdf is not None:
+            return RdfConfig(
+                namespace=getattr(rdf, "namespace", "") or "",
+                type_uri=getattr(rdf, "type_uri", None),
+                id_field=getattr(rdf, "id_field", None),
+            )
+    return RdfConfig()
 
 
 # Namespace constants used by the package
