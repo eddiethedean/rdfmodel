@@ -1,22 +1,29 @@
 # RDFModel
 
-**Pydantic models for RDF graphs.** Declare your domain as typed Python classes, serialize to [rdflib](https://github.com/RDFLib/rdflib) triples, and hydrate back — without hand-written mapping code for every predicate.
+[![CI](https://github.com/eddiethedean/rdfmodel/actions/workflows/ci.yml/badge.svg)](https://github.com/eddiethedean/rdfmodel/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/eddiethedean/rdfmodel)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/eddiethedean/rdfmodel/blob/main/LICENSE)
+
+**Pydantic models for RDF graphs.** Map typed Python classes to [rdflib](https://github.com/RDFLib/rdflib) triples and back — without hand-writing `graph.add` for every field.
 
 ```text
 Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Person(...)
 ```
 
-## Why RDFModel?
+RDFModel is the **stateless mapping layer** in a small ecosystem: it owns terms, predicates, and graph round-trip. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session, SPARQL queries, ORM) is planned to depend on RDFModel from **0.2** — see the [ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md).
 
-| Without RDFModel | With RDFModel |
-|------------------|---------------|
-| Manually `graph.add((s, p, o))` for each field | `person.to_graph()` |
-| Parse triples by hand into dataclasses | `Person.from_graph(graph, uri)` |
-| Repeat predicate IRIs and subject logic per project | `rdf_field()` + nested `Rdf` config |
+> **0.1.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
 
-RDFModel is a thin bridge: it does not replace rdflib parsers, stores, or SPARQL — it orchestrates them around **Pydantic-shaped** domain models. See the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) for planned releases through **1.0.0**.
+## Features
 
-For ecosystem strategy and SparqlModel integration, see the [project plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) and [ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md) — RDFModel is the stateless mapping layer; [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) is the session/query ORM layer (future `rdfmodel` dependency).
+- **Pydantic v2** models with `validate_assignment=True`
+- **Declarative mapping** — nested `Rdf` config + `rdf_field()` or `Annotated[..., Predicate(...)]`
+- **Subject IRIs** — build from `namespace` + `id_field`, percent-encoded segments, safe import (no prefix collisions)
+- **XSD round-trip** — `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like strings → `URIRef`
+- **Stateless I/O** — `to_graph` / `from_graph` / `all_from_graph` / `models_to_graph` on in-memory `Graph`
+- **Typed package** — `py.typed` for type checkers
+
+**Not in 0.1.0** (on the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md)): file parse/serialize, multi-valued fields, nested models, sync/remove, SPARQL helpers.
 
 ## Requirements
 
@@ -29,8 +36,6 @@ For ecosystem strategy and SparqlModel integration, see the [project plan](https
 ```bash
 pip install rdfmodel
 ```
-
-**0.1.0 is an alpha release.** The public API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) integration is planned from **0.2** ([ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md)).
 
 ## Quick start
 
@@ -51,48 +56,46 @@ class Person(RdfModel):
 
 alice = Person(slug="alice", name="Alice", age=30)
 
-# Export to an in-memory rdflib Graph
 graph = alice.to_graph()
 print(alice.subject_uri())  # http://example.org/people/alice
 
-# Import one resource by subject IRI
-same = Person.from_graph(graph, alice.subject_uri())
-assert same == alice
-
-# Import every foaf:Person in the graph
-everyone = Person.all_from_graph(graph)
+assert Person.from_graph(graph, alice.subject_uri()) == alice
+assert len(Person.all_from_graph(graph)) == 1
 ```
 
-## How it works
+## Concepts
 
-### 1. Nested `Rdf` config
+### RDF metadata (`class Rdf`)
 
-Each model subclass declares RDF metadata on a nested class:
-
-| Attribute | Purpose |
-|-----------|---------|
+| Attribute | Role |
+|-----------|------|
 | `namespace` | Base IRI for subject resources |
-| `type_uri` | Value for `rdf:type` on export; filter on `all_from_graph()` |
-| `id_field` | Model field whose value forms the subject IRI path segment |
+| `type_uri` | Emitted as `rdf:type`; used to filter `all_from_graph()` |
+| `id_field` | Field value appended to `namespace` for the subject IRI |
 
-Subject IRIs are built as `{namespace}/{id}` (a `/` is added to `namespace` when needed). **Id values are percent-encoded** in the path, so spaces and reserved characters round-trip safely.
-
-Override the subject for a single export/import with `uri=`:
+Subject IRIs use `subject_base(namespace)` + percent-encoded id (`quote` / `unquote`). Override per call with `uri=`:
 
 ```python
 alice.to_graph(uri="http://custom.example/alice")
 Person.from_graph(graph, "http://custom.example/alice")
 ```
 
-### 2. Field → predicate mapping
+Shared helpers (also on the package root):
 
-Map Pydantic fields to predicate IRIs with **`rdf_field()`**:
+```python
+from rdfmodel import id_from_subject_uri, subject_base
+
+base = subject_base("http://example.org/people")  # ensures trailing / or #
+id_from_subject_uri("http://example.org/people", "http://example.org/people/alice")  # "alice"
+```
+
+### Field → predicate
 
 ```python
 name: str = rdf_field("http://xmlns.com/foaf/0.1/name")
 ```
 
-Or attach metadata on the type with **`Annotated`** and **`Predicate`**:
+Or with **`Annotated`**:
 
 ```python
 from typing import Annotated
@@ -101,47 +104,48 @@ from rdfmodel import Predicate
 title: Annotated[str, Predicate("http://purl.org/dc/terms/title")]
 ```
 
-Fields without a predicate mapping are **ignored** on export and import (useful for computed or local-only attributes).
+Fields **without** a predicate mapping are skipped on export and import (handy for computed or app-only fields).
 
-### 3. Term conversion
+### Term conversion
 
-On export, Python values become RDF terms:
-
-| Python | RDF |
-|--------|-----|
+| Python | RDF (export) |
+|--------|----------------|
 | `str` (not IRI-like) | `xsd:string` literal |
-| `str` starting with `http://`, `https://`, `urn:` | `URIRef` |
-| `int`, `float`, `bool`, `date`, `datetime` | XSD-typed literals |
+| `str` with `http://`, `https://`, `urn:` | `URIRef` |
+| `int`, `float`, `bool`, `date`, `datetime` | XSD-typed literal |
 
-On import, literals are converted back using the field’s type annotation.
+Import uses each field’s type annotation. `BNode` objects cannot be coerced into `str` fields.
 
-## API overview
+## API reference
 
-**Instance methods**
+### `RdfModel` methods
 
-| Method | Description |
-|--------|-------------|
-| `subject_uri(uri=None)` | Subject IRI (derived or explicit) |
-| `to_triples(uri=None)` | List of `(subject, predicate, object)` tuples |
-| `to_graph(graph=None, uri=None)` | Serialize into an rdflib `Graph` |
+| | Method | Description |
+|---|--------|-------------|
+| Instance | `subject_uri(uri=None)` | Subject IRI |
+| Instance | `to_triples(uri=None)` | `(subject, predicate, object)` tuples |
+| Instance | `to_graph(graph=None, uri=None)` | Serialize into a `Graph` |
+| Class | `from_graph(graph, uri)` | Load one resource |
+| Class | `all_from_graph(graph, type_uri=None)` | Load all resources of this `type_uri` |
+| Class | `rdf_config()` | Resolved `RdfConfig` |
 
-**Class methods**
+### Module-level API
 
-| Method | Description |
-|--------|-------------|
-| `from_graph(graph, uri)` | Hydrate one instance from triples about `uri` |
-| `all_from_graph(graph, type_uri=None)` | Load all resources of this model’s RDF type |
-| `rdf_config()` | Resolved `RdfConfig` for this class |
+| Name | Description |
+|------|-------------|
+| `rdf_field`, `Predicate` | Predicate metadata for fields |
+| `RdfConfig`, `RdfModel` | Config dataclass and base model |
+| `model_to_graph`, `model_to_triples`, `models_to_graph` | Export without subclassing |
+| `graph_to_model`, `graph_to_models` | Import into a model class |
+| `subject_base`, `id_from_subject_uri` | Subject IRI building and parsing |
+| `RDF`, `RDFS`, `XSD`, `RDF_TYPE` | Common namespace IRIs |
 
-**Module-level helpers** (same behavior, usable without subclassing `RdfModel`):
+## Examples
 
-`model_to_graph`, `model_to_triples`, `models_to_graph`, `graph_to_model`, `graph_to_models`, `subject_base`, `id_from_subject_uri`
-
-**Constants:** `RDF`, `RDFS`, `XSD`, `RDF_TYPE` — common namespace IRIs.
-
-## Batch export
+### Batch export into one graph
 
 ```python
+from rdflib import Graph
 from rdfmodel import models_to_graph
 
 people = [
@@ -149,29 +153,36 @@ people = [
     Person(slug="bob", name="Bob"),
 ]
 graph = models_to_graph(people)
+
+# Or merge into an existing graph (rdflib Graph() is falsy when empty — pass explicitly)
+existing = Graph()
+models_to_graph(people, existing)
 ```
 
-Pass an existing `Graph` to merge into it:
+### Encoded subject ids
 
 ```python
-graph = Graph()
-models_to_graph(people, graph)
+bob = Person(slug="bob jones", name="Bob")
+uri = bob.subject_uri()  # .../bob%20jones
+restored = Person.from_graph(bob.to_graph(), uri)
 ```
 
-## What’s in 0.1.0
+## RDFModel vs SparqlModel
 
-- `RdfModel` base class (Pydantic v2, `validate_assignment=True`)
-- Subject IRI derivation with safe prefix matching on import
-- `rdf:type` from `Rdf.type_uri`
-- Round-trip for XSD scalars: `str`, `int`, `float`, `bool`, `date`, `datetime`
-- In-memory `Graph` I/O only (parse/serialize and SPARQL are on the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md))
+| Need | Use |
+|------|-----|
+| Turn a model instance into triples / load from a `Graph` | **RDFModel** |
+| Turtle/JSON-LD files, namespaces, datasets (roadmap) | **RDFModel** |
+| `session.put`, queries, cascade delete, HTTP store | **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** |
 
-## Current limitations
+Details: [project plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md).
 
-- **Single value per predicate** — multiple objects for the same predicate import only the first (planned [0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md)).
-- **Unmapped fields are omitted** — no predicate mapping means no triples.
-- **Blank nodes** — `BNode` objects cannot be imported into `str` fields (planned [0.3.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md)).
-- **Flat models only** — no nested `RdfModel` embedding or RDF lists yet.
+## Limitations (0.1.0)
+
+- **Single value per predicate** — multiple objects import only the first ([0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) adds multi-value fields).
+- **Flat models** — no nested `RdfModel` or RDF lists yet.
+- **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
+- **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
 
 ## Development
 
@@ -181,14 +192,22 @@ cd rdfmodel
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-pytest                    # 100% coverage enforced
-ruff check src tests
+pytest
+ruff format src tests && ruff check src tests
+ty check src tests
 ```
 
-CI runs on Python 3.10, 3.12, and 3.13.
+CI runs on Python 3.10, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/rdfmodel/blob/main/RELEASING.md).
 
-Planning: [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) · [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) · [plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) · [ecosystem](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md) · [releasing](https://github.com/eddiethedean/rdfmodel/blob/main/RELEASING.md)
+## Documentation
+
+| Doc | Description |
+|-----|-------------|
+| [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) | Release notes |
+| [Roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) | Versions and rdflib parity |
+| [Plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) | Strategy and priorities |
+| [Ecosystem](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md) | RDFModel ↔ SparqlModel boundaries |
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/eddiethedean/rdfmodel/blob/main/LICENSE).
