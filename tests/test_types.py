@@ -120,3 +120,8 @@ def test_plain_string_without_scheme_stays_literal():
     term = python_to_term("not an iri")
     assert isinstance(term, Literal)
     assert term.datatype == XSD.string
+
+
+def test_curie_like_string_stays_literal():
+    term = python_to_term("foaf:name")
+    assert isinstance(term, Literal)

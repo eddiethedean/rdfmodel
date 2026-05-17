@@ -32,7 +32,7 @@ Pin `triplemodel` only after:
 
 | TripleModel | Unblocks |
 |----------|----------|
-| **0.2** | Multi-value, nested models, sync/remove, prefixes |
+| **0.2** (released) | Multi-value, nested models, sync/remove, prefixes — pin `triplemodel>=0.2,<0.3` |
 | **0.3** | Blanks / RDF lists (if needed) |
 | **0.4** | File I/O |
 | **0.5** | Named graphs (if needed) |

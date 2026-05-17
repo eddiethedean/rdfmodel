@@ -17,7 +17,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 **TripleModel** is the **typed mapping layer** in a small ecosystem: Pydantic models ↔ RDF triples via field types and predicates. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session, SPARQL queries, ORM) is planned to depend on TripleModel from **0.2** — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.1.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.2.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Features
 
@@ -26,9 +26,13 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 - **Subject IRIs** — build from `namespace` + `id_field`, percent-encoded segments, safe import (no prefix collisions)
 - **XSD round-trip** — `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like strings → `URIRef`
 - **Stateless I/O** — `to_graph` / `from_graph` / `all_from_graph` / `models_to_graph` on in-memory `Graph`
+- **Multi-valued fields** — `list[T]` / `set[T]` round-trip multiple objects per predicate
+- **Nested models** — embed child `TripleModel` instances (`Rdf.embed`: `"iri"` or `"bnode"`)
+- **Sync modes** — `sync_to_graph` / `to_graph(..., mode="replace"|"patch")` remove stale owned triples when fields are cleared
+- **Prefixes & CURIEs** — `Rdf.prefixes`, `rdf_field("foaf:name")`, `bind_namespaces`
 - **Typed package** — `py.typed` for type checkers
 
-**Not in 0.1.0** (on the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file parse/serialize, multi-valued fields, nested models, sync/remove, SPARQL helpers.
+**Not in 0.2.0** (on the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file parse/serialize (0.4), RDF lists and full blank-node strategy (0.3), SPARQL helpers (0.6).
 
 ## Requirements
 
@@ -133,7 +137,8 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 |---|--------|-------------|
 | Instance | `subject_uri(uri=None)` | Subject IRI |
 | Instance | `to_triples(uri=None)` | `(subject, predicate, object)` tuples |
-| Instance | `to_graph(graph=None, uri=None)` | Serialize into a `Graph` |
+| Instance | `to_graph(graph=None, uri=None, mode="add")` | Serialize into a `Graph` (`mode`: `add`, `replace`, `patch`) |
+| Instance | `sync_to_graph(graph, uri=None, mode="replace")` | Update owned triples in an existing graph |
 | Class | `from_graph(graph, uri, validate_type=True, on_duplicate="warn")` | Load one resource |
 | Class | `all_from_graph(graph, type_uri=None, validate_type=True, on_duplicate="warn")` | Load all resources of this `type_uri` |
 | Class | `rdf_config()` | Resolved `RdfConfig` |
@@ -142,7 +147,8 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 
 | Name | Description |
 |------|-------------|
-| `rdf_field`, `Predicate`, `OnDuplicate` | Predicate metadata; duplicate-import policy type |
+| `rdf_field`, `Predicate`, `OnDuplicate`, `GraphMode` | Field metadata, duplicate policy, sync modes |
+| `sync_to_graph`, `expand_curie`, `bind_namespaces`, `merge_graphs` | Sync, CURIEs, namespaces, graph merge |
 | `RdfConfig`, `TripleModel` | Config dataclass and base model |
 | `model_to_graph`, `model_to_triples`, `models_to_graph` | Export without subclassing |
 | `graph_to_model`, `graph_to_models` | Import into a model class |
@@ -215,10 +221,11 @@ assert restored == bob
 
 Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-## Limitations (0.1.x)
+## Limitations (0.2.x)
 
-- **Single value per predicate** — multiple objects import only the first; a warning is emitted by default (`on_duplicate="warn"`). Full multi-value fields land in [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
-- **Flat models** — no nested `TripleModel` or RDF lists yet.
+- **Scalar duplicates** — multiple objects on a non-collection field still warn/error via `on_duplicate` (collections import all values).
+- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred until 0.3.
+- **RDF lists** — use `list[T]` for multiple objects per predicate, not `rdf:List` syntax ([0.3.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)).
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.

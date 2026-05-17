@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import Graph
+from rdflib.term import Node
 
-from triplemodel._config import RdfConfig, get_rdf_config
+from triplemodel._config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel._graph import (
     OnDuplicate,
     graph_to_model,
@@ -15,6 +18,7 @@ from triplemodel._graph import (
     model_to_graph,
     model_to_triples,
 )
+from triplemodel._sync import sync_to_graph
 
 
 class TripleModel(BaseModel):
@@ -49,13 +53,31 @@ class TripleModel(BaseModel):
             return uri
         return get_rdf_config(type(self)).subject_uri(self)
 
-    def to_triples(self, *, uri: str | None = None) -> list[tuple[str, str, object]]:
+    def to_triples(
+        self, *, uri: str | None = None
+    ) -> list[tuple[str | Node, str, Any]]:
         """Export instance data as (subject, predicate, object) tuples."""
         return model_to_triples(self, uri=uri)
 
-    def to_graph(self, graph: Graph | None = None, *, uri: str | None = None) -> Graph:
+    def to_graph(
+        self,
+        graph: Graph | None = None,
+        *,
+        uri: str | None = None,
+        mode: GraphMode = "add",
+    ) -> Graph:
         """Serialize this instance into an rdflib ``Graph``."""
-        return model_to_graph(self, graph, uri=uri)
+        return model_to_graph(self, graph, uri=uri, mode=mode)
+
+    def sync_to_graph(
+        self,
+        graph: Graph,
+        *,
+        uri: str | None = None,
+        mode: GraphMode = "replace",
+    ) -> Graph:
+        """Update ``graph`` with owned triples for this instance (see ``mode``)."""
+        return sync_to_graph(self, graph, uri=uri, mode=mode)
 
     @classmethod
     def from_graph(

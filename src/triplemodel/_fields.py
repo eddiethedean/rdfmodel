@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Annotated, Any, cast, get_args, get_origin
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
+
+from triplemodel._config import RDF_TYPE, RdfConfig, get_rdf_config
+from triplemodel._namespaces import resolve_predicate
 
 
 @dataclass(frozen=True)
@@ -14,6 +17,11 @@ class Predicate:
     """Marks a model field with its RDF predicate IRI."""
 
     uri: str
+
+
+@dataclass(frozen=True)
+class IriId:
+    """Mark ``id_field`` as a full IRI string (not appended to ``namespace``)."""
 
 
 def rdf_field(
@@ -58,3 +66,33 @@ def predicate_from_annotation(annotation: Any) -> str | None:
         if isinstance(meta, Predicate):
             return meta.uri
     return None
+
+
+def resolve_field_predicate(
+    field_info: FieldInfo,
+    prefixes: dict[str, str],
+) -> str | None:
+    """Resolved full predicate IRI for a field."""
+    raw = predicate_for_field(field_info) or predicate_from_annotation(
+        field_info.annotation
+    )
+    if raw is None:
+        return None
+    return resolve_predicate(raw, prefixes)
+
+
+def owned_predicates(
+    model_cls: type[BaseModel],
+    config: RdfConfig | None = None,
+) -> frozenset[str]:
+    """Predicates owned by ``model_cls`` (mapped fields and ``rdf:type``)."""
+    cfg = config or get_rdf_config(model_cls)
+    preds: set[str] = set()
+    if cfg.type_uri:
+        preds.add(RDF_TYPE)
+    prefixes = cfg.prefixes_dict
+    for field_info in model_cls.model_fields.values():
+        pred = resolve_field_predicate(field_info, prefixes)
+        if pred is not None:
+            preds.add(pred)
+    return frozenset(preds)

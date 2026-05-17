@@ -4,13 +4,13 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.1.0)
+## Current status (0.2.0)
 
-**Ready for PyPI (alpha):** Flat `TripleModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.11 / 3.12 / 3.13), ruff, `ty check`, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
+**Released (alpha) on PyPI:** Multi-value `list`/`set` fields, nested `TripleModel` embed (`iri`/`bnode`), `sync_to_graph` with `add`/`replace`/`patch`, `Rdf.prefixes` + CURIE expansion, `triplemodel.vocab`, literal registry, and graph helpers. SparqlModel may pin `triplemodel>=0.2,<0.3` for SM-1 experiments. See [CHANGELOG.md](../CHANGELOG.md).
 
-**Not yet shipped (blocks SparqlModel PyPI dependency):** Multi-value fields, nested models, sync/remove on re-export, namespaces/`bind`, file parse/serialize — see **0.2** and [ROADMAP § SM-1](ROADMAP.md#sparqlmodel-integration-milestones).
+**Not yet shipped:** File parse/serialize (**0.4**), RDF lists and full blank-node strategy (**0.3**), Dataset/named graphs (**0.5**).
 
-**Next focus:** **0.2.0** — prioritize items in the SparqlModel gate (SM-1) before optional ergonomics.
+**Next focus:** **0.3.0** — language tags, RDF lists, blank-node hardening; then **0.4** file I/O.
 
 ---
 

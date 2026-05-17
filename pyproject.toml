@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "triplemodel"
-version = "0.1.0"
+version = "0.2.0"
 description = "Pydantic TripleModel classes ↔ RDF triples via rdflib (alpha). SparqlModel ORM integration planned from 0.2."
 readme = "README.md"
 license = "MIT"
@@ -59,6 +59,7 @@ include = [
     "CHANGELOG.md",
     "RELEASING.md",
     "examples/readme_examples.py",
+    "examples/foaf_person_02.py",
     "docs/PLAN.md",
     "docs/ROADMAP.md",
     "docs/ECOSYSTEM.md",

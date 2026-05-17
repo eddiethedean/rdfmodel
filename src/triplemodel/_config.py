@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Literal, Mapping
 from urllib.parse import quote, unquote
+
+EmbedMode = Literal["iri", "bnode"]
+GraphMode = Literal["add", "replace", "patch"]
 
 
 def subject_base(namespace: str) -> str:
@@ -20,6 +24,14 @@ def id_from_subject_uri(namespace: str, uri: str) -> str | None:
     return unquote(uri[len(base) :])
 
 
+def _freeze_prefixes(raw: object) -> Mapping[str, str]:
+    if not raw:
+        return MappingProxyType({})
+    if isinstance(raw, Mapping):
+        return MappingProxyType({str(k): str(v) for k, v in raw.items()})
+    return MappingProxyType({})
+
+
 @dataclass(frozen=True)
 class RdfConfig:
     """RDF metadata for an :class:`~triplemodel.TripleModel` subclass."""
@@ -28,6 +40,13 @@ class RdfConfig:
     type_uri: str | None = None
     id_field: str | None = None
     """Model field whose value is appended to ``namespace`` for the subject IRI."""
+    prefixes: Mapping[str, str] = MappingProxyType({})
+    embed: EmbedMode = "iri"
+    graph_mode: GraphMode = "add"
+
+    @property
+    def prefixes_dict(self) -> dict[str, str]:
+        return dict(self.prefixes)
 
     def subject_uri(self, instance: Any) -> str:
         if not self.namespace:
@@ -45,6 +64,12 @@ class RdfConfig:
             raise ValueError(
                 f"Cannot build subject IRI: field {self.id_field!r} is empty."
             )
+        if isinstance(raw, str) and (
+            raw.startswith("http://")
+            or raw.startswith("https://")
+            or raw.startswith("urn:")
+        ):
+            return raw
         base = subject_base(self.namespace)
         segment = quote(str(raw), safe="")
         return f"{base}{segment}"
@@ -56,10 +81,15 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
             continue
         rdf = getattr(cls, "Rdf", None)
         if rdf is not None:
+            embed = getattr(rdf, "embed", "iri") or "iri"
+            mode = getattr(rdf, "graph_mode", "add") or "add"
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
                 id_field=getattr(rdf, "id_field", None),
+                prefixes=_freeze_prefixes(getattr(rdf, "prefixes", None)),
+                embed=embed if embed in ("iri", "bnode") else "iri",
+                graph_mode=mode if mode in ("add", "replace", "patch") else "add",
             )
     return RdfConfig()
 

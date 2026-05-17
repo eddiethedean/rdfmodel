@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-17
+
+### Added
+
+- **Multi-valued fields** — `list[T]` and `set[T]` map to multiple objects per predicate on import/export
+- **Nested `TripleModel`** — embed related resources with `Rdf.embed` (`"iri"` or `"bnode"`)
+- **Graph sync modes** — `sync_to_graph`, `to_graph(..., mode=)`, and `GraphMode` (`"add"`, `"replace"`, `"patch"`) to remove stale owned triples
+- **Namespaces** — `Rdf.prefixes`, `expand_curie`, `bind_namespaces`, CURIE predicates in `rdf_field("foaf:name")`
+- **`triplemodel.vocab`** — re-exports common rdflib namespaces (FOAF, DC, SKOS, …)
+- **Literal registry** — `register_literal_type` with defaults for `Decimal`, `UUID`, and `Enum`
+- **Graph helpers** — `merge_graphs`, `graph_value`, `graph_set`, `objects_for_field`
+- **`IriId`** metadata and full-IRI `id_field` values when `Rdf.namespace` is set
+- Export `GraphMode`, `sync_to_graph`, `expand_curie`, `bind_namespaces`, `merge_graphs` from package root
+
+### Changed
+
+- Scalar fields still use `on_duplicate` for multiple objects; collection fields import all values
+- `to_graph` defaults to `mode="add"` (0.1 behaviour); use `sync_to_graph(..., mode="replace")` to drop cleared fields
+
+### Documentation
+
+- `examples/foaf_person_02.py` demonstrates 0.2 exit criteria
+- Triple ownership documented for SparqlModel integration (SM-1)
+
 ## [0.1.0] - 2026-05-17
 
 ### Added
@@ -56,4 +80,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Alpha:** API may change until 1.0. Multi-value fields, nested models, sync/remove, and file I/O are planned for **0.2+**.
 - **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** integration (optional `triplemodel` dependency) is targeted from **0.2**; see `docs/ECOSYSTEM.md`.
 
+[0.2.0]: https://github.com/eddiethedean/triplemodel/releases/tag/v0.2.0
 [0.1.0]: https://github.com/eddiethedean/triplemodel/releases/tag/v0.1.0

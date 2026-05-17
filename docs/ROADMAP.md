@@ -123,20 +123,22 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.2.0 — Terms, fields, and namespaces
 
+**Status:** Released (alpha) — on PyPI as `triplemodel==0.2.0`
+
 **Theme:** Everything needed for ordinary RDF-shaped Pydantic models on a single default graph.
 
-- [ ] **Multi-valued fields** — `list[T]`, `set[T]` ↔ multiple objects per predicate
-- [ ] **Nested `TripleModel`** — blank node or named IRI embedding (configurable)
-- [ ] **Optional & null semantics** — omit vs explicit empty; **remove** prior triples when a field is cleared on re-export
-- [ ] **Custom `Literal` datatypes** — register converters (`Decimal`, `UUID`, `Enum`, …); wire **rdflib `term.bind()`**
-- [ ] **Namespace helpers** — `Namespace`, CURIE expansion, `Rdf.prefixes` → `Graph.bind`
-- [ ] **`DefinedNamespace` vocabs** — re-export common rdflib namespaces from `triplemodel.vocab`
-- [ ] **`bind_namespaces` strategies** — passthrough `core` / `rdflib` / `none` when constructing graphs
-- [ ] **Graph merge policies** — replace / patch / only-own-triples when writing into existing `Graph`
-- [ ] **Graph set operations** — document BNode behaviour for `g1 + g2`; optional `merge_graphs()` helper
-- [ ] **`Graph.set` / `Graph.value`** — align single-cardinality fields with functional-property semantics
-- [ ] **Graph iterator helpers** — thin wrappers over `subjects` / `objects` / `predicate_objects` scoped to a model URI
-- [ ] **Duplicate predicate warning** — optional `strict` / warn when import sees multiple objects (until multi-value lands)
+- [x] **Multi-valued fields** — `list[T]`, `set[T]` ↔ multiple objects per predicate
+- [x] **Nested `TripleModel`** — blank node or named IRI embedding (configurable)
+- [x] **Optional & null semantics** — omit vs explicit empty; **remove** prior triples when a field is cleared on re-export
+- [x] **Custom `Literal` datatypes** — register converters (`Decimal`, `UUID`, `Enum`, …); wire **rdflib `term.bind()`**
+- [x] **Namespace helpers** — CURIE expansion, `Rdf.prefixes` → `Graph.bind`
+- [x] **`DefinedNamespace` vocabs** — re-export common rdflib namespaces from `triplemodel.vocab`
+- [x] **`bind_namespaces` strategies** — passthrough `core` / `rdflib` / `none` when constructing graphs
+- [x] **Graph merge policies** — replace / patch / add when writing into existing `Graph`
+- [x] **Graph set operations** — `merge_graphs()` helper; BNode identity documented in docstrings
+- [x] **`Graph.set` / `Graph.value`** — `graph_set` / `graph_value` helpers
+- [x] **Graph iterator helpers** — `objects_for_field`
+- [x] **Duplicate predicate warning** — scalars use `on_duplicate`; collections import all values
 
 **Exit criteria:** FOAF `Person` with multiple `nick` values and embedded `mbox` round-trips; prefixes appear in serialized Turtle; clearing `age=None` removes `foaf:age` triples on re-export.
 

@@ -143,6 +143,14 @@ When choosing a package (or deciding where a feature belongs):
 | FastAPI RDF responses | **SparqlModel** |
 | Raw `graph.query("SELECT …")` without a DSL | **rdflib** or TripleModel passthrough; not a SparqlModel requirement |
 
+## Triple ownership (0.2+)
+
+**TripleModel** owns **mapped predicates** for a subject: `sync_to_graph` / `mode="replace"` removes prior `(subject, predicate, ?)` triples for predicates declared on the model (plus `rdf:type` when configured), then writes the current field values.
+
+**SparqlModel** owns **session policy** beyond that: cascade to related resources, orphan cleanup when a parent is deleted, and which related IRIs are included in a `put`.
+
+SparqlModel should call `triplemodel.sync_to_graph` (or equivalent) for the resource’s owned triples, then apply its own rules for linked resources.
+
 When **implementing** a feature:
 
 | Touching… | Belongs in |
