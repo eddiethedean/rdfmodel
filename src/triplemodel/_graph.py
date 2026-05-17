@@ -15,6 +15,7 @@ from rdflib.term import Node
 from triplemodel._cardinality import (
     field_cardinality,
     nested_model_type,
+    raise_if_nested_collection,
     scalar_python_type,
     unwrap_annotation,
 )
@@ -55,7 +56,7 @@ def _field_values_for_export(name: str, value: Any, field_info: Any) -> list[Any
     if card == "list":
         return [v for v in value if v is not None]
     if card == "set":
-        return list(value)
+        return [v for v in value if v is not None]
     return [value]
 
 
@@ -82,6 +83,7 @@ def model_to_triples(
         predicate = resolve_field_predicate(field_info, prefixes)
         if predicate is None:
             continue
+        raise_if_nested_collection(field_info)
         value = getattr(model, name)
         card = field_cardinality(field_info)
 
@@ -270,6 +272,7 @@ def graph_to_model(
         predicate = resolve_field_predicate(field_info, prefixes)
         if predicate is None:
             continue
+        raise_if_nested_collection(field_info)
         pred_ref = URIRef(predicate)
         objects = list(graph.objects(subject, pred_ref))
         if not objects:

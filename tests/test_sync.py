@@ -73,3 +73,19 @@ def test_patch_clears_curie_predicate_empty_list():
     sync_to_graph(CuriePerson(slug="a", nick=[]), g, mode="patch")
     subj = URIRef(EX + "a")
     assert list(g.objects(subj, URIRef(f"{FOAF}nick"))) == []
+
+
+def test_to_graph_add_leaves_stale_triples():
+    p = Person(slug="a", name="A", age=30)
+    g = p.to_graph()
+    p2 = Person(slug="a", name="A", age=None)
+    p2.to_graph(g)
+    subj = URIRef(p.subject_uri())
+    assert len(list(g.objects(subj, URIRef(f"{FOAF}age")))) == 1
+
+
+def test_sync_to_graph_bind_false_skips_prefix_bind():
+    p = Person(slug="a", name="A")
+    g = Graph()
+    sync_to_graph(p, g, mode="replace", bind=False)
+    assert len(g) >= 2

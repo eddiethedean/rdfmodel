@@ -40,6 +40,23 @@ def _safe_issubclass(subclass: type, parent: type) -> bool:
         return False
 
 
+_NESTED_COLLECTION_MSG = (
+    "list[TripleModel] and set[TripleModel] are not supported in 0.2; "
+    "use a single nested field or multiple scalar objects per predicate."
+)
+
+
+def raise_if_nested_collection(field_info: FieldInfo) -> None:
+    """Reject ``list[TripleModel]`` / ``set[TripleModel]`` field annotations."""
+    ann = unwrap_annotation(field_info.annotation)
+    origin = get_origin(ann)
+    if origin not in (list, set):
+        return
+    inner = element_type(field_info.annotation)
+    if isinstance(inner, type) and is_triple_model_type(inner):
+        raise ValueError(_NESTED_COLLECTION_MSG)
+
+
 def is_triple_model_type(tp: Any) -> bool:
     if not isinstance(tp, type):
         return False

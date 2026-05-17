@@ -238,6 +238,8 @@ Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/do
 - **BNode subjects** — skipped in `all_from_graph()`.
 - **Non-XSD boolean literals** — `bool` fields without `xsd:boolean` use a loose truthiness heuristic on import.
 - **Union field types** (e.g. `str | int`) rely on rdflib `toPython()` when the annotation is not a single scalar type.
+- **`Rdf.graph_mode`** — parsed into config but not wired; `to_graph()` / `sync_to_graph()` still use explicit `mode=` (default `"add"` / `"replace"`).
+- **Multi-value collections** — `list[T]` / `set[T]` are for scalar `T` only; `list[TripleModel]` / `set[TripleModel]` are rejected until a future release.
 
 ## Development
 

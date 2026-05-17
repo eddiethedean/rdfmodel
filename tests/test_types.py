@@ -91,6 +91,12 @@ def test_term_to_python_bool_from_non_xsd_literal():
     assert term_to_python(lit, bool) is True
 
 
+def test_term_to_python_bool_from_plain_true_literal():
+    lit = Literal("true")
+    assert term_to_python(lit, bool) is True
+    assert term_to_python(Literal("false"), bool) is False
+
+
 def test_term_to_python_float():
     lit = python_to_term(3.14)
     assert term_to_python(lit, float) == 3.14

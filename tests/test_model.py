@@ -385,3 +385,9 @@ def test_empty_child_rdf_shadows_parent():
 
     with pytest.raises(ValueError, match="namespace"):
         Child(slug="a", name="A").subject_uri()
+
+
+def test_validate_assignment_rejects_invalid_value():
+    alice = Person(slug="alice", name="Alice")
+    with pytest.raises(Exception):
+        setattr(alice, "age", "not an int")

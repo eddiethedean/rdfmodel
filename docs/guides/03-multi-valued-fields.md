@@ -1,6 +1,6 @@
 # Multi-valued fields
 
-Use `list[T]` or `set[T]` when a predicate may have **multiple** objects (for example several `foaf:nick` values). TripleModel emits one triple per value and collects all objects on import.
+Use `list[T]` or `set[T]` when a predicate may have **multiple** objects (for example several `foaf:nick` values). TripleModel emits one triple per value and collects all objects on import. **`T` must be a scalar type** (for example `str`, `int`); `list[TripleModel]` and `set[TripleModel]` are not supported in 0.2 — use a single nested field instead.
 
 ## Lists (ordered)
 

@@ -295,7 +295,12 @@ class Document(TripleModel):
 def test_annotated_predicate_in_combined_workflow():
     doc = Document(slug="d1", title="Report")
     g = doc.to_graph()
-    assert graph_value(g, doc.subject_uri(), "http://purl.org/dc/terms/title", Document, "title") == "Report"
+    assert (
+        graph_value(
+            g, doc.subject_uri(), "http://purl.org/dc/terms/title", Document, "title"
+        )
+        == "Report"
+    )
     assert Document.from_graph(g, doc.subject_uri()).title == "Report"
 
 

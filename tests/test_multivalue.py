@@ -40,6 +40,12 @@ def test_empty_list_omitted():
     assert not any(f"{FOAF}nick" in pred for _, pred, _ in triples)
 
 
+def test_set_skips_none_elements_on_export():
+    p = Person.model_construct(slug="a", name="A", tag={"x", None, "y"})
+    tag_triples = [t for t in p.to_triples() if t[1] == "http://example.org/tag"]
+    assert len(tag_triples) == 2
+
+
 def test_scalar_duplicate_still_warns():
     from rdflib import Graph, Literal, URIRef
 

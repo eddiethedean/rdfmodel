@@ -113,3 +113,23 @@ def test_graph_to_model_skips_unmapped_fields():
     assert m.name == "Alice"
     assert m.slug == "alice"
     assert m.mystery == ""
+
+
+def test_all_from_graph_type_uri_override():
+    class Worker(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = "http://example.org/Worker"
+            id_field = "slug"
+
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+
+    g = Graph()
+    subj = URIRef(EX + "w1")
+    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
+    g.add((subj, URIRef(f"{FOAF}name"), Literal("Pat")))
+    loaded = Worker.all_from_graph(g, type_uri=f"{FOAF}Person", validate_type=False)
+    assert len(loaded) == 1
+    assert loaded[0].slug == "w1"
+    assert loaded[0].name == "Pat"

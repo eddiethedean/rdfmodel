@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from rdflib import URIRef
 
 import triplemodel
 from triplemodel import (
@@ -21,6 +22,7 @@ def test_public_package_exports_subject_helpers():
     assert triplemodel.id_from_subject_uri is id_from_subject_uri
     assert "subject_base" in triplemodel.__all__
     assert "id_from_subject_uri" in triplemodel.__all__
+    assert "IriId" in triplemodel.__all__
 
 
 def test_subject_base_adds_slash():
@@ -82,3 +84,48 @@ def test_get_rdf_config_inherits_from_base():
     assert cfg.namespace == EX
     assert cfg.type_uri == f"{FOAF}Person"
     assert cfg.id_field == "slug"
+
+
+def test_subject_uri_accepts_zero_and_false_id_values():
+    FOAF = "http://xmlns.com/foaf/0.1/"
+
+    class Counter(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+        slug: int | bool
+        name: str = rdf_field(f"{FOAF}name")
+
+    zero = Counter(slug=0, name="Zero")
+    assert zero.subject_uri().endswith("/0")
+    assert Counter.from_graph(zero.to_graph(), zero.subject_uri()) == zero
+
+    flag = Counter(slug=False, name="Flag")
+    assert flag.subject_uri().endswith("/False")
+    assert Counter.from_graph(flag.to_graph(), flag.subject_uri()) == flag
+
+
+def test_falsy_type_uri_omits_rdf_type_on_export():
+    class Untyped(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = ""
+            id_field = "slug"
+
+        slug: str
+        name: str = rdf_field("http://xmlns.com/foaf/0.1/name")
+
+    g = Untyped(slug="a", name="A").to_graph()
+    subj = URIRef(EX + "a")
+    assert (
+        list(g.objects(subj, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
+        == []
+    )
+
+
+def test_id_from_subject_uri_returns_multi_segment_suffix():
+    ns = "http://example.org/people"
+    uri = "http://example.org/people/alice/extra"
+    assert id_from_subject_uri(ns, uri) == "alice/extra"

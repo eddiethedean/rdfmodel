@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Nested IRI embed + `replace` sync** — `sync_to_graph` / `to_graph(..., mode="replace")` now clears owned triples on embedded child subjects before re-export, so updating nested field values no longer leaves duplicate predicates on the child IRI.
+- **`set` export** — `None` elements are skipped on export, matching `list` behaviour.
+- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` instead of emitting invalid literals.
+
 ## [0.2.0] - 2026-05-17
 
 ### Added

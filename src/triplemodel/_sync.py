@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
 
@@ -39,6 +41,39 @@ def remove_owned_triples(
         predicates if predicates is not None else owned_predicates(model_cls, config)
     )
     remove_triples_for_predicates(graph, _subject_ref(uri), set(preds))
+
+
+def _clear_nested_iri_children(
+    model: BaseModel,
+    graph: Graph,
+    *,
+    config: RdfConfig,
+) -> None:
+    """Remove owned triples for nested IRI-embedded children before parent replace."""
+    from triplemodel._cardinality import field_cardinality, nested_model_type
+
+    if config.embed != "iri":
+        return
+    cls = type(model)
+    for name, field_info in cls.model_fields.items():
+        if config.id_field and name == config.id_field:
+            continue
+        if field_cardinality(field_info) != "nested":
+            continue
+        nested_cls = nested_model_type(field_info)
+        if nested_cls is None:
+            continue
+        value = getattr(model, name)
+        if value is None:
+            continue
+        nested_cfg = get_rdf_config(nested_cls)
+        child_uri = nested_cfg.subject_uri(value)
+        remove_owned_triples(
+            graph,
+            child_uri,
+            cast(type[BaseModel], nested_cls),
+            config=nested_cfg,
+        )
 
 
 def predicates_to_patch(
@@ -99,6 +134,7 @@ def sync_to_graph(
 
     if mode == "replace":
         remove_owned_triples(g, subject, cls, config=cfg)
+        _clear_nested_iri_children(model, g, config=cfg)
         return model_to_graph(model, g, uri=uri, config=cfg, mode="add")
 
     # patch: clear empty fields, then replace triples per updated predicate
