@@ -20,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Skolemization** — `skolemize` / `de_skolemize` kwargs on `to_graph`, `sync_to_graph`, `model_to_graph`, and `from_graph`; `Rdf.skolemize_export` / `Rdf.skolemize_import` defaults
 - **`examples/exit_criteria_03.py`** — DC `title` with language tag, blank-node `Address` embed, ordered `nick` `rdf:List`
 - Guide: `docs/guides/09-rdf-lists-and-lang.md`
+- Runnable doc snippets (`examples/doc/`) with golden outputs checked in CI (`tests/test_doc_examples.py`)
 
 ### Changed
 
-- **Breaking:** `list[T]` is no longer “multiple objects per predicate”; use `set[T]` for that semantics (see migration in README)
+- **Breaking:** `list[T]` is no longer “multiple objects per predicate”; use `set[T]` for that semantics (see `docs/guides/03-multi-valued-fields.md`)
+- README and user guides describe current `list` / `set` collection semantics (no version-specific migration section)
 
 ### Fixed
 
