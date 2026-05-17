@@ -12,10 +12,11 @@ The following should be satisfied on `main` before tagging:
 
 ## Pre-release checklist
 
-- [ ] `version` `0.2.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [ ] CI on `main`: `pytest` (100% coverage), `ruff format --check`, `ruff check`, `ty check`, `python -m build` (Python 3.10 / 3.11 / 3.12 / 3.13)
-- [ ] Local: `ruff format src tests`, `ty check src tests`, `PYTHONPATH=src python examples/readme_examples.py`
-- [ ] `python -m build` and `twine check dist/*` pass
+- [x] `version` `0.2.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] `[Unreleased]` empty (all 0.2.0 notes under `## [0.2.0]`)
+- [x] CI on `main`: `pytest` (100% coverage), `ruff format --check`, `ruff check`, `ty check`, `python -m build` (Python 3.10 / 3.11 / 3.12 / 3.13)
+- [x] Local: `ruff format src tests`, `ty check src tests`, `PYTHONPATH=src python examples/readme_examples.py`
+- [x] `python -m build` and `twine check dist/*` pass
 - [ ] Create and push git tag `v0.2.0` (triggers Release workflow: build + PyPI publish)
 - [ ] GitHub release from tag
 

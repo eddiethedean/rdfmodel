@@ -100,7 +100,5 @@ def test_nested_import_uses_custom_registry():
     box = Box(slug="b1", amount=CustomAmount(Decimal("9.99")))
     parent = Parent(slug="p1", box=box)
     g = parent.to_graph(registry=registry)
-    restored = graph_to_model(
-        g, Parent, parent.subject_uri(), registry=registry
-    )
+    restored = graph_to_model(g, Parent, parent.subject_uri(), registry=registry)
     assert restored.box.amount == CustomAmount(Decimal("9.99"))

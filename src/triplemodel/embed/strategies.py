@@ -51,9 +51,7 @@ class IriEmbedStrategy:
                 f"Cannot import nested {nested_cls.__name__} from term {term!r} "
                 f"with embed='iri'."
             )
-        return graph_to_model(
-            graph, nested_cls, str(term), registry=registry
-        )
+        return graph_to_model(graph, nested_cls, str(term), registry=registry)
 
 
 @dataclass(frozen=True)

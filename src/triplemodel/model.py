@@ -67,9 +67,7 @@ class TripleModel(BaseModel):
         registry: LiteralRegistry | None = None,
     ) -> list[TripleRow]:
         """Export instance data as (subject, predicate, object) tuples."""
-        return model_to_triples(
-            self, uri=uri, resolver=resolver, registry=registry
-        )
+        return model_to_triples(self, uri=uri, resolver=resolver, registry=registry)
 
     def to_graph(
         self,
