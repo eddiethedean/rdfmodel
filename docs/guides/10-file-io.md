@@ -62,7 +62,7 @@ Each subject is loaded as the most specific registered model class.
 
 ## Inverse predicates
 
-Map `owl:inverseOf`-style data on import with `inverse=` on `rdf_field` or `InverseOf` metadata. Export writes only the forward predicate.
+Map `owl:inverseOf`-style data on import with `inverse=` on `rdf_field` or `InverseOf` metadata. Export writes only the forward predicate. When a field is cleared, `sync_to_graph(..., mode="replace")` or `mode="patch"` also removes `(?, inverse_predicate, subject)` triples on other resources. If both forward and inverse triples exist for the same field, import uses the forward objects and warns (or raises with `on_duplicate="error"`).
 
 ## SHACL validation (optional)
 

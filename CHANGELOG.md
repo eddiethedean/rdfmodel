@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0] - 2026-05-17
 
+### Fixed
+
+- **Inverse predicates on sync** — `replace` and `patch` remove stale `(?, inverse_predicate, subject)` triples when a field with `inverse=` is cleared
+- **Inverse import conflicts** — warn or error when both forward and inverse triples exist; forward objects win
+- **Duplicate `Rdf.type_uri`** — `UserWarning` when a second model class registers the same `type_uri`
+- **`from_graph` list duplicates** — honor `on_duplicate` for `list`/`set` fields (including multiple `rdf:List` heads)
+- **Malformed RDF lists** — clear `ValueError` when a list head lacks `rdf:first`
+- **Stale error message** — nested collection rejection now references 0.4
+
+### Changed
+
+- **`parse_url` User-Agent** — uses `triplemodel/{version}` from package metadata
+- **Release docs** — `RELEASING.md` updated for 0.4.0; README limitations cover dispatch and sync defaults
+
 ### Added
 
 - **File I/O** — `TripleModel.parse`, `parse_file`, `parse_url`, and `serialize` delegate to rdflib; `load_models` / `dump_model` helpers

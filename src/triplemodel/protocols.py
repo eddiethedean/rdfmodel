@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Protocol, cast, runtime_checkable
 
 from pydantic import BaseModel
@@ -21,6 +22,13 @@ def register_rdf_resource(model_cls: type) -> None:
     _rdf_resource_classes.add(model_cls)
     cfg = get_rdf_config(model_cls)
     if cfg.type_uri:
+        existing = _type_uri_index.get(cfg.type_uri)
+        if existing is not None and existing is not model_cls:
+            warnings.warn(
+                f"Rdf.type_uri {cfg.type_uri!r} already registered on "
+                f"{existing.__name__}; replacing with {model_cls.__name__}.",
+                stacklevel=2,
+            )
         _type_uri_index[cfg.type_uri] = cast(type[BaseModel], model_cls)
 
 

@@ -46,8 +46,10 @@ def _handle_duplicate(
     uri: str,
     count: int,
     on_duplicate: OnDuplicate,
+    *,
+    message: str | None = None,
 ) -> None:
-    dup_msg = (
+    dup_msg = message or (
         f"Multiple objects ({count}) for field {field_name!r} "
         f"(predicate {predicate!r}, subject {uri!r}); using the first only."
     )
@@ -55,6 +57,24 @@ def _handle_duplicate(
         raise ValueError(dup_msg)
     if on_duplicate == "warn":
         warnings.warn(dup_msg, stacklevel=3)
+
+
+def _handle_forward_inverse_conflict(
+    field_name: str,
+    forward_predicate: str,
+    inverse_predicate: str,
+    uri: str,
+    on_duplicate: OnDuplicate,
+) -> None:
+    msg = (
+        f"Both forward predicate {forward_predicate!r} and inverse "
+        f"{inverse_predicate!r} have values for field {field_name!r} "
+        f"(subject {uri!r}); using forward objects only."
+    )
+    if on_duplicate == "error":
+        raise ValueError(msg)
+    if on_duplicate == "warn":
+        warnings.warn(msg, stacklevel=3)
 
 
 def _union_conversion_order(term: Node, members: tuple[type, ...]) -> tuple[type, ...]:
@@ -219,15 +239,28 @@ def graph_to_model(
             continue
         raise_if_nested_collection(field_info)
         pred_ref = URIRef(predicate)
-        objects = list(graph.objects(subject, pred_ref))
-        if not objects:
-            inv_raw = inverse_for_field(field_info)
-            if inv_raw is not None:
-                inv_pred = resolve_predicate(inv_raw, prefixes)
-                objects = list(graph.subjects(URIRef(inv_pred), subject))
-        if not objects:
+        forward_objects = list(graph.objects(subject, pred_ref))
+        inv_raw = inverse_for_field(field_info)
+        inverse_objects: list[Node] = []
+        inv_predicate: str | None = None
+        if inv_raw is not None:
+            inv_predicate = resolve_predicate(inv_raw, prefixes)
+            inverse_objects = list(graph.subjects(URIRef(inv_predicate), subject))
+        if forward_objects and inverse_objects and inv_predicate is not None:
+            if on_duplicate != "ignore":
+                _handle_forward_inverse_conflict(
+                    name,
+                    predicate,
+                    inv_predicate,
+                    uri_str,
+                    on_duplicate,
+                )
+        if forward_objects:
+            objects = forward_objects
+        elif inverse_objects:
+            objects = inverse_objects
+        else:
             continue
-        card = field_cardinality(field_info)
         data[name] = import_field_value(
             graph,
             objects,
@@ -236,7 +269,7 @@ def graph_to_model(
             predicate,
             uri_str,
             embed=cfg.embed,
-            on_duplicate=on_duplicate if card in ("scalar", "nested") else "ignore",
+            on_duplicate=on_duplicate,
             registry=registry,
         )
 

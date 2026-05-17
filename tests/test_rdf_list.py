@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import warnings
+
 import pytest
-from rdflib import Graph, URIRef
+from rdflib import BNode, Graph, URIRef
+from rdflib.namespace import RDF
 
 from triplemodel import TripleModel, objects_for_field, rdf_field, sync_to_graph
 from triplemodel.io.list_fields import clear_model_rdf_lists
@@ -191,3 +194,25 @@ def test_read_rdf_list_direct():
     g = p.to_graph()
     head = list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}nick")))[0]
     assert read_rdf_list(g, head, str) == ["x", "y"]
+
+
+def test_read_rdf_list_malformed_head_raises():
+    g = Graph()
+    head = BNode("not-a-list")
+    g.add((URIRef(EX + "a"), URIRef(f"{FOAF}nick"), head))
+    with pytest.raises(ValueError, match="not an rdf:List head"):
+        read_rdf_list(g, head, str)
+
+
+def test_from_graph_duplicate_list_heads_warns():
+    p = Person(slug="a", nick=["x"])
+    g = p.to_graph()
+    subj = URIRef(p.subject_uri())
+    g.add((subj, URIRef(f"{FOAF}nick"), BNode("second-list")))
+    g.add((BNode("second-list"), RDF.first, URIRef("http://example.org/extra")))
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        restored = Person.from_graph(g, str(subj), on_duplicate="warn")
+    assert any("Multiple objects" in str(x.message) for x in w)
+    assert restored.nick == ["x"]

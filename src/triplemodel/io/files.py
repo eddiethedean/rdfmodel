@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 from rdflib import Graph
@@ -65,9 +65,7 @@ def infer_format(
     suffix = Path(text).suffix.lower()
     if suffix in _SUFFIX_TO_FORMAT:
         return _SUFFIX_TO_FORMAT[suffix]
-    raise ValueError(
-        f"Cannot infer RDF format from {hint!r}; pass format= explicitly."
-    )
+    raise ValueError(f"Cannot infer RDF format from {hint!r}; pass format= explicitly.")
 
 
 def _is_jsonld_format(fmt: str | None) -> bool:
@@ -121,7 +119,9 @@ def parse_into_graph(
 
 def fetch_url(url: str, *, timeout: float = 30.0) -> bytes:
     """Download ``url`` and return the response body."""
-    request = Request(url, headers={"User-Agent": "triplemodel/0.4"})
+    from triplemodel import __version__
+
+    request = Request(url, headers={"User-Agent": f"triplemodel/{__version__}"})
     with urlopen(request, timeout=timeout) as response:
         return response.read()
 

@@ -3,7 +3,7 @@ API reference
 
 .. automodule:: triplemodel
    :members:
-   :exclude-members: Predicate, IriId, RdfConfig
+   :exclude-members: Predicate, IriId, InverseOf, RdfConfig
    :show-inheritance:
 
 Module reference

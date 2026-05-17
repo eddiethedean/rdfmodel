@@ -279,8 +279,10 @@ http://example.org/people/bob%20jones
 - **Named graphs** — use rdflib `Dataset` directly until 0.5 (`to_dataset` on the roadmap).
 - **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
 - **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` is not supported.
-- **BNode subjects** are skipped by `all_from_graph()`.
+- **BNode subjects** are skipped by `all_from_graph()` and by `parse(..., dispatch=True)` / `all_from_graph_dispatch()`.
+- **Subclass dispatch** — only loads subjects whose `rdf:type` is registered on a model class; other types are omitted without error.
 - **Default add mode** does not remove stale triples — use `sync_to_graph` or `mode="replace"`.
+- **`sync_to_graph()`** defaults to `replace` when `Rdf.graph_mode` is `"add"` (unlike `to_graph()`, which defaults to add).
 
 Details: [user guides](https://triplemodel.readthedocs.io/en/latest/guides/index.html) · [RDF lists & lang](https://triplemodel.readthedocs.io/en/latest/guides/09-rdf-lists-and-lang.html).
 

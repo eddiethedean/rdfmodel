@@ -180,7 +180,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [x] **`parse(data=...)`** — load from string (Turtle/JSON-LD snippets in apps and tests)
 - [x] **JSON-LD context** — optional `@context` on `Rdf` class for compaction; passthrough compact/expand kwargs
 - [x] **SHACL (optional extra)** — validate before `to_graph()` via pyshacl or equivalent
-- [x] **Inverse predicates** — `owl:inverseOf` pairs for import/export symmetry
+- [x] **Inverse predicates** — import via inverse predicate; export and sync clear forward links; `replace`/`patch` remove stale inverse triples on other subjects
 - [x] **Subclass dispatch** — multiple `type_uri`; import picks most specific registered model
 
 **Exit criteria:** Same `Person` instance equivalent from Turtle file, JSON-LD string, and in-memory `Graph`; invalid data fails SHACL when extra installed (`examples/exit_criteria_04.py`).
@@ -292,7 +292,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 | Security | Safe parser defaults; document XML/URL fetch risks |
 | Quality | ≥90% coverage on core; integration tests per supported format and SPARQL |
 | Packaging | PyPI wheels; extras: `shacl`, `jsonld`, `sqlalchemy`, `berkeleydb`, `dev` |
-| Governance | CONTRIBUTING.md, CODE_OF_CONDUCT, Keep a Changelog |
+| Governance | `CONTRIBUTING.md`, CODE_OF_CONDUCT, Keep a Changelog |
 
 **Celebration criteria:** A downstream app can depend on `triplemodel~=1.0` knowing rdflib features are available through TripleModel where they apply to typed models, SparqlModel can pin this release for mapping, and patch releases are safe.
 

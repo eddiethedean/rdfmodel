@@ -31,7 +31,7 @@ sphinx-build -b html docs docs/_build/html -W
 python -m http.server -d docs/_build/html 8000
 ```
 
-Open http://localhost:8000. User guides are Markdown under `docs/guides/`; API reference is generated from docstrings via Sphinx autodoc.
+Open `http://localhost:8000`. User guides are Markdown under `docs/guides/`; API reference is generated from docstrings via Sphinx autodoc.
 
 ### Runnable examples in docs
 

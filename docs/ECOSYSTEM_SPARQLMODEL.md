@@ -33,8 +33,8 @@ Pin `triplemodel` only after:
 | TripleModel | Unblocks |
 |----------|----------|
 | **0.2** (released) | Multi-value, nested models, sync/remove, prefixes — pin `triplemodel>=0.2,<0.3` |
-| **0.3** | Blanks / RDF lists (if needed) |
-| **0.4** | File I/O |
+| **0.3** (released) | Blanks / RDF lists — pin `triplemodel>=0.3,<0.4` |
+| **0.4** (released) | File I/O, dispatch, inverse predicates — pin `triplemodel>=0.4,<0.5` |
 | **0.5** | Named graphs (if needed) |
 | **0.9+** | API freeze for semver pin |
 

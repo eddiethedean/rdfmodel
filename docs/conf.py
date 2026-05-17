@@ -71,6 +71,20 @@ intersphinx_mapping = {
     "rdflib": ("https://rdflib.readthedocs.io/en/stable/", None),
 }
 
+# Linkcheck: localhost is local-only; W3C/xmlns IRIs are often not retrievable as HTML.
+linkcheck_ignore = [
+    r"http://localhost:8000/?",
+    r"http://www\.w3\.org/.*",
+    r"http://xmlns\.com/.*",
+]
+
+linkcheck_allowed_redirects = {
+    "https://docs.pydantic.dev/": r"https://pydantic\.dev/.*",
+    "https://rdflib.readthedocs.io/": r"https://rdflib\.readthedocs\.io/en/stable/.*",
+    "https://pypi.org/manage/account/token/": r"https://pypi\.org/account/login/.*",
+    "https://readthedocs.org/": r"https://about\.readthedocs\.com/.*",
+}
+
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 napoleon_include_special_with_doc = True

@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+import warnings
+
 from rdflib import Graph, Literal, URIRef
 
-from triplemodel import TripleModel, graph_to_model_dispatch, rdf_field, resolve_model_class
+from triplemodel import (
+    TripleModel,
+    graph_to_model_dispatch,
+    rdf_field,
+    resolve_model_class,
+)
 from triplemodel.io.dispatch import all_from_graph_dispatch
 from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
@@ -73,7 +80,9 @@ def test_all_from_graph_dispatch_skips_non_node_subjects() -> None:
     from triplemodel.config import RDF_TYPE
 
     g = Graph()
-    g.add((Literal("not-a-subject"), URIRef(RDF_TYPE), URIRef("http://example.org/Agent")))
+    g.add(
+        (Literal("not-a-subject"), URIRef(RDF_TYPE), URIRef("http://example.org/Agent"))
+    )
     g.add((URIRef(f"{EX}bob"), URIRef(RDF_TYPE), URIRef("http://example.org/Agent")))
     g.add((URIRef(f"{EX}bob"), URIRef(f"{FOAF_NS}name"), Literal("Bob")))
     g.add((URIRef(f"{EX}bob"), URIRef("http://example.org/role"), Literal("r")))
@@ -88,3 +97,30 @@ def test_parse_dispatch() -> None:
     assert len(loaded) == 1
     assert isinstance(loaded[0], Agent)
     assert loaded[0].role == "editor"
+
+
+def test_duplicate_type_uri_registration_warns() -> None:
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+
+        class DuplicateA(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = "http://example.org/DuplicateType"
+                id_field = "slug"
+
+            slug: str
+
+        class DuplicateB(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = "http://example.org/DuplicateType"
+                id_field = "slug"
+
+            slug: str
+
+    assert len(w) == 1
+    msg = str(w[0].message)
+    assert "DuplicateType" in msg
+    assert "DuplicateA" in msg
+    assert "DuplicateB" in msg

@@ -6,7 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from triplemodel import TripleModel, infer_format, load_models, parse_into_graph, rdf_field
+from triplemodel import (
+    TripleModel,
+    infer_format,
+    load_models,
+    parse_into_graph,
+    rdf_field,
+)
 from triplemodel.io.files import merge_jsonld_kwargs
 from triplemodel.vocab import FOAF
 
@@ -88,10 +94,7 @@ def test_base_uri_relative_import(tmp_path: Path) -> None:
         slug: str
         name: str = rdf_field(f"{FOAF_NS}name")
 
-    ttl = (
-        f"@base <{EX}> .\n"
-        f"<alice> a <{FOAF_NS}Person> ; <{FOAF_NS}name> \"Alice\" ."
-    )
+    ttl = f'@base <{EX}> .\n<alice> a <{FOAF_NS}Person> ; <{FOAF_NS}name> "Alice" .'
     graph = parse_into_graph(data=ttl, format="turtle", base=EX)
     loaded = RelPerson.all_from_graph(graph)
     assert len(loaded) == 1

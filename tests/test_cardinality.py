@@ -110,7 +110,7 @@ def test_list_of_triple_model_raises_on_export():
             "http://example.org/member", default_factory=list
         )
 
-    with pytest.raises(ValueError, match="not supported in 0.3"):
+    with pytest.raises(ValueError, match="not supported in 0.4"):
         Team(slug="t", members=[Child(slug="c", label="x")]).to_graph()
 
 
@@ -131,7 +131,7 @@ def test_list_of_triple_model_raises_on_import():
     g = Graph()
     subj = URIRef(EX + "t")
     g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    with pytest.raises(ValueError, match="not supported in 0.3"):
+    with pytest.raises(ValueError, match="not supported in 0.4"):
         graph_to_model(g, Team, str(subj))
 
 
@@ -147,7 +147,7 @@ def test_set_of_triple_model_raises_on_export():
             "http://example.org/member", default_factory=set
         )
 
-    with pytest.raises(ValueError, match="not supported in 0.3"):
+    with pytest.raises(ValueError, match="not supported in 0.4"):
         raise_if_nested_collection(Team.model_fields["members"])
 
 

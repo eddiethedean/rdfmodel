@@ -29,7 +29,9 @@ def test_inverse_for_field_metadata() -> None:
             id_field = "slug"
 
         slug: str = "x"
-        ref: Annotated[str | None, InverseOf("ex:inv")] = rdf_field("ex:p", default=None)
+        ref: Annotated[str | None, InverseOf("ex:inv")] = rdf_field(
+            "ex:p", default=None
+        )
 
     assert inverse_for_field(M.model_fields["ref"]) == "ex:inv"
 

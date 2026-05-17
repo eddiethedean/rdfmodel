@@ -46,8 +46,12 @@ def model_to_triples(
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry | None = None,
 ) -> list[TripleRow]:
-    """Return (subject, predicate, object) tuples for a model instance."""
-    _ = registry  # reserved for future per-field literal overrides
+    """Return (subject, predicate, object) tuples for a model instance.
+
+    ``registry`` is accepted for API symmetry with graph writers; literal
+    conversion happens when triples are added to a graph (``graph_set_many``).
+    """
+    _ = registry
     cls = type(model)
     cfg = config or get_rdf_config(cls)
     r = resolver or default_resolver

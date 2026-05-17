@@ -26,6 +26,7 @@ from triplemodel.io.sync.nested_cleanup import (
     clear_stale_nested_bnode_children,
     clear_stale_nested_iri_children,
 )
+from triplemodel.io.sync.inverse_ops import clear_inverse_links
 from triplemodel.io.sync.predicate_ops import (
     remove_owned_triples,
     remove_triples_for_predicates,
@@ -111,6 +112,13 @@ class ReplaceGraphMode:
         clear_nested_bnode_children(
             model, graph, subject, config=config, resolver=resolver
         )
+        clear_inverse_links(
+            graph,
+            model,
+            subject=subject,
+            config=config,
+            resolver=resolver,
+        )
         remove_owned_triples(graph, subject, cls, config=config, resolver=resolver)
         return write_model_add(
             graph,
@@ -162,6 +170,13 @@ class PatchGraphMode:
             graph=graph,
         ):
             remove_triples_for_predicates(graph, subj_node, to_clear)
+        clear_inverse_links(
+            graph,
+            model,
+            subject=subject,
+            config=config,
+            resolver=resolver,
+        )
 
         by_sp: dict[tuple[Node, str], list[TripleObject]] = defaultdict(list)
         for subj, pred, obj in model_to_triples(

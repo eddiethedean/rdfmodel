@@ -37,6 +37,7 @@ guides/06-namespaces-and-curies
 guides/07-custom-literals-and-types
 guides/08-working-with-graphs
 guides/09-rdf-lists-and-lang
+guides/10-file-io
 ```
 
 ```{toctree}

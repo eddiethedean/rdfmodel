@@ -78,13 +78,15 @@ def test_dump_model_type_error() -> None:
 
 def test_fetch_url() -> None:
     with patch("triplemodel.io.files.urlopen") as mock_open:
-        mock_open.return_value.__enter__.return_value.read.return_value = b"@prefix ex: <http://ex/> ."
+        mock_open.return_value.__enter__.return_value.read.return_value = (
+            b"@prefix ex: <http://ex/> ."
+        )
         body = fetch_url("http://example.org/data.ttl")
         assert b"prefix" in body
 
 
 def test_parse_url_into_graph() -> None:
-    ttl = f"<{EX}a> a <{FOAF_NS}Person> ; <{FOAF_NS}name> \"A\" ."
+    ttl = f'<{EX}a> a <{FOAF_NS}Person> ; <{FOAF_NS}name> "A" .'
     with patch("triplemodel.io.files.fetch_url", return_value=ttl.encode()):
         g = parse_url_into_graph("http://example.org/a.ttl")
         assert len(g) >= 1
@@ -119,7 +121,7 @@ def test_merge_jsonld_noop() -> None:
 
 
 def test_person_parse_url() -> None:
-    ttl = f"<{EX}a> a <{FOAF_NS}Person> ; <{FOAF_NS}name> \"A\" ."
+    ttl = f'<{EX}a> a <{FOAF_NS}Person> ; <{FOAF_NS}name> "A" .'
     with patch("triplemodel.io.files.fetch_url", return_value=ttl.encode()):
         loaded = Mini.parse_url("http://example.org/a.ttl")
     assert loaded[0].slug == "a"

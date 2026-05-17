@@ -62,6 +62,10 @@ def read_rdf_list(
     registry: LiteralRegistry = default_registry,
 ) -> list[ModelFieldScalar]:
     """Read an ``rdf:List`` starting at ``head`` into a Python list."""
+    if (head, RDF.first, None) not in graph:
+        raise ValueError(
+            f"Node {head!r} is not an rdf:List head (missing rdf:first triple)."
+        )
     coll = Collection(graph, head)
     return [
         cast(ModelFieldScalar, term_to_python(term, py_type, registry=registry))
