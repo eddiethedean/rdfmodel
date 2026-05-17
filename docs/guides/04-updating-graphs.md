@@ -14,15 +14,14 @@ Re-exporting with `to_graph()` alone **adds** triples; it does not remove stale 
 
 ## Clearing a scalar field
 
-```python
-from triplemodel import sync_to_graph
+```{literalinclude} ../../examples/doc/snippets/updating_clear_age.py
+:language: python
+```
 
-alice = Person(slug="alice", name="Alice", age=30)
-graph = alice.to_graph()
+Output:
 
-alice.age = None
-sync_to_graph(alice, graph, mode="replace")
-# foaf:age triples for alice are gone
+```{literalinclude} ../../examples/doc/outputs/updating_clear_age.txt
+:language: text
 ```
 
 Same via the instance method:

@@ -1,0 +1,8 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/people/alice> a foaf:Person ;
+    foaf:age 30 ;
+    foaf:name "Alice"^^xsd:string .
+
+

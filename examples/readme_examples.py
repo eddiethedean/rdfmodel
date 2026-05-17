@@ -33,7 +33,8 @@ class Person(TripleModel):
 def quick_start() -> None:
     alice = Person(slug="alice", name="Alice", age=30)
     graph = alice.to_graph()
-    print(alice.subject_uri())
+    uri = alice.subject_uri()
+    print(uri)
     assert Person.from_graph(graph, alice.subject_uri()) == alice
     assert len(Person.all_from_graph(graph)) == 1
 
@@ -86,6 +87,7 @@ def batch_export() -> None:
 def encoded_subject_ids() -> None:
     bob = Person(slug="bob jones", name="Bob")
     uri = bob.subject_uri()
+    print(uri)
     assert "%20" in uri
     assert Person.from_graph(bob.to_graph(), uri) == bob
 

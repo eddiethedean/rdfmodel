@@ -25,8 +25,15 @@ assert Person.from_graph(graph, alice.subject_uri()) == alice
 
 ## Serialize to Turtle
 
-```python
-print(graph.serialize(format="turtle"))
+```{literalinclude} ../examples/doc/snippets/quickstart_turtle.py
+:language: python
+:lines: 17-19
+```
+
+Output:
+
+```{literalinclude} ../examples/doc/outputs/quickstart_turtle.txt
+:language: text
 ```
 
 ## Update an existing graph

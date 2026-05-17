@@ -68,6 +68,7 @@ include = [
     "examples/readme_examples.py",
     "examples/foaf_person_02.py",
     "examples/exit_criteria_03.py",
+    "examples/doc",
     "docs/README.md",
     "docs/PLAN.md",
     "docs/ROADMAP.md",

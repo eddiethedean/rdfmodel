@@ -24,9 +24,14 @@ pip install -e ".[dev]"
 
 ## Verify
 
-```python
-import triplemodel
-print(triplemodel.__version__)
+```{literalinclude} ../examples/doc/snippets/installation_version.py
+:language: python
+```
+
+Output:
+
+```{literalinclude} ../examples/doc/outputs/installation_version.txt
+:language: text
 ```
 
 **Next:** {doc}`quickstart` or the full {doc}`guides/01-getting-started`.

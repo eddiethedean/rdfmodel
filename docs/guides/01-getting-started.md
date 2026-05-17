@@ -44,7 +44,13 @@ Fields **without** a predicate (no `rdf_field` / `Predicate`) are ignored on exp
 alice = Person(slug="alice", name="Alice", age=30)
 
 graph = alice.to_graph()
-print(alice.subject_uri())  # http://example.org/people/alice
+print(alice.subject_uri())
+```
+
+Output:
+
+```{literalinclude} ../../examples/doc/outputs/getting_started_export.txt
+:language: text
 ```
 
 `to_graph()` returns a new `Graph` when you do not pass one. Optional fields set to `None` (here `age` when omitted) produce **no triple** on export.

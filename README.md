@@ -1,58 +1,34 @@
 # TripleModel
 
 [![CI](https://github.com/eddiethedean/triplemodel/actions/workflows/ci.yml/badge.svg)](https://github.com/eddiethedean/triplemodel/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/triplemodel)](https://pypi.org/project/triplemodel/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/eddiethedean/triplemodel)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/eddiethedean/triplemodel/blob/main/LICENSE)
 [![Documentation](https://readthedocs.org/projects/triplemodel/badge/?version=latest)](https://triplemodel.readthedocs.io/en/latest/?badge=latest)
 
-**Pydantic models for RDF graphs.** Map typed Python classes to [rdflib](https://github.com/RDFLib/rdflib) triples and back — without hand-writing `graph.add` for every field.
+**Typed Pydantic models for RDF.** Declare fields once, get correct triples in and out of [rdflib](https://github.com/RDFLib/rdflib) `Graph` objects — no manual `graph.add` for every property.
 
 | | |
 |--|--|
-| PyPI / import | `triplemodel` |
-| Base class | `TripleModel` |
+| **Install** | `pip install triplemodel` |
+| **Import** | `from triplemodel import TripleModel, rdf_field` |
+| **Docs** | [triplemodel.readthedocs.io](https://triplemodel.readthedocs.io/) |
 
 ```text
 Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Person(...)
 ```
 
-**TripleModel** is the **typed mapping layer** in a small ecosystem: Pydantic models ↔ RDF triples via field types and predicates. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session, SPARQL queries, ORM) is planned to depend on TripleModel from **0.2** — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
+TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, and graph sync. It is **stateless** and in-memory today; [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) is planned to build on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.3.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
-
-## Features
-
-- **Pydantic v2** models with `validate_assignment=True`
-- **Declarative mapping** — nested `Rdf` config + `rdf_field()` or `Annotated[..., Predicate(...)]`
-- **Subject IRIs** — build from `namespace` + `id_field`, percent-encoded segments, safe import (no prefix collisions)
-- **XSD round-trip** — `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like strings → `URIRef`
-- **Stateless I/O** — `to_graph` / `from_graph` / `all_from_graph` / `models_to_graph` on in-memory `Graph`
-- **RDF lists & multi-valued fields** — `list[T]` → `rdf:List`; `set[T]` → multiple objects per predicate
-- **Language tags & opaque literals** — `LangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef`
-- **Nested models** — embed child `TripleModel` instances (`Rdf.embed`: `"iri"` or `"bnode"`)
-- **Sync modes** — `sync_to_graph` / `to_graph(..., mode="replace"|"patch")` remove stale owned triples when fields are cleared
-- **Prefixes & CURIEs** — `Rdf.prefixes`, `rdf_field("foaf:name")`, `bind_namespaces`
-- **Typed package** — `py.typed` for type checkers
-
-**Not in 0.3.0** (on the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file parse/serialize (0.4), named graphs (0.5), SPARQL helpers (0.6).
-
-### Migrating from 0.2.x
-
-- Fields that meant **multiple objects on one predicate** (tags, duplicate predicates) should use **`set[T]`**, not `list[T]`.
-- Fields that need an **ordered RDF list** (`rdf:List`) should use **`list[T]`**. In 0.2, neither `list` nor `set` produced `rdf:List` — both meant multiple objects per predicate.
-- No compatibility shim is provided; bump the dependency and update field annotations accordingly.
-
-## Requirements
-
-- Python **3.10+**
-- [Pydantic](https://docs.pydantic.dev/) v2
-- [rdflib](https://rdflib.readthedocs.io/) v7
+> **0.3.0 is alpha.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 
 ```bash
 pip install triplemodel
 ```
+
+**Requirements:** Python 3.10+, Pydantic 2, rdflib 7.
 
 ## Quick start
 
@@ -72,213 +48,266 @@ class Person(TripleModel):
     age: int | None = rdf_field(f"{FOAF}age", default=None)
 
 alice = Person(slug="alice", name="Alice", age=30)
-
 graph = alice.to_graph()
-print(alice.subject_uri())  # http://example.org/people/alice
 
 assert Person.from_graph(graph, alice.subject_uri()) == alice
-assert len(Person.all_from_graph(graph)) == 1
+print(alice.subject_uri())
 ```
 
-## Concepts
+```text
+http://example.org/people/alice
+```
 
-### RDF metadata (`class Rdf`)
+Unmapped fields are ignored on export/import — useful for computed or application-only data.
+
+## What you get in 0.3
+
+| Area | Capability |
+|------|------------|
+| **Mapping** | Nested `class Rdf` + `rdf_field()` or `Annotated[..., Predicate(...)]` |
+| **Identity** | Subject IRIs from `namespace` + `id_field` (percent-encoded ids) |
+| **Scalars** | `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like `str` → `URIRef` |
+| **Collections** | `set[T]` → multiple objects per predicate; `list[T]` → ordered `rdf:List` |
+| **Literals** | `LangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef` |
+| **Nesting** | Child `TripleModel` with `Rdf.embed` `"iri"` or `"bnode"` |
+| **Graph writes** | `to_graph` / `sync_to_graph` with `add`, `replace`, or `patch` |
+| **Namespaces** | `Rdf.prefixes`, CURIE predicates (`"foaf:name"`), `bind_namespaces` |
+| **Typing** | PEP 561 `py.typed` |
+
+**Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file `parse` / `serialize` (0.4), named graphs (0.5), SPARQL helpers (0.6).
+
+### `list` vs `set` (0.3 breaking change)
+
+In **0.2**, both `list[T]` and `set[T]` meant “several triples on the same predicate.” In **0.3**:
+
+| Annotation | RDF shape |
+|------------|-----------|
+| `set[str]` | Multiple objects on one predicate (unordered) |
+| `list[str]` | One `rdf:List` (`rdf:first` / `rdf:rest`) |
+
+There is no compatibility shim — update annotations when upgrading from 0.2.
+
+## A richer model (0.3)
+
+Language tags, RDF lists, and nested blank-node embeds:
+
+```python
+from typing import Annotated
+
+from triplemodel import TripleModel, rdf_field, sync_to_graph
+from triplemodel.terms.lang import Lang, LangString
+from triplemodel.vocab import DC, FOAF
+
+class Address(TripleModel):
+    class Rdf:
+        namespace = "http://example.org/address/"
+        type_uri = "http://example.org/Address"
+        id_field = "slug"
+
+    slug: str = "home"
+    street: str = rdf_field("http://example.org/street")
+
+
+class Person(TripleModel):
+    class Rdf:
+        namespace = "http://example.org/people/"
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+        embed = "bnode"
+        prefixes = {"foaf": str(FOAF), "dc": str(DC)}
+
+    slug: str
+    title: LangString = rdf_field(f"{DC}title")
+    nick: list[str] = rdf_field("foaf:nick", default_factory=list)
+    address: Address | None = rdf_field("http://example.org/home", default=None)
+
+
+person = Person(
+    slug="alice",
+    title=LangString("Alice's profile", "en"),
+    nick=["Al", "Alice"],
+    address=Address(street="1 Main St"),
+)
+graph = person.to_graph()
+
+person.nick = ["Alice"]
+sync_to_graph(person, graph, mode="replace")
+again = Person.from_graph(graph, person.subject_uri())
+print(again.nick)
+```
+
+```text
+['Alice']
+```
+
+Runnable version: [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py) (same models; see also [`examples/doc/snippets/`](examples/doc/snippets/)).
+
+## How mapping works
+
+### `class Rdf` — resource metadata
 
 | Attribute | Role |
 |-----------|------|
-| `namespace` | Base IRI for subject resources |
-| `type_uri` | Emitted as `rdf:type`; used to filter `all_from_graph()` |
-| `id_field` | Field value appended to `namespace` for the subject IRI |
+| `namespace` | Base IRI; subject = namespace + encoded `id_field` value |
+| `type_uri` | `rdf:type` on export; filter for `all_from_graph()` |
+| `id_field` | Python field whose value becomes the subject id segment |
+| `embed` | `"iri"` (default) or `"bnode"` for nested models |
+| `prefixes` | CURIE map → `Graph.bind` on new graphs |
+| `graph_mode` | Default `to_graph` mode when `mode=` is omitted |
+| `blank_node_policy` | `"fresh"` or `"stable"` nested bnodes |
+| `skolemize_export` / `skolemize_import` | Blank-node skolemization defaults |
 
-Subject IRIs use `subject_base(namespace)` + percent-encoded id (`quote` / `unquote`). Override the subject IRI per call with `uri=` (round-trip works when the URI still matches `namespace`):
+Override the subject per call with `uri=` when the IRI still lives under `namespace`:
 
 ```python
-alice = Person(slug="alice", name="Alice")
-custom_uri = "http://example.org/people/alice"
-graph = alice.to_graph(uri=custom_uri)
-assert Person.from_graph(graph, custom_uri) == alice
+graph = alice.to_graph(uri="http://example.org/people/alice")
 ```
 
-Shared helpers (also on the package root):
+Helpers: `subject_base()`, `id_from_subject_uri()`.
+
+### Fields → predicates
 
 ```python
-from triplemodel import id_from_subject_uri, subject_base
+name: str = rdf_field("foaf:name")  # with Rdf.prefixes
 
-base = subject_base("http://example.org/people")  # ensures trailing / or #
-id_from_subject_uri("http://example.org/people", "http://example.org/people/alice")  # "alice"
-```
-
-### Field → predicate
-
-```python
-name: str = rdf_field("http://xmlns.com/foaf/0.1/name")
-```
-
-Or with **`Annotated`**:
-
-```python
 from typing import Annotated
 from triplemodel import Predicate
 
 title: Annotated[str, Predicate("http://purl.org/dc/terms/title")]
+title_fr: Annotated[str, Predicate(f"{DC}title"), Lang("fr")]
 ```
 
-Fields **without** a predicate mapping are skipped on export and import (handy for computed or app-only fields).
+Subclasses **inherit** a parent `Rdf` when the child does not define one. A child `class Rdf:` **replaces** the parent config entirely — never use an empty nested `Rdf` on a subclass.
 
-Subclasses **inherit** a parent’s nested `Rdf` class when the child does not define `Rdf`. If the child declares `class Rdf:`, it **replaces** the parent’s config entirely — do not use an empty nested `Rdf` on a subclass.
+### Scalar → RDF (export)
 
-### Term conversion
+| Python | RDF |
+|--------|-----|
+| `str` (plain) | `xsd:string` |
+| `str` with URI scheme (`http:`, `urn:`, …) | `URIRef` |
+| `int`, `float`, `bool`, `date`, `datetime` | XSD literal |
+| `LangString`, `ResourceRef`, `OpaqueLiteral` | matching literal / IRI |
 
-| Python | RDF (export) |
-|--------|----------------|
-| `str` (not IRI-like) | `xsd:string` literal |
-| `str` with an RFC 3986 scheme (`http:`, `https:`, `urn:`, `mailto:`, `file:`, …) | `URIRef` |
-| `int`, `float`, `bool`, `date`, `datetime` | XSD-typed literal |
+Register custom types with `register_literal_type` and `LiteralRegistry`.
 
-Import uses each field’s type annotation. `BNode` objects cannot be coerced into `str` fields.
+## Updating an existing graph
 
-## API reference
+Default `to_graph()` uses **`mode="add"`** — it only appends. To remove triples when fields are cleared, use sync modes:
 
-### `TripleModel` methods
+```python
+from triplemodel import sync_to_graph
 
-| | Method | Description |
-|---|--------|-------------|
-| Instance | `subject_uri(uri=None)` | Subject IRI |
-| Instance | `to_triples(uri=None)` | `(subject, predicate, object)` tuples |
-| Instance | `to_graph(graph=None, uri=None, mode="add")` | Serialize into a `Graph` (`mode`: `add`, `replace`, `patch`) |
-| Instance | `sync_to_graph(graph, uri=None, mode="replace")` | Update owned triples in an existing graph |
-| Class | `from_graph(graph, uri, validate_type=True, on_duplicate="warn")` | Load one resource |
-| Class | `all_from_graph(graph, type_uri=None, validate_type=True, on_duplicate="warn")` | Load all resources of this `type_uri` |
-| Class | `rdf_config()` | Resolved `RdfConfig` |
+sync_to_graph(person, graph, mode="replace")  # replace all owned triples for this subject
+sync_to_graph(person, graph, mode="patch")    # per-predicate replace; lighter touch
+```
 
-### Module-level API
+`replace` clears nested IRI children and list heads before re-export; `patch` updates predicates present in the model and clears empty fields (including on nested resources). See the [updating graphs guide](https://triplemodel.readthedocs.io/en/latest/guides/04-updating-graphs.html).
 
-| Name | Description |
-|------|-------------|
-| `rdf_field`, `Predicate`, `OnDuplicate`, `GraphMode` | Field metadata, duplicate policy, sync modes |
-| `sync_to_graph`, `expand_curie`, `bind_namespaces`, `merge_graphs` | Sync, CURIEs, namespaces, graph merge |
-| `RdfConfig`, `TripleModel` | Config dataclass and base model |
-| `model_to_graph`, `model_to_triples`, `models_to_graph` | Export without subclassing |
-| `graph_to_model`, `graph_to_models` | Import into a model class |
-| `subject_base`, `id_from_subject_uri` | Subject IRI building and parsing |
-| `RDF`, `RDFS`, `XSD`, `RDF_TYPE` | Common namespace IRIs |
+## API overview
 
-## Examples
+### Instance & class methods
 
-### Batch export into one graph
+| Method | Description |
+|--------|-------------|
+| `subject_uri(uri=None)` | Subject IRI for this instance |
+| `to_triples(uri=None)` | `(subject, predicate, object)` rows |
+| `to_graph(graph=None, uri=None, mode="add", skolemize=None)` | Serialize into a `Graph` |
+| `sync_to_graph(graph, uri=None, mode="replace", skolemize=None)` | Sync owned triples in-place |
+| `from_graph(graph, uri, ...)` | Load one resource |
+| `all_from_graph(graph, type_uri=None, ...)` | Load all resources of this type |
+| `rdf_config()` | Resolved `RdfConfig` |
+
+### Common imports
+
+```python
+from triplemodel import (
+    TripleModel,
+    rdf_field,
+    Predicate,
+    GraphMode,
+    sync_to_graph,
+    models_to_graph,
+    merge_graphs,
+    expand_curie,
+    bind_namespaces,
+    LangString,
+    Lang,
+    ResourceRef,
+    OpaqueLiteral,
+    RDF,
+    XSD,
+)
+```
+
+Full API: [Read the Docs API reference](https://triplemodel.readthedocs.io/en/latest/api/index.html).
+
+## More examples
+
+**Batch export**
 
 ```python
 from rdflib import Graph
-from triplemodel import TripleModel, models_to_graph, rdf_field
+from triplemodel import models_to_graph
 
-FOAF = "http://xmlns.com/foaf/0.1/"
-
-
-class Person(TripleModel):
-    class Rdf:
-        namespace = "http://example.org/people/"
-        type_uri = f"{FOAF}Person"
-        id_field = "slug"
-
-    slug: str
-    name: str = rdf_field(f"{FOAF}name")
-
-
-people = [
-    Person(slug="alice", name="Alice"),
-    Person(slug="bob", name="Bob"),
-]
-graph = models_to_graph(people)
-
-# Or merge into an existing graph (rdflib Graph() is falsy when empty — pass explicitly)
-existing = Graph()
-models_to_graph(people, existing)
+graph = models_to_graph([alice, bob])
+models_to_graph([alice, bob], Graph())  # merge into existing graph
 ```
 
-### Encoded subject ids
+**Encoded subject ids**
 
 ```python
-from triplemodel import TripleModel, rdf_field
-
-FOAF = "http://xmlns.com/foaf/0.1/"
-
-
-class Person(TripleModel):
-    class Rdf:
-        namespace = "http://example.org/people/"
-        type_uri = f"{FOAF}Person"
-        id_field = "slug"
-
-    slug: str
-    name: str = rdf_field(f"{FOAF}name")
-
-
 bob = Person(slug="bob jones", name="Bob")
-uri = bob.subject_uri()  # .../bob%20jones
-restored = Person.from_graph(bob.to_graph(), uri)
-assert restored == bob
+print(bob.subject_uri())
 ```
+
+```text
+http://example.org/people/bob%20jones
+```
+
+**0.2-style multi-object `nick`** (historical): [`examples/foaf_person_02.py`](examples/foaf_person_02.py). On 0.3 use `set[str]` for that pattern.
 
 ## TripleModel vs SparqlModel
 
-| Need | Use |
-|------|-----|
-| Turn a model instance into triples / load from a `Graph` | **TripleModel** (`pip install triplemodel`) |
-| Turtle/JSON-LD files, namespaces, datasets (roadmap) | **TripleModel** |
-| `session.put`, queries, cascade delete, HTTP store | **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** |
+| You need | Package |
+|----------|---------|
+| Pydantic ↔ triples on an in-memory `Graph` | **triplemodel** |
+| File I/O, datasets, SPARQL sessions, cascade `put` | **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** (planned TripleModel dependency) |
 
-Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
+## Known limitations
 
-## Limitations (0.3.x)
+- **In-memory only** until 0.4 (`parse` / `serialize` on the roadmap).
+- **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
+- **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` is not supported.
+- **BNode subjects** are skipped by `all_from_graph()`.
+- **Default add mode** does not remove stale triples — use `sync_to_graph` or `mode="replace"`.
 
-- **Scalar duplicates** — multiple objects on a non-collection field still warn/error via `on_duplicate`. `set[T]` imports all objects on the predicate; `list[T]` reads an `rdf:List`.
-- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred. `replace`/`patch` remove stale blank-node subgraphs in common cases; prefer `blank_node_policy="stable"` when you need deterministic bnodes.
-- **RDF lists** — `list[T]` serializes as `rdf:List`; use `set[T]` for multiple objects on one predicate without a list. RDF Containers (`Bag`/`Seq`/`Alt`) are out of scope — see [guide 09](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/09-rdf-lists-and-lang.md).
-- **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
-- **Stale triples on re-export** — use [`sync_to_graph`](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/04-updating-graphs.md) or `to_graph(..., mode="replace")` to remove cleared fields; default `mode="add"` only appends.
-- **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.
-- **`uri=` override** — `from_graph` can only derive `id_field` when the subject URI is under `Rdf.namespace`; off-namespace URIs fail validation unless you add triples another way.
-- **Empty child `class Rdf:`** — shadows the parent and clears `namespace` / `type_uri` / `id_field`; omit `Rdf` on the child to inherit.
-- **`type_uri=""` or other falsy config** — treated as unset (no `rdf:type` on export, no type filter on import).
-- **`id_from_subject_uri`** — returns the URI suffix after the namespace base (may include extra `/` segments); not a single-segment validator.
-- **`id_field` values `False` or `0`** — are valid ids (not treated as empty).
-- **BNode subjects** — skipped in `all_from_graph()`.
-- **Non-XSD boolean literals** — `bool` fields without `xsd:boolean` use a loose truthiness heuristic on import.
-- **Union field types** (e.g. `str | int`) rely on rdflib `toPython()` when the annotation is not a single scalar type.
-- **`Rdf.graph_mode`** — used when `mode=` is omitted on `to_graph()` / `model_to_graph()`; `sync_to_graph()` uses it when not `"add"`, otherwise defaults to `"replace"`.
-- **Multi-value collections** — `list[T]` / `set[T]` are for scalar `T` only; `list[TripleModel]` / `set[TripleModel]` are rejected until a future release.
+Details: [user guides](https://triplemodel.readthedocs.io/en/latest/guides/index.html) · [RDF lists & lang](https://triplemodel.readthedocs.io/en/latest/guides/09-rdf-lists-and-lang.html).
 
 ## Development
 
 ```bash
-git clone https://github.com/eddiethedean/triplemodel.git
-cd triplemodel
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+git clone https://github.com/eddiethedean/triplemodel.git && cd triplemodel
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
 ruff format src tests && ruff check src tests
 ty check src tests
-sphinx-build -b html docs docs/_build/html -W
-PYTHONPATH=src python examples/readme_examples.py
+PYTHONPATH=src python examples/exit_criteria_03.py
+PYTHONPATH=src:. python examples/doc/regenerate_outputs.py  # refresh doc output files
 ```
 
-CI runs on Python 3.10, 3.11, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/triplemodel/blob/main/RELEASING.md).
+CI: Python 3.10–3.13; `tests/test_doc_examples.py` runs every snippet under `examples/doc/snippets/`. Release process: [RELEASING.md](RELEASING.md).
 
 ## Documentation
 
-**Read the Docs:** [triplemodel.readthedocs.io](https://triplemodel.readthedocs.io/)
-
-| Doc | Description |
-|-----|-------------|
-| [User guides](https://triplemodel.readthedocs.io/en/latest/guides/index.html) | Step-by-step topics (mapping, sync, nested models, …) |
-| [API reference](https://triplemodel.readthedocs.io/en/latest/api/index.html) | Generated from docstrings |
-| [Docs sources](https://github.com/eddiethedean/triplemodel/tree/main/docs) | Sphinx / MyST source on GitHub |
-| [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) | Release notes |
-| [Roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md) | Versions and rdflib parity |
-| [Plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) | Strategy and priorities |
-| [Ecosystem](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md) | triplemodel ↔ SparqlModel boundaries |
+| Resource | Link |
+|----------|------|
+| User guides | [guides index](https://triplemodel.readthedocs.io/en/latest/guides/index.html) |
+| API reference | [api](https://triplemodel.readthedocs.io/en/latest/api/index.html) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| Roadmap | [docs/ROADMAP.md](docs/ROADMAP.md) |
+| Ecosystem | [docs/ECOSYSTEM.md](docs/ECOSYSTEM.md) |
 
 ## License
 
-MIT — see [LICENSE](https://github.com/eddiethedean/triplemodel/blob/main/LICENSE).
+MIT — see [LICENSE](LICENSE).

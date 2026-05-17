@@ -10,10 +10,14 @@ Use a Python `list` when order matters and the graph should use an **`rdf:List`*
 nick: list[str] = rdf_field("foaf:nick", default_factory=list)
 ```
 
-```python
-person = Person(slug="alice", nick=["Al", "Alice"])
-restored = Person.from_graph(person.to_graph(), person.subject_uri())
-assert restored.nick == ["Al", "Alice"]
+```{literalinclude} ../../examples/doc/snippets/rdf_list_nick.py
+:language: python
+```
+
+Output:
+
+```{literalinclude} ../../examples/doc/outputs/rdf_list_nick.txt
+:language: text
 ```
 
 Sync modes clear the entire list structure when the field is `None` or `[]`.

@@ -33,6 +33,15 @@ python -m http.server -d docs/_build/html 8000
 
 Open http://localhost:8000. User guides are Markdown under `docs/guides/`; API reference is generated from docstrings via Sphinx autodoc.
 
+### Runnable examples in docs
+
+Snippets that show **Output** live under `examples/doc/snippets/` with checked-in stdout in `examples/doc/outputs/`. After changing a snippet:
+
+```bash
+PYTHONPATH=src:. python examples/doc/regenerate_outputs.py
+pytest tests/test_doc_examples.py
+```
+
 ## Pull requests
 
 - Keep changes focused; match existing style in `src/triplemodel/`.

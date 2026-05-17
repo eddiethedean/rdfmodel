@@ -32,15 +32,14 @@ class Person(TripleModel):
     mbox: Mailbox | None = rdf_field(f"{FOAF}mbox", default=None)
 ```
 
-```python
-alice = Person(
-    slug="alice",
-    name="Alice",
-    mbox=Mailbox(address="alice@example.org"),
-)
-graph = alice.to_graph()
-restored = Person.from_graph(graph, alice.subject_uri())
-assert restored.mbox.address == "alice@example.org"
+```{literalinclude} ../../examples/doc/snippets/nested_iri_mbox.py
+:language: python
+```
+
+Output:
+
+```{literalinclude} ../../examples/doc/outputs/nested_iri_mbox.txt
+:language: text
 ```
 
 The child subject IRI comes from the **child** model’s `Rdf` config (`namespace` + `id_field`), not the parent’s. Each nested type should define its own `class Rdf`.

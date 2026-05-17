@@ -27,11 +27,14 @@ On `to_graph()` / `sync_to_graph()` with a **new** graph, prefixes are bound aut
 
 Module helper:
 
-```python
-from triplemodel import expand_curie
+```{literalinclude} ../../examples/doc/snippets/mapping_expand_curie.py
+:language: python
+```
 
-expand_curie("foaf:name", {"foaf": "http://xmlns.com/foaf/0.1/"})
-# → 'http://xmlns.com/foaf/0.1/name'
+Output:
+
+```{literalinclude} ../../examples/doc/outputs/mapping_expand_curie.txt
+:language: text
 ```
 
 Absolute IRIs pass through unchanged. Unknown prefixes raise `ValueError`.

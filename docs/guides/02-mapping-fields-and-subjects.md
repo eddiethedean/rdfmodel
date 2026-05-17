@@ -31,14 +31,14 @@ http://example.org/people/alice
 
 Segments are [percent-encoded](https://docs.python.org/3/library/urllib.parse.html#urllib.parse.quote) (`bob jones` → `bob%20jones`). Helpers on the package root:
 
-```python
-from triplemodel import subject_base, id_from_subject_uri
+```{literalinclude} ../../examples/doc/snippets/mapping_subject_helpers.py
+:language: python
+```
 
-base = subject_base("http://example.org/people")  # ensures trailing / or #
-segment = id_from_subject_uri(
-    "http://example.org/people",
-    "http://example.org/people/alice",
-)  # "alice"
+Output:
+
+```{literalinclude} ../../examples/doc/outputs/mapping_subject_helpers.txt
+:language: text
 ```
 
 ### Override the subject per call
@@ -72,7 +72,13 @@ resource = ExternalResource(
     uri="https://catalog.example.org/item/42",
     title="Widget",
 )
-assert resource.subject_uri() == "https://catalog.example.org/item/42"
+print(resource.subject_uri())
+```
+
+Output:
+
+```{literalinclude} ../../examples/doc/outputs/mapping_iri_id.txt
+:language: text
 ```
 
 You can also store a full `http://`, `https://`, or `urn:` value in a normal `id_field` **without** `IriId` on export (`subject_uri()` returns it verbatim), but **import** requires `IriId` to recover that field from the graph.

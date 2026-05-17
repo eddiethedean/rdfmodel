@@ -2,6 +2,8 @@
 
 Runnable scripts live in the repository [`examples/`](https://github.com/eddiethedean/triplemodel/tree/main/examples) directory on GitHub.
 
+Guide and README snippets that show **Output** blocks are driven by [`examples/doc/`](https://github.com/eddiethedean/triplemodel/tree/main/examples/doc) (`snippets/` + checked-in `outputs/`). Regenerate with `python examples/doc/regenerate_outputs.py` from the repo root (`PYTHONPATH=src:.`).
+
 ## FOAF Person (0.2 exit criteria)
 
 [`examples/foaf_person_02.py`](https://github.com/eddiethedean/triplemodel/blob/main/examples/foaf_person_02.py) demonstrates **0.2** semantics (before the 0.3 `list`/`set` split):
