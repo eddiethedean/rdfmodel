@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rdfmodel"
 version = "0.1.0"
-description = "RDFModel — bridge Pydantic models and RDF graphs via rdflib"
+description = "Pydantic models ↔ RDF graphs via rdflib (alpha). SparqlModel ORM integration planned from 0.2."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -45,12 +45,23 @@ src = ["src", "tests"]
 Homepage = "https://github.com/RDFModel/RDFModel"
 Documentation = "https://github.com/RDFModel/RDFModel#readme"
 Repository = "https://github.com/RDFModel/RDFModel"
+Changelog = "https://github.com/RDFModel/RDFModel/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rdfmodel"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/rdfmodel", "tests", "README.md", "ROADMAP.md", "LICENSE"]
+include = [
+    "src/rdfmodel",
+    "tests",
+    "README.md",
+    "CHANGELOG.md",
+    "docs/PLAN.md",
+    "docs/ROADMAP.md",
+    "docs/ECOSYSTEM.md",
+    "docs/ECOSYSTEM_SPARQLMODEL.md",
+    "LICENSE",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,173 @@
+# RDFModel project plan
+
+This document is the **strategic plan** for RDFModel. [ROADMAP.md](ROADMAP.md) tracks **releases and rdflib parity** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
+
+---
+
+## Current status (0.1.0)
+
+**Ready for PyPI (alpha):** Flat `RdfModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.12 / 3.13), ruff, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
+
+**Not yet shipped (blocks SparqlModel PyPI dependency):** Multi-value fields, nested models, sync/remove on re-export, namespaces/`bind`, file parse/serialize — see **0.2** and [ROADMAP § SM-1](ROADMAP.md#sparqlmodel-integration-milestones).
+
+**Next focus:** **0.2.0** — prioritize items in the SparqlModel gate (SM-1) before optional ergonomics.
+
+---
+
+## Mission
+
+**RDFModel** is the shared **Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models, file interchange, and rdflib feature coverage — without application session or query machinery.
+
+**Not the mission:** ORM-style persistence, Python-to-SPARQL compilers, HTTP stores, or web frameworks. That is **SparqlModel**.
+
+---
+
+## Stack and dependency rule
+
+```text
+sparqlmodel  →  rdfmodel  →  rdflib, pydantic
+                  ↑
+            (never imports sparqlmodel)
+```
+
+| Layer | Package | Stateful? |
+|-------|---------|-----------|
+| Application ORM | `sparqlmodel` | Yes (`SPARQLSession`) |
+| Mapping / I/O | `rdfmodel` | No (explicit `Graph` in/out) |
+| RDF engine | `rdflib` | Varies |
+
+---
+
+## Design principles
+
+1. **Library-first** — usable from ETL, tests, and SparqlModel without a global session.
+2. **Orchestrate rdflib** — do not reimplement parsers, stores, or SPARQL engines.
+3. **One mapping implementation** — term conversion and subject-IRI rules live here once; downstream packages must not fork them.
+4. **Explicit over magic** — `to_graph` / `from_graph` behavior is documented; merge and null semantics are testable.
+5. **Optional heaviness** — SHACL, SQLAlchemy/BerkeleyDB stores, JSON-LD extras are install extras, not core deps.
+6. **Stable mapping before ORM sugar** — prioritize releases that unblock SparqlModel’s `rdfmodel` dependency over duplicating SparqlModel features in RDFModel.
+
+---
+
+## Core dependencies
+
+| Package | Role |
+|---------|------|
+| `pydantic` | Model validation and field metadata |
+| `rdflib` | Graphs, terms, parse/serialize, SPARQL passthrough |
+| `typing-extensions` | `Self` and typing on Python 3.10 |
+
+Runtime core stays **pydantic + rdflib + typing-extensions**. Everything else is optional extras or dev tooling.
+
+---
+
+## What RDFModel builds (in scope)
+
+- Field ↔ predicate mapping (`rdf_field`, `Predicate`, future CURIE/`Rdf.prefixes`)
+- Subject identity (namespace + id, percent-encoding, safe import)
+- Term conversion (XSD, lang tags, custom datatypes)
+- Stateless graph I/O and sync (add / remove / merge policies)
+- Document formats via rdflib (`parse` / `serialize`)
+- Named graphs (`Dataset`) where models need contexts
+- Thin SPARQL **passthrough** (`graph.query`, optional helpers) — not a Python query DSL
+- Vocabulary helpers (`rdfmodel.vocab`)
+- Stable mapping API for **SparqlModel** to prototype against from **0.2** (SM-1); semver pin at **0.9–1.0** (SM-5)
+
+---
+
+## What RDFModel does not build (out of scope)
+
+See also [ROADMAP.md § Explicitly out of scope](ROADMAP.md#explicitly-out-of-scope-even-pre-10).
+
+| Area | Owner |
+|------|--------|
+| `SPARQLSession`, `put`/`delete` cascade, orphan cleanup | SparqlModel |
+| Python `Model.field == x` query DSL | SparqlModel |
+| SPARQL compiler (WHERE generation from expressions) | SparqlModel |
+| Hydration depth and relationship loading policy | SparqlModel |
+| `HttpStore`, FastAPI, identity map | SparqlModel |
+| Full OWL reasoning, path algebra, HTML scraping | Other tools / rdflib direct |
+
+RDFModel **may** add `select_models`-style helpers in 0.6 for users who want SPARQL without SparqlModel; SparqlModel remains the home for ergonomic app queries.
+
+---
+
+## SparqlModel integration strategy
+
+SparqlModel today duplicates mapping logic (`graph.py`, `fields.py`, `serializers.py`). The plan is to **converge implementation**, not merge public APIs.
+
+### Integration gates (when SparqlModel should pin `rdfmodel`)
+
+| RDFModel release | Capability SparqlModel needs | SparqlModel action |
+|------------------|------------------------------|-------------------|
+| **0.2** | Multi-value fields; nested models; **sync/remove** on re-export; namespaces/`bind`; merge policies | Replace core of `graph.py` export/import; keep cascade in session |
+| **0.3** | Blank nodes / RDF lists (if embedding retained) | Align hydration with RDFModel loaders |
+| **0.4** | `parse` / `serialize`, base URI | Thin `serializers.py` → RDFModel |
+| **0.5** | `Dataset` / named graphs (if models use `@graph`) | Store layer uses RDFModel dataset helpers |
+| **≥0.9** | API freeze, `py.typed`, documented semver | `sparqlmodel` depends on `rdfmodel~=1.0` (or `>=0.9,<2`) |
+
+Until **0.2** sync/remove ships, SparqlModel should **not** declare a required `rdfmodel` dependency (local dev pin only).
+
+### API convergence (internal, not necessarily public)
+
+| SparqlModel (public) | RDFModel (implementation) |
+|----------------------|---------------------------|
+| `SPARQLModel` | Compose / subclass `RdfModel` |
+| `Field("schema:name")` | Predicate metadata + CURIE expand |
+| `__prefixes__` | `Rdf.prefixes` |
+| `id: IRI` | Explicit IRI id or `id_field` + namespace |
+| `session.put` | RDFModel `sync_to_graph` + SparqlModel cascade |
+
+### Contract tests (future)
+
+- Cross-repo or published-wheel tests: SparqlModel `put` triple set equals RDFModel sync + cascade rules.
+- RDFModel owns literal/subject bugs; SparqlModel owns compiler/session bugs.
+
+---
+
+## Release philosophy
+
+| Phase | Versions | Goal |
+|-------|----------|------|
+| **Foundation** | 0.1.x | Flat round-trip, CI, typing, docs |
+| **Model-complete** | 0.2–0.3 | Fields, sync, namespaces, literals, blanks, lists — **SparqlModel gate** |
+| **Document I/O** | 0.4 | Files and optional SHACL |
+| **Graph contexts** | 0.5 | Dataset / Trig |
+| **Query passthrough** | 0.6 | rdflib SPARQL helpers (not ORM) |
+| **Algorithms** | 0.7 | CBD, isomorphism, RDFS import helpers |
+| **Scale** | 0.8 | Store extras, batch import |
+| **Freeze** | 0.9 | Matrix audit, API stable for downstream |
+| **Production** | 1.0 | Governance, security docs, no new surface |
+
+Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
+
+---
+
+## Priority order (when trade-offs arise)
+
+1. **Correctness** — subject IRIs, literals, import/export symmetry.
+2. **SparqlModel gate items** — sync/remove (0.2), namespaces (0.2), nested models (0.2).
+3. **rdflib matrix** — per [ROADMAP.md](ROADMAP.md).
+4. **Ergonomic extras** — codegen, advanced SPARQL helpers.
+5. **Never** — session/query compiler in RDFModel core.
+
+---
+
+## Documentation map
+
+| Document | Audience |
+|----------|----------|
+| [README.md](../README.md) | Library users |
+| [ROADMAP.md](ROADMAP.md) | Releases, rdflib matrix |
+| [docs/PLAN.md](PLAN.md) | Strategy (this file) |
+| [ECOSYSTEM.md](ECOSYSTEM.md) | RDFModel ↔ SparqlModel boundaries |
+| [docs/ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | Copy into SparqlModel repo |
+
+---
+
+## Success metrics
+
+- **0.2:** SparqlModel can prototype `rdfmodel` for `model_to_graph` / load without losing `put` semantics.
+- **0.4:** Load/save Turtle/JSON-LD without SparqlModel-only parsers.
+- **0.9:** SparqlModel pins released `rdfmodel`; duplicate term code removed from SparqlModel.
+- **1.0:** Downstream apps choose **rdfmodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.

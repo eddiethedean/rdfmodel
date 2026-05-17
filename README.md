@@ -14,7 +14,9 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 | Parse triples by hand into dataclasses | `Person.from_graph(graph, uri)` |
 | Repeat predicate IRIs and subject logic per project | `rdf_field()` + nested `Rdf` config |
 
-RDFModel is a thin bridge: it does not replace rdflib parsers, stores, or SPARQL — it orchestrates them around **Pydantic-shaped** domain models. See [ROADMAP.md](ROADMAP.md) for planned releases through **1.0.0**.
+RDFModel is a thin bridge: it does not replace rdflib parsers, stores, or SPARQL — it orchestrates them around **Pydantic-shaped** domain models. See [docs/ROADMAP.md](docs/ROADMAP.md) for planned releases through **1.0.0**.
+
+For ecosystem strategy and SparqlModel integration, see **[docs/PLAN.md](docs/PLAN.md)** and **[docs/ECOSYSTEM.md](docs/ECOSYSTEM.md)** — RDFModel is the stateless mapping layer; [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) is the session/query ORM layer (future `rdfmodel` dependency).
 
 ## Requirements
 
@@ -27,6 +29,8 @@ RDFModel is a thin bridge: it does not replace rdflib parsers, stores, or SPARQL
 ```bash
 pip install rdfmodel
 ```
+
+**0.1.0 is an alpha release.** The public API may change until 1.0. See [CHANGELOG.md](CHANGELOG.md) and [docs/ROADMAP.md](docs/ROADMAP.md). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) integration is planned from **0.2** ([docs/ECOSYSTEM.md](docs/ECOSYSTEM.md)).
 
 ## Quick start
 
@@ -131,7 +135,7 @@ On import, literals are converted back using the field’s type annotation.
 
 **Module-level helpers** (same behavior, usable without subclassing `RdfModel`):
 
-`model_to_graph`, `model_to_triples`, `models_to_graph`, `graph_to_model`, `graph_to_models`
+`model_to_graph`, `model_to_triples`, `models_to_graph`, `graph_to_model`, `graph_to_models`, `subject_base`, `id_from_subject_uri`
 
 **Constants:** `RDF`, `RDFS`, `XSD`, `RDF_TYPE` — common namespace IRIs.
 
@@ -160,13 +164,13 @@ models_to_graph(people, graph)
 - Subject IRI derivation with safe prefix matching on import
 - `rdf:type` from `Rdf.type_uri`
 - Round-trip for XSD scalars: `str`, `int`, `float`, `bool`, `date`, `datetime`
-- In-memory `Graph` I/O only (parse/serialize and SPARQL are on the [roadmap](ROADMAP.md))
+- In-memory `Graph` I/O only (parse/serialize and SPARQL are on the [roadmap](docs/ROADMAP.md))
 
 ## Current limitations
 
-- **Single value per predicate** — multiple objects for the same predicate import only the first ([0.2.0](ROADMAP.md)).
+- **Single value per predicate** — multiple objects for the same predicate import only the first ([0.2.0](docs/ROADMAP.md)).
 - **Unmapped fields are omitted** — no predicate mapping means no triples.
-- **Blank nodes** — `BNode` objects cannot be imported into `str` fields ([0.3.0](ROADMAP.md)).
+- **Blank nodes** — `BNode` objects cannot be imported into `str` fields ([0.3.0](docs/ROADMAP.md)).
 - **Flat models only** — no nested `RdfModel` embedding or RDF lists yet.
 
 ## Development
@@ -182,6 +186,8 @@ ruff check src tests
 ```
 
 CI runs on Python 3.10, 3.12, and 3.13.
+
+Planning: [CHANGELOG.md](CHANGELOG.md) · [docs/ROADMAP.md](docs/ROADMAP.md) · [docs/PLAN.md](docs/PLAN.md) · [docs/ECOSYSTEM.md](docs/ECOSYSTEM.md)
 
 ## License
 

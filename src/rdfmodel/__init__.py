@@ -3,7 +3,15 @@
 Install: ``pip install rdfmodel``
 """
 
-from rdfmodel._config import RDF, RDFS, RDF_TYPE, XSD, RdfConfig
+from rdfmodel._config import (
+    RDF,
+    RDFS,
+    RDF_TYPE,
+    XSD,
+    RdfConfig,
+    id_from_subject_uri,
+    subject_base,
+)
 from rdfmodel._fields import Predicate, rdf_field
 from rdfmodel._graph import (
     graph_to_model,
@@ -26,9 +34,11 @@ __all__ = [
     "RdfModel",
     "graph_to_model",
     "graph_to_models",
+    "id_from_subject_uri",
     "model_to_graph",
     "model_to_triples",
     "models_to_graph",
     "rdf_field",
+    "subject_base",
     "__version__",
 ]

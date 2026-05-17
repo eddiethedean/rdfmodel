@@ -4,7 +4,37 @@ Roadmap for **RDFModel** (Python package: `rdfmodel`). This document tracks plan
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
-**Pre-1.0 commitment:** Every **0.x** release adds capability until RDFModel exposes all [rdflib](https://github.com/RDFLib/rdflib) features that sensibly map to typed Pydantic models. We wrap and orchestrate rdflib; we do not reimplement parsers, stores, or SPARQL. **1.0.0** is API stability and production hardening — not a catch-up release for rdflib parity.
+**Ecosystem:** RDFModel is the **stateless mapping and file I/O** layer. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on RDFModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). RDFModel must never depend on SparqlModel.
+
+| Document | Purpose |
+|----------|---------|
+| [CHANGELOG.md](../CHANGELOG.md) | Release history |
+| [PLAN.md](PLAN.md) | Strategy, principles, priorities |
+| [ECOSYSTEM.md](ECOSYSTEM.md) | Boundary contract (both packages) |
+| [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | SparqlModel maintainer guide (copy to SparqlModel repo) |
+
+**Pre-1.0 commitment:** Every **0.x** release adds capability until RDFModel exposes all [rdflib](https://github.com/RDFLib/rdflib) features that sensibly map to typed Pydantic models. We wrap and orchestrate rdflib; we do not reimplement parsers, stores, or SPARQL engines. We do **not** build sessions, query compilers, or cascade `put` semantics — that stays in SparqlModel. **1.0.0** is API stability and production hardening — not a catch-up release for rdflib parity.
+
+**Matrix legend:** **SM** in release sections = required for SparqlModel’s planned `rdfmodel` dependency (see integration milestones).
+
+---
+
+## SparqlModel integration milestones
+
+SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.py`. RDFModel should replace that **implementation** while SparqlModel keeps **session, compiler, and cascade policy**.
+
+| Milestone | RDFModel deliverable | SparqlModel outcome |
+|-----------|----------------------|---------------------|
+| **SM-0** (now) | 0.1.x mapping, subject IRI fixes | Optional dev pin; no PyPI dependency yet |
+| **SM-1** | **0.2** — sync/remove, nested models, multi-value, `Rdf.prefixes`, vocab | Replace export/import core; keep `put`/`delete` orchestration |
+| **SM-2** | **0.3** — blanks, RDF lists (if embed model kept) | Align hydration with RDFModel loaders |
+| **SM-3** | **0.4** — `parse` / `serialize`, base URI | Retire duplicate serializers |
+| **SM-4** | **0.5** — `Dataset` (if named graphs on models) | Store uses RDFModel dataset helpers |
+| **SM-5** | **0.9–1.0** — API freeze, `py.typed`, semver | `sparqlmodel` requires `rdfmodel~=1.0` (exact range TBD) |
+
+**RDFModel will not implement:** `SPARQLSession`, Python `where(Model.field == x)`, SPARQL expression compiler, identity map, FastAPI, or HTTP store — see [ECOSYSTEM.md](ECOSYSTEM.md).
+
+**0.6 SPARQL helpers** (`select_models`, etc.) are optional conveniences for RDFModel-only users; SparqlModel keeps its own compiler and may use raw `graph.query` internally.
 
 ---
 
@@ -72,17 +102,21 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.1.0 — Foundation (current)
 
-**Status:** Released (alpha)
+**Status:** Ready for PyPI (alpha) — first public release
 
 | Area | Delivered |
 |------|-----------|
 | Core | `RdfModel` base, `Rdf` config class, `rdf_field()` / `Predicate` |
 | Graph I/O | `to_graph()`, `from_graph()`, `all_from_graph()`, `models_to_graph()` |
 | Terms | XSD scalars; IRI-like `str` → `URIRef` |
-| Identity | Subject IRI from `Rdf.namespace` + `Rdf.id_field`; explicit `uri=` override |
+| Identity | Subject IRI from `Rdf.namespace` + `Rdf.id_field`; `subject_base` / `id_from_subject_uri`; explicit `uri=` override |
 | Store | In-memory `Graph` only |
 
 **rdflib parity:** minimal `Graph.add` path via serialization; most of the matrix still open.
+
+**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `RdfModel`; CI + `py.typed` + 100% coverage.
+
+**SparqlModel (SM-0):** Optional local/dev pin on `rdfmodel==0.1.*` for experiments; **no** required `rdfmodel` dependency in `sparqlmodel` until **0.2** (SM-1).
 
 ---
 
@@ -105,6 +139,8 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** FOAF `Person` with multiple `nick` values and embedded `mbox` round-trips; prefixes appear in serialized Turtle; clearing `age=None` removes `foaf:age` triples on re-export.
 
+**SparqlModel (SM-1):** Ship `sync_to_graph` / `model_to_graph(..., mode="replace"|"patch")` (or equivalent) for owned-predicate replacement; `Rdf.prefixes` + CURIE expansion aligned with SparqlModel `__prefixes__`; optional explicit `IRI` id field alongside `id_field` + `namespace`; document triple-ownership boundaries for cascade layers.
+
 ---
 
 ## 0.3.0 — Literals, blanks, lists, and identity
@@ -120,6 +156,8 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **BNode stability** — document when IDs are stable vs session-scoped
 
 **Exit criteria:** Dublin Core `title` with language tags; blank-node `Address`; RDF list of `nick` values all round-trip.
+
+**SparqlModel (SM-2):** Hydration can delegate single-resource load to RDFModel before relationship expansion; blank-node strategy documented for embedded `SPARQLModel` values.
 
 ---
 
@@ -140,6 +178,8 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** Same `Person` instance equivalent from Turtle file, JSON-LD string, and in-memory `Graph`; invalid data fails SHACL when extra installed.
 
+**SparqlModel (SM-3):** `export_model` / file load paths call RDFModel; remove parallel format registry from SparqlModel.
+
 ---
 
 ## 0.5.0 — Datasets and named graphs
@@ -156,11 +196,13 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** Two model types in different named graphs round-trip through Trig without collision.
 
+**SparqlModel (SM-4):** Only if SparqlModel models gain named-graph context; otherwise defer.
+
 ---
 
 ## 0.6.0 — SPARQL and remote graphs
 
-**Theme:** rdflib **query** and **SPARQL store** integration.
+**Theme:** rdflib **query** and **SPARQL store** integration (RDFModel **passthrough** — not a Python query DSL).
 
 - [ ] **`select_models`** — SPARQL SELECT → `list[RdfModel]` with variable→field mapping
 - [ ] **`construct_models`** — CONSTRUCT/DESCRIBE → target model class
@@ -174,6 +216,8 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **Result types** — handle all rdflib result kinds (bindings, boolean, graph, JSON)
 
 **Exit criteria:** Load `Person` rows from a public SPARQL endpoint in ≤10 lines; UPDATE example in docs.
+
+**SparqlModel:** Not required for integration gate — SparqlModel owns app-side SPARQL ergonomics. RDFModel may expose thin helpers; SparqlModel keeps compiler + `HttpStore` roadmap.
 
 ---
 
@@ -226,6 +270,8 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** No “planned” cells remain in the matrix except **TBD** / **out of scope**; beta on PyPI.
 
+**SparqlModel (SM-5):** Publish compatibility range; migration guide for `sparqlmodel` users; cross-package contract tests in CI (optional job).
+
 ---
 
 ## 1.0.0 — Stable release
@@ -241,13 +287,15 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 | Packaging | PyPI wheels; extras: `shacl`, `jsonld`, `sqlalchemy`, `berkeleydb`, `dev` |
 | Governance | CONTRIBUTING.md, CODE_OF_CONDUCT, Keep a Changelog |
 
-**Celebration criteria:** A downstream app can depend on `rdfmodel~=1.0` knowing rdflib features are available through RDFModel where they apply to typed models, and that patch releases are safe.
+**Celebration criteria:** A downstream app can depend on `rdfmodel~=1.0` knowing rdflib features are available through RDFModel where they apply to typed models, SparqlModel can pin this release for mapping, and patch releases are safe.
 
 ---
 
 ## Explicitly out of scope (even pre-1.0)
 
-These rdflib areas are intentionally **not** wrapped; use rdflib directly or a separate integration package:
+### rdflib areas RDFModel does not wrap
+
+Use rdflib directly, SparqlModel, or another integration package:
 
 | Item | Rationale |
 |------|-----------|
@@ -262,27 +310,51 @@ These rdflib areas are intentionally **not** wrapped; use rdflib directly or a s
 | Full OWL reasoning | Use dedicated reasoners |
 | Replacing rdflib parsers, stores, or SPARQL engine | RDFModel orchestrates, never forks |
 
+### Application features owned by SparqlModel (not RDFModel)
+
+| Item | Package |
+|------|---------|
+| `SPARQLSession`, identity map, unit-of-work | SparqlModel |
+| Python query DSL (`Model.field == value`) | SparqlModel |
+| SPARQL WHERE compiler | SparqlModel |
+| `put` / `delete` cascade and orphan cleanup | SparqlModel |
+| HTTP SPARQL store (`HttpStore`) | SparqlModel |
+| FastAPI integration | SparqlModel optional extra |
+
+---
+
+## Ecosystem summary
+
+| | RDFModel | SparqlModel |
+|---|----------|-------------|
+| **Role** | Mapping + files | Session + queries |
+| **State** | Stateless | Stateful |
+| **Depends on** | rdflib, pydantic | rdflib, pydantic; **rdfmodel** (future) |
+
+Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.md)** · SparqlModel dev copy: **[ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md)**
+
 ---
 
 ## How to influence the roadmap
 
 1. Open an issue with the label `roadmap` describing your use case.
 2. If requesting a new rdflib feature, name the rdflib API (`Graph.method`, format, store plugin).
-3. Link vocabularies, sample data, or SHACL shapes when possible.
+3. For SparqlModel integration needs, reference milestone **SM-*** and whether the feature belongs in RDFModel or SparqlModel per [ECOSYSTEM.md](ECOSYSTEM.md).
+4. Link vocabularies, sample data, or SHACL shapes when possible.
 
 ---
 
 ## Version summary
 
-| Version | Focus | rdflib layers |
-|---------|--------|----------------|
-| **0.1.0** | Flat models, in-memory graph round-trip | `Graph.add`, basic terms |
-| 0.2.0 | Fields, namespaces, merge, remove/set | `bind`, `remove`, `value`, vocabs |
-| 0.3.0 | Literals, blanks, lists, skolemize | `term`, `collection`, `resource` |
-| 0.4.0 | All document formats, base URI, SHACL | `parse`, `serialize` |
-| 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` |
-| 0.6.0 | SPARQL + remote store | `query`, UPDATE, `SERVICE`, stores |
-| 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms |
-| 0.8.0 | Persistent stores, scale | `Store` open/close, plugins |
-| 0.9.0 | Matrix audit, API freeze | `plugin` passthrough |
-| **1.0.0** | Stable, documented, governed | parity frozen |
+| Version | Focus | rdflib layers | SparqlModel |
+|---------|--------|----------------|-------------|
+| **0.1.0** | Flat models, in-memory graph round-trip | `Graph.add`, basic terms | SM-0 (optional dev pin) |
+| 0.2.0 | Fields, namespaces, merge, remove/set | `bind`, `remove`, `value`, vocabs | **SM-1** (dependency gate) |
+| 0.3.0 | Literals, blanks, lists, skolemize | `term`, `collection`, `resource` | SM-2 |
+| 0.4.0 | All document formats, base URI, SHACL | `parse`, `serialize` | **SM-3** |
+| 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` | SM-4 (if needed) |
+| 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
+| 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | — |
+| 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | — |
+| 0.9.0 | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
+| **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `rdfmodel` |

@@ -4,15 +4,23 @@ from __future__ import annotations
 
 import pytest
 
-from rdfmodel import RdfModel, rdf_field
-from rdfmodel._config import (
-    RdfConfig,
-    get_rdf_config,
+import rdfmodel
+from rdfmodel import (
+    RdfModel,
     id_from_subject_uri,
+    rdf_field,
     subject_base,
 )
+from rdfmodel._config import RdfConfig, get_rdf_config
 
 EX = "http://example.org/people/"
+
+
+def test_public_package_exports_subject_helpers():
+    assert rdfmodel.subject_base is subject_base
+    assert rdfmodel.id_from_subject_uri is id_from_subject_uri
+    assert "subject_base" in rdfmodel.__all__
+    assert "id_from_subject_uri" in rdfmodel.__all__
 
 
 def test_subject_base_adds_slash():
