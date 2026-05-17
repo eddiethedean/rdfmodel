@@ -41,7 +41,7 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 | Area | Examples |
 |------|----------|
 | **Model metadata** | Nested `Rdf` config (`namespace`, `type_uri`, `id_field`), `rdf_field()`, `Predicate` |
-| **Subject identity** | `subject_base()`, `id_from_subject_uri()`, `RdfModel.subject_uri()` (encoding, safe prefix matching) |
+| **Subject identity** | `subject_base()`, `id_from_subject_uri()`, `RDFModel.subject_uri()` (encoding, safe prefix matching) |
 | **Term conversion** | Python scalars ↔ `URIRef` / `Literal` / XSD datatypes |
 | **Graph serialization** | `to_graph`, `from_graph`, `all_from_graph`, `models_to_graph`, low-level helpers |
 | **Field ↔ predicate** | Single- and multi-valued fields, nested embedded models (roadmap) |
@@ -159,7 +159,7 @@ Today the two libraries use different surface names; convergence is intentional,
 
 | Concept | RDFModel | SparqlModel (current) | Notes |
 |---------|----------|------------------------|-------|
-| Base model | `RdfModel` | `SPARQLModel` | SparqlModel may subclass or compose `RdfModel` later |
+| Base model | `RDFModel` | `SPARQLModel` | SparqlModel may subclass or compose `RDFModel` later |
 | RDF type | `Rdf.type_uri` | `rdf_type` (CURIE) | Unify via prefixes + expansion in RDFModel |
 | Predicates | `rdf_field(iri)` | `Field("curie")` | Same metadata; different constructors |
 | Subject id | `Rdf.id_field` + `namespace` | `id: IRI` | RDFModel may add explicit `IRI` id field support |

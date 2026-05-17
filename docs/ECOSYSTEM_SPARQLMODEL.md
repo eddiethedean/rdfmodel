@@ -67,7 +67,7 @@ Full tables: [ECOSYSTEM.md](ECOSYSTEM.md).
 ## Integration checklist (SparqlModel repo)
 
 1. **Before 0.2:** Keep mapping in `graph.py`; optionally vendor or path-depend on RDFModel for comparison tests only.
-2. **At RDFModel 0.2:** Add `rdfmodel` as optional extra or dev dependency; replace export/import core with `RdfModel.to_graph` / `from_graph` + RDFModel sync API; retain `session.put` / `delete` for cascade and orphans.
+2. **At RDFModel 0.2:** Add `rdfmodel` as optional extra or dev dependency; replace export/import core with `RDFModel.to_graph` / `from_graph` + RDFModel sync API; retain `session.put` / `delete` for cascade and orphans.
 3. **At 0.4:** Point `serializers.py` at RDFModel `parse` / `serialize`; delete duplicate format tables.
 4. **At 0.9+:** Require `rdfmodel` in `pyproject.toml` with a documented semver range; publish migration note for users who only used SparqlModel mapping APIs.
 

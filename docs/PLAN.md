@@ -6,7 +6,7 @@ This document is the **strategic plan** for RDFModel. [ROADMAP.md](ROADMAP.md) t
 
 ## Current status (0.1.0)
 
-**Ready for PyPI (alpha):** Flat `RdfModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.12 / 3.13), ruff, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
+**Ready for PyPI (alpha):** Flat `RDFModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.12 / 3.13), ruff, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
 
 **Not yet shipped (blocks SparqlModel PyPI dependency):** Multi-value fields, nested models, sync/remove on re-export, namespaces/`bind`, file parse/serialize — see **0.2** and [ROADMAP § SM-1](ROADMAP.md#sparqlmodel-integration-milestones).
 
@@ -112,7 +112,7 @@ Until **0.2** sync/remove ships, SparqlModel should **not** declare a required `
 
 | SparqlModel (public) | RDFModel (implementation) |
 |----------------------|---------------------------|
-| `SPARQLModel` | Compose / subclass `RdfModel` |
+| `SPARQLModel` | Compose / subclass `RDFModel` |
 | `Field("schema:name")` | Predicate metadata + CURIE expand |
 | `__prefixes__` | `Rdf.prefixes` |
 | `id: IRI` | Explicit IRI id or `id_field` + namespace |

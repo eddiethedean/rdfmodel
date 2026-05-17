@@ -20,7 +20,7 @@ from rdfmodel._graph import (
     model_to_triples,
     models_to_graph,
 )
-from rdfmodel.model import RdfModel
+from rdfmodel.model import RDFModel
 
 __version__ = "0.1.0"
 
@@ -31,7 +31,7 @@ __all__ = [
     "XSD",
     "Predicate",
     "RdfConfig",
-    "RdfModel",
+    "RDFModel",
     "graph_to_model",
     "graph_to_models",
     "id_from_subject_uri",

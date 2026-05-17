@@ -6,7 +6,7 @@ import pytest
 
 import rdfmodel
 from rdfmodel import (
-    RdfModel,
+    RDFModel,
     id_from_subject_uri,
     rdf_field,
     subject_base,
@@ -56,7 +56,7 @@ def test_subject_uri_empty_id_field():
 
 
 def test_get_rdf_config_without_rdf_class():
-    class Bare(RdfModel):
+    class Bare(RDFModel):
         label: str = rdf_field("http://example.org/label")
 
     cfg = get_rdf_config(Bare)

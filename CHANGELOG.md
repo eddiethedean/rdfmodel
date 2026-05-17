@@ -5,11 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Rename public base class `RdfModel` → `RDFModel`.
+
 ## [0.1.0] - 2026-05-17
 
 ### Added
 
-- `RdfModel` base class with `to_graph()`, `from_graph()`, `all_from_graph()`, and `subject_uri()`
+- `RDFModel` base class with `to_graph()`, `from_graph()`, `all_from_graph()`, and `subject_uri()`
 - `rdf_field()` / `Predicate` for mapping Pydantic fields to RDF predicates
 - Nested `Rdf` config (`namespace`, `type_uri`, `id_field`)
 - Low-level helpers: `model_to_graph`, `model_to_triples`, `graph_to_model`, `graph_to_models`, `models_to_graph`
@@ -29,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `RdfModel` uses `str_strip_whitespace=False` so RDF string values are not altered on validation
+- `RDFModel` uses `str_strip_whitespace=False` so RDF string values are not altered on validation
 
 ### Documentation
 

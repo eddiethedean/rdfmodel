@@ -1,4 +1,4 @@
-"""Tests for RdfModel round-trip serialization."""
+"""Tests for RDFModel round-trip serialization."""
 
 from __future__ import annotations
 
@@ -8,14 +8,14 @@ import pydantic
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef
 
-from rdfmodel import Predicate, RdfModel, models_to_graph, rdf_field
+from rdfmodel import Predicate, RDFModel, models_to_graph, rdf_field
 from rdfmodel._config import id_from_subject_uri
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
 
-class Person(RdfModel):
+class Person(RDFModel):
     class Rdf:
         namespace = EX
         type_uri = f"{FOAF}Person"
@@ -26,7 +26,7 @@ class Person(RdfModel):
     age: int | None = rdf_field(f"{FOAF}age", default=None)
 
 
-class Document(RdfModel):
+class Document(RDFModel):
     class Rdf:
         namespace = "http://example.org/docs/"
         type_uri = "http://example.org/Document"
@@ -69,7 +69,7 @@ def test_annotated_predicate():
 
 
 def test_subject_uri_requires_config():
-    class Bare(RdfModel):
+    class Bare(RDFModel):
         label: str = rdf_field("http://example.org/label")
 
     with pytest.raises(ValueError, match="namespace"):
@@ -84,7 +84,7 @@ def test_explicit_uri_override():
 
 
 def test_graph_to_models_requires_type():
-    class Untyped(RdfModel):
+    class Untyped(RDFModel):
         class Rdf:
             namespace = EX
             id_field = "slug"
@@ -102,7 +102,7 @@ def test_id_extraction_rejects_prefix_collision():
     uri = "http://example.computer/alice"
     assert id_from_subject_uri(ns, uri) is None
 
-    class LocalPerson(RdfModel):
+    class LocalPerson(RDFModel):
         class Rdf:
             namespace = ns
             type_uri = f"{FOAF}Person"
@@ -118,7 +118,7 @@ def test_id_extraction_rejects_prefix_collision():
 
 
 def test_id_roundtrip_hash_namespace():
-    class Hashed(RdfModel):
+    class Hashed(RDFModel):
         class Rdf:
             namespace = "http://example.org/people#"
             type_uri = "http://example.org/Person"
@@ -153,7 +153,7 @@ def test_from_graph_invalid_literal_raises():
 
 
 def test_bnode_object_rejected_for_str_field():
-    class WithFriend(RdfModel):
+    class WithFriend(RDFModel):
         class Rdf:
             namespace = EX
             type_uri = f"{FOAF}Person"
@@ -181,7 +181,7 @@ def test_multi_valued_predicate_uses_first():
 
 
 def test_union_type_roundtrip():
-    class Mixed(RdfModel):
+    class Mixed(RDFModel):
         class Rdf:
             namespace = EX
             type_uri = "http://example.org/Mixed"

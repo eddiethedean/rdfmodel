@@ -40,11 +40,11 @@ pip install rdfmodel
 ## Quick start
 
 ```python
-from rdfmodel import RdfModel, rdf_field
+from rdfmodel import RDFModel, rdf_field
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 
-class Person(RdfModel):
+class Person(RDFModel):
     class Rdf:
         namespace = "http://example.org/people/"
         type_uri = f"{FOAF}Person"
@@ -118,7 +118,7 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 
 ## API reference
 
-### `RdfModel` methods
+### `RDFModel` methods
 
 | | Method | Description |
 |---|--------|-------------|
@@ -134,7 +134,7 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 | Name | Description |
 |------|-------------|
 | `rdf_field`, `Predicate` | Predicate metadata for fields |
-| `RdfConfig`, `RdfModel` | Config dataclass and base model |
+| `RdfConfig`, `RDFModel` | Config dataclass and base model |
 | `model_to_graph`, `model_to_triples`, `models_to_graph` | Export without subclassing |
 | `graph_to_model`, `graph_to_models` | Import into a model class |
 | `subject_base`, `id_from_subject_uri` | Subject IRI building and parsing |
@@ -180,7 +180,7 @@ Details: [project plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/
 ## Limitations (0.1.0)
 
 - **Single value per predicate** — multiple objects import only the first ([0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) adds multi-value fields).
-- **Flat models** — no nested `RdfModel` or RDF lists yet.
+- **Flat models** — no nested `RDFModel` or RDF lists yet.
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
 - **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
 

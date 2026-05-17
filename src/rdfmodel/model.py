@@ -17,7 +17,7 @@ from rdfmodel._graph import (
 )
 
 
-class RdfModel(BaseModel):
+class RDFModel(BaseModel):
     """Pydantic model that can be serialized to and from an RDF graph.
 
     Subclasses declare RDF metadata on a nested ``Rdf`` class and map fields
@@ -25,7 +25,7 @@ class RdfModel(BaseModel):
 
     Example::
 
-        class Person(RdfModel):
+        class Person(RDFModel):
             class Rdf:
                 namespace = "http://example.org/people/"
                 type_uri = "http://xmlns.com/foaf/0.1/Person"
@@ -76,7 +76,7 @@ class RdfModel(BaseModel):
 
 
 __all__ = [
-    "RdfModel",
+    "RDFModel",
     "model_to_graph",
     "model_to_triples",
     "models_to_graph",
