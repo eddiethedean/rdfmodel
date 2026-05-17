@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.2.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.3.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -148,17 +148,19 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.3.0 — Literals, blanks, lists, and identity
 
+**Status:** Released (alpha) — on PyPI as `triplemodel==0.3.0`
+
 **Theme:** Full rdflib **term** expressiveness for model fields.
 
-- [ ] **`LangString` / per-language fields** — `Literal.lang` round-trip
-- [ ] **Typed XML/HTML literals** — `rdf:XMLLiteral`, `rdf:HTML` where needed (or preserve opaque)
-- [ ] **Arbitrary datatype literals** — preserve unknown datatype URIs via registry
-- [ ] **Blank nodes** — import/export; optional `skolemize` / `de_skolemize` on `to_graph` / `from_graph`
-- [ ] **RDF collections** — `list[T]` ↔ `rdf:List` via `Graph.collection`
-- [ ] **`ResourceRef`** — IRI-only field resolved through `Graph.resource`
-- [ ] **BNode stability** — document when IDs are stable vs session-scoped
+- [x] **`LangString` / per-language fields** — `Literal.lang` round-trip
+- [x] **Typed XML/HTML literals** — `rdf:XMLLiteral`, `rdf:HTML` as `str`; unknown datatypes via `OpaqueLiteral`
+- [x] **Arbitrary datatype literals** — preserve unknown datatype URIs via `OpaqueLiteral`
+- [x] **Blank nodes** — import/export; `skolemize` / `de_skolemize` on `to_graph` / `from_graph`
+- [x] **RDF collections** — `list[T]` ↔ `rdf:List`; **`set[T]`** = multiple objects (breaking vs 0.2)
+- [x] **`ResourceRef`** — validated IRI resource fields
+- [x] **BNode stability** — `Rdf.blank_node_policy` (`fresh` | `stable`)
 
-**Exit criteria:** Dublin Core `title` with language tags; blank-node `Address`; RDF list of `nick` values all round-trip.
+**Exit criteria:** Dublin Core `title` with language tags; blank-node `Address`; RDF list of `nick` values all round-trip (`examples/exit_criteria_03.py`).
 
 **SparqlModel (SM-2):** Hydration can delegate single-resource load to TripleModel before relationship expansion; blank-node strategy documented for embedded `SPARQLModel` values.
 

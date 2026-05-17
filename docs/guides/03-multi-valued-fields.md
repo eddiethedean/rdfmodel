@@ -1,23 +1,8 @@
 # Multi-valued fields
 
-Use `list[T]` or `set[T]` when a predicate may have **multiple** objects (for example several `foaf:nick` values). TripleModel emits one triple per value and collects all objects on import. **`T` must be a scalar type** (for example `str`, `int`); `list[TripleModel]` and `set[TripleModel]` are not supported in 0.2 — use a single nested field instead.
+Use **`set[T]`** when a predicate may have **multiple** objects (for example several tags or duplicate `foaf:nick` literals without an RDF list). TripleModel emits one triple per value and collects all objects on import. **`T` must be a scalar type**; `set[TripleModel]` is not supported — use a single nested field instead.
 
-## Lists (ordered)
-
-```python
-nick: list[str] = rdf_field("http://xmlns.com/foaf/0.1/nick", default_factory=list)
-```
-
-```python
-person = Person(slug="alice", name="Alice", nick=["Al", "Alice"])
-graph = person.to_graph()
-restored = Person.from_graph(graph, person.subject_uri())
-assert restored.nick == ["Al", "Alice"]
-```
-
-- **Order** is preserved for lists.
-- **`None` elements** are skipped on export (use `model_construct` if you must build dirty data in tests).
-- **Empty list** `[]` exports no `nick` triples.
+For **ordered `rdf:List`** values, use **`list[T]`** — see {doc}`09-rdf-lists-and-lang`.
 
 ## Sets (unordered, unique)
 
@@ -31,25 +16,21 @@ person = Person(slug="a", name="A", tag={"python", "rdf"})
 
 On import, duplicate objects in the graph collapse to one set member. Export order is not guaranteed.
 
+- **`None` elements** are skipped on export.
+- **Empty set** `set()` exports no triples for that predicate.
+
 ## Scalars vs collections
 
 | Field shape | Multiple objects in graph |
 |-------------|---------------------------|
 | `str`, `int`, nested model, … | First only; `on_duplicate` applies |
-| `list[T]`, `set[T]` | All objects imported |
+| `set[T]` | All objects imported as a set |
+| `list[T]` | RDF list (`rdf:first` / `rdf:rest`) — see guide 09 |
 
-```python
-Person.from_graph(graph, uri, on_duplicate="error")  # raise on duplicate scalar
-```
+## Sync and cleared fields
 
-## Clearing a collection on update
+When a field is cleared (`None` or empty `set()`), `sync_to_graph(..., mode="replace"|"patch")` removes owned triples for that predicate. See {doc}`04-sync-modes`.
 
-Exporting `nick=[]` writes no new nick triples, but **does not remove** old nick triples in an existing graph unless you use a sync mode — see [Updating graphs](04-updating-graphs.md).
+## Migration from 0.2.x
 
-`sync_to_graph(..., mode="patch")` replaces **all** nick values for that subject in one step (not one-at-a-time), so `nick=["a", "b"]` round-trips correctly after a patch.
-
-## Not RDF lists (`rdf:List`)
-
-`list[str]` means “many objects for **one predicate**”, not linked-list `rdf:first` / `rdf:rest` structures. Native RDF list support is on the [roadmap](../ROADMAP.md) for **0.3**.
-
-**Next:** [Updating graphs →](04-updating-graphs.md)
+In **0.2**, both `list[T]` and `set[T]` meant “multiple objects per predicate”. In **0.3**, only **`set[T]`** keeps that meaning; rename fields that were `list` only for multi-object semantics to `set`.

@@ -80,10 +80,14 @@ def test_term_to_python_uri_ref():
     assert term_to_python(ref) == "http://example.org/resource"
 
 
-def test_term_to_python_bnode_without_str_target():
+def test_term_to_python_bnode_without_target_type():
     node = BNode()
     assert term_to_python(node) is node
-    assert term_to_python(node, int) is node
+
+
+def test_term_to_python_bnode_rejected_for_scalar_target():
+    with pytest.raises(TypeError, match="scalar fields"):
+        term_to_python(BNode(), int)
 
 
 def test_term_to_python_bool_from_non_xsd_literal():

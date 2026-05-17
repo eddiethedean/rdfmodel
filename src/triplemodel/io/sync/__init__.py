@@ -45,6 +45,7 @@ def sync_to_graph(
     bind: bool = True,
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
+    skolemize: bool | None = None,
 ) -> Graph:
     """Write ``model`` into ``graph`` using ``mode`` sync semantics."""
     g = Graph() if graph is None else graph
@@ -63,6 +64,7 @@ def sync_to_graph(
             bind=False,
             resolver=resolver,
             registry=registry,
+            skolemize=skolemize,
         )
 
     if resolved_mode == "replace":
@@ -74,6 +76,7 @@ def sync_to_graph(
             bind=False,
             resolver=resolver,
             registry=registry,
+            skolemize=skolemize,
         )
 
     return PatchGraphMode().apply(
@@ -84,4 +87,5 @@ def sync_to_graph(
         bind=False,
         resolver=resolver,
         registry=registry,
+        skolemize=skolemize,
     )

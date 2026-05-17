@@ -10,7 +10,8 @@ from rdflib.term import Node
 
 from triplemodel.config import get_rdf_config
 from triplemodel.fields.resolver import default_resolver
-from triplemodel.metadata.cardinality import scalar_python_type
+from triplemodel.metadata.cardinality import field_cardinality, scalar_python_type
+from triplemodel.terms.collection import read_rdf_list
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.convert import python_to_term, term_to_python
 from triplemodel.terms.registry import LiteralRegistry, default_registry
@@ -104,7 +105,12 @@ def objects_for_field(
     if pred is None:
         raise ValueError(f"Field {field_name!r} has no RDF predicate mapping.")
     py_type = scalar_python_type(field_info)
+    objects = list(graph.objects(URIRef(uri), URIRef(pred)))
+    if field_cardinality(field_info) == "list":
+        if not objects:
+            return []
+        return read_rdf_list(graph, objects[0], py_type, registry=registry)
     return [
         cast(ModelFieldScalar, term_to_python(o, py_type, registry=registry))
-        for o in graph.objects(URIRef(uri), URIRef(pred))
+        for o in objects
     ]

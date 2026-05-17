@@ -11,6 +11,7 @@ from urllib.parse import quote, unquote
 
 EmbedMode = Literal["iri", "bnode"]
 GraphMode = Literal["add", "replace", "patch"]
+BlankNodePolicy = Literal["fresh", "stable"]
 
 
 class SubjectUriInstance(Protocol):
@@ -57,6 +58,9 @@ class RdfConfig:
     prefixes: Mapping[str, str] = field(default_factory=_empty_prefixes)
     embed: EmbedMode = "iri"
     graph_mode: GraphMode = "add"
+    blank_node_policy: BlankNodePolicy = "fresh"
+    skolemize_export: bool = False
+    skolemize_import: bool = False
 
     @property
     def prefixes_dict(self) -> dict[str, str]:
@@ -125,6 +129,15 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                     stacklevel=2,
                 )
                 mode = "add"
+            bnode_policy = getattr(rdf, "blank_node_policy", "fresh") or "fresh"
+            if bnode_policy not in ("fresh", "stable"):
+                warnings.warn(
+                    f"{cls.__name__}.Rdf.blank_node_policy={bnode_policy!r} is invalid; "
+                    "using 'fresh'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                bnode_policy = "fresh"
             prefixes = freeze_prefixes(getattr(rdf, "prefixes", None))
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
@@ -133,5 +146,8 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                 prefixes=prefixes,
                 embed=embed,
                 graph_mode=mode,
+                blank_node_policy=bnode_policy,
+                skolemize_export=bool(getattr(rdf, "skolemize_export", False)),
+                skolemize_import=bool(getattr(rdf, "skolemize_import", False)),
             )
     return RdfConfig()

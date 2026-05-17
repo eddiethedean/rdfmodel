@@ -112,8 +112,8 @@ def test_patch_preserves_multiple_nick_values():
     g = Graph()
     sync_to_graph(p, g, mode="patch")
     subj = URIRef(EX + "a")
-    nicks = sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick")))
-    assert nicks == ["Al", "Alice"]
+    restored = NickPerson.from_graph(g, str(subj))
+    assert restored.nick == ["Al", "Alice"]
 
 
 def test_patch_updates_nick_without_touching_name():
@@ -130,8 +130,9 @@ def test_patch_updates_nick_without_touching_name():
     g = NickPerson(slug="a", name="A", nick=["x"]).to_graph()
     sync_to_graph(NickPerson(slug="a", name="A", nick=["y", "z"]), g, mode="patch")
     subj = URIRef(EX + "a")
-    assert sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick"))) == ["y", "z"]
-    assert any(str(o) == "A" for o in g.objects(subj, URIRef(f"{FOAF}name")))
+    restored = NickPerson.from_graph(g, str(subj))
+    assert restored.nick == ["y", "z"]
+    assert restored.name == "A"
 
 
 def test_to_graph_patch_preserves_multiple_values():
@@ -148,7 +149,8 @@ def test_to_graph_patch_preserves_multiple_values():
     g = Graph()
     p.to_graph(g, mode="patch")
     subj = URIRef(EX + "a")
-    assert sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick"))) == ["a", "b"]
+    restored = NickPerson.from_graph(g, str(subj))
+    assert restored.nick == ["a", "b"]
 
 
 ALT_NAME = "http://example.org/altName"

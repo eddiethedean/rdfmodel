@@ -10,7 +10,9 @@ from pydantic.fields import FieldInfo
 from triplemodel._typing import ModelFieldScalar, ModelFieldValue, TripleRow
 from triplemodel.config import RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel.embed.strategies import export_nested_triples
+from triplemodel.fields.metadata import lang_for_field
 from triplemodel.fields.resolver import default_resolver
+from triplemodel.terms.lang import LangString
 from triplemodel.metadata.cardinality import (
     field_cardinality,
     raise_if_nested_collection,
@@ -29,8 +31,7 @@ def _field_values_for_export(
     if value is None:
         return []
     if card == "list":
-        items = cast(list[ModelFieldScalar], value)
-        return [v for v in items if v is not None]
+        return []
     if card == "set":
         items = cast(set[ModelFieldScalar], value)
         return [v for v in items if v is not None]
@@ -82,7 +83,14 @@ def model_to_triples(
             )
             continue
 
+        if card == "list":
+            continue
+
+        lang = lang_for_field(field_info)
         for item in _field_values_for_export(name, value, field_info):
-            triples.append((subject, predicate, item))
+            obj: ModelFieldScalar = cast(ModelFieldScalar, item)
+            if lang and isinstance(obj, str):
+                obj = LangString(obj, lang)
+            triples.append((subject, predicate, obj))
 
     return triples

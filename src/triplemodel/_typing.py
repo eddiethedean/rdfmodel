@@ -34,7 +34,9 @@ RdfValue: TypeAlias = RdfScalar | Node | Enum
 
 """Values produced by :func:`~triplemodel.terms.convert.term_to_python` for mapped fields."""
 
-ModelFieldScalar: TypeAlias = RdfScalar | str
+ModelFieldScalar: TypeAlias = (
+    RdfScalar | str
+)  # includes :class:`~triplemodel.terms.lang.LangString`
 
 ModelFieldValue: TypeAlias = (
     ModelFieldScalar | list[ModelFieldScalar] | set[ModelFieldScalar] | BaseModel | None

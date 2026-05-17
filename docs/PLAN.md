@@ -4,13 +4,13 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.2.0)
+## Current status (0.3.0)
 
-**Released (alpha) on PyPI:** Multi-value `list`/`set` fields, nested `TripleModel` embed (`iri`/`bnode`), `sync_to_graph` with `add`/`replace`/`patch`, `Rdf.prefixes` + CURIE expansion, `triplemodel.vocab`, literal registry, and graph helpers. SparqlModel may pin `triplemodel>=0.2,<0.3` for SM-1 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
+**Released (alpha) on PyPI:** RDF lists (`list[T]`), multi-object `set[T]`, `LangString` / `Lang()`, `OpaqueLiteral`, `ResourceRef`, blank-node embed cleanup, `blank_node_policy`, and skolemize kwargs on graph I/O. SparqlModel may pin `triplemodel>=0.3,<0.4` for SM-2 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
 
-**Not yet shipped:** File parse/serialize (**0.4**), RDF lists and full blank-node strategy (**0.3**), Dataset/named graphs (**0.5**).
+**Not yet shipped:** File parse/serialize (**0.4**), Dataset/named graphs (**0.5**).
 
-**Next focus:** **0.3.0** — language tags, RDF lists, blank-node hardening; then **0.4** file I/O.
+**Next focus:** **0.4.0** — `parse` / `serialize` and format autodetection.
 
 ---
 

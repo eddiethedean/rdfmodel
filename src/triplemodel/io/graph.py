@@ -14,6 +14,8 @@ from triplemodel.config import (
     get_rdf_config,
 )
 from triplemodel.io.export import model_to_triples
+from triplemodel.io.list_fields import export_model_rdf_lists
+from triplemodel.io.skolem import apply_skolemize
 from triplemodel.io.writer import apply_triple_rows
 from triplemodel.namespaces import bind_namespaces
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
@@ -29,15 +31,26 @@ def write_model_add(
     bind: bool = False,
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
+    skolemize: bool | None = None,
 ) -> Graph:
     """Append triples for ``model`` to ``graph``."""
     cfg = config or get_rdf_config(type(model))
+    do_skolem = cfg.skolemize_export if skolemize is None else skolemize
+    graph = apply_skolemize(graph, skolemize=do_skolem)
     if bind and cfg.prefixes:
         bind_namespaces(graph, cfg.prefixes_dict)
     rows = model_to_triples(
         model, uri=uri, config=cfg, resolver=resolver, registry=registry
     )
     apply_triple_rows(graph, rows, registry=registry)
+    export_model_rdf_lists(
+        graph,
+        model,
+        subject=uri,
+        config=cfg,
+        resolver=resolver,
+        registry=registry,
+    )
     return graph
 
 
@@ -51,6 +64,7 @@ def model_to_graph(
     bind: bool | None = None,
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
+    skolemize: bool | None = None,
 ) -> Graph:
     """Add triples for ``model`` to ``graph`` (or a new graph) and return it."""
     cfg = config or get_rdf_config(type(model))
@@ -67,6 +81,7 @@ def model_to_graph(
             bind=should_bind,
             resolver=resolver,
             registry=registry,
+            skolemize=skolemize,
         )
 
     from triplemodel.io.sync.modes import get_graph_write_mode
@@ -79,6 +94,7 @@ def model_to_graph(
         bind=should_bind,
         resolver=resolver,
         registry=registry,
+        skolemize=skolemize,
     )
 
 

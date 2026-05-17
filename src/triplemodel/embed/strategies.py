@@ -71,8 +71,13 @@ class BnodeEmbedStrategy:
         from triplemodel.io.export import model_to_triples
 
         nested_cfg = get_rdf_config(type(nested))
-        _ = config
-        node = BNode()
+        parent_cfg = config
+        if parent_cfg is not None and parent_cfg.blank_node_policy == "stable":
+            from triplemodel.terms.bnode import nested_bnode_key, stable_bnode
+
+            node = stable_bnode(nested_bnode_key(parent_subject, predicate, nested))
+        else:
+            node = BNode()
         triples: list[TripleRow] = []
         for subj, pred, obj in model_to_triples(nested, config=nested_cfg):
             triples.append((node, pred, obj))

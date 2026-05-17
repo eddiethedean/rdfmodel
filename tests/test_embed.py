@@ -237,7 +237,7 @@ def test_patch_updates_nested_child_scalar():
     assert addresses == ["bob@example.org"]
 
 
-def test_bnode_replace_leaves_stale_subgraph():
+def test_bnode_replace_does_not_leave_stale_subgraph():
     mbox = Mailbox(slug="m1", address="bob@example.org")
     p = PersonBnode(slug="bob", mbox=mbox)
     g = p.to_graph()
@@ -246,4 +246,7 @@ def test_bnode_replace_leaves_stale_subgraph():
         slug="bob", mbox=Mailbox(slug="m1", address="new@example.org")
     )
     sync_to_graph(updated, g, mode="replace")
-    assert len(g) > n_before
+    assert len(g) == n_before
+    restored = PersonBnode.from_graph(g, p.subject_uri())
+    assert restored.mbox is not None
+    assert restored.mbox.address == "new@example.org"

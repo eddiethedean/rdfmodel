@@ -9,7 +9,7 @@ from rdflib import Graph, Literal, URIRef
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
 from triplemodel.metadata.cardinality import is_triple_model_type
-from triplemodel.io import graph_to_model, model_to_triples
+from triplemodel.io import graph_to_model
 from triplemodel.namespaces import expand_curie
 from triplemodel.io.sync import sync_to_graph as sync_fn
 from triplemodel.terms import python_to_term
@@ -43,7 +43,7 @@ def test_python_to_term_mailto():
     assert isinstance(python_to_term("mailto:a@b.co"), URIRef)
 
 
-def test_model_to_triples_skips_none_list_items():
+def test_rdf_list_skips_none_list_items_on_export():
     class P(TripleModel):
         class Rdf:
             namespace = EX
@@ -52,8 +52,9 @@ def test_model_to_triples_skips_none_list_items():
         slug: str
         nick: list[str | None] = rdf_field(f"{FOAF}nick", default_factory=list)
 
-    t = model_to_triples(P(slug="a", nick=["x", None]))
-    assert len([x for x in t if FOAF in str(x[1])]) == 1
+    g = P(slug="a", nick=["x", None]).to_graph()
+    restored = P.from_graph(g, P(slug="a").subject_uri())
+    assert restored.nick == ["x"]
 
 
 def test_graph_import_nested_typeerror():

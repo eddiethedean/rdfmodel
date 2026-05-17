@@ -77,6 +77,7 @@ class TripleModel(BaseModel):
         mode: GraphMode | None = None,
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
+        skolemize: bool | None = None,
     ) -> Graph:
         """Serialize this instance into an rdflib ``Graph``.
 
@@ -89,6 +90,7 @@ class TripleModel(BaseModel):
             mode=mode,
             resolver=resolver,
             registry=registry,
+            skolemize=skolemize,
         )
 
     def sync_to_graph(
@@ -99,6 +101,7 @@ class TripleModel(BaseModel):
         mode: GraphMode | None = None,
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
+        skolemize: bool | None = None,
     ) -> Graph:
         """Update ``graph`` with owned triples for this instance (see ``mode``).
 
@@ -112,6 +115,7 @@ class TripleModel(BaseModel):
             mode=mode,
             resolver=resolver,
             registry=registry,
+            skolemize=skolemize,
         )
 
     @classmethod
@@ -122,6 +126,7 @@ class TripleModel(BaseModel):
         *,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        de_skolemize: bool | None = None,
     ) -> Self:
         """Construct an instance from triples about ``uri``."""
         return graph_to_model(
@@ -130,6 +135,7 @@ class TripleModel(BaseModel):
             uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            de_skolemize=de_skolemize,
         )
 
     @classmethod

@@ -16,6 +16,9 @@ from triplemodel.config import (
     subject_base,
 )
 from triplemodel.fields import IriId, Predicate, rdf_field
+from triplemodel.fields.resource_ref import ResourceRef
+from triplemodel.terms.lang import Lang, LangString
+from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.io import (
     OnDuplicate,
     graph_to_model,
@@ -31,15 +34,19 @@ from triplemodel.namespaces import bind_namespaces, expand_curie
 from triplemodel.protocols import RdfResource, register_rdf_resource
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "EmbedMode",
     "GraphMode",
     "IriId",
+    "Lang",
+    "LangString",
     "LiteralRegistry",
+    "OpaqueLiteral",
     "OnDuplicate",
     "Predicate",
+    "ResourceRef",
     "RDF",
     "RDFS",
     "RDF_TYPE",

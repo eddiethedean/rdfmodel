@@ -11,6 +11,9 @@ from rdflib.term import Node
 
 from triplemodel._typing import PythonToTermInput, RdfValue
 from triplemodel.terms import iri
+from triplemodel.fields.resource_ref import ResourceRef
+from triplemodel.terms.lang import LangString
+from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 RegistryLike = LiteralRegistry
@@ -24,6 +27,14 @@ def python_to_term(
     """Serialize a Python scalar to an RDF term."""
     if isinstance(value, Node):
         return value
+    if isinstance(value, ResourceRef):
+        return URIRef(value.iri)
+    if isinstance(value, OpaqueLiteral):
+        return value.to_literal()
+    if isinstance(value, LangString):
+        if value.lang:
+            return Literal(value.value, lang=value.lang)
+        return Literal(value.value)
     if isinstance(value, Enum):
         lit = registry.python_to_literal(value, type(value))
         if lit is not None:
@@ -111,15 +122,26 @@ def term_to_python(
 ) -> RdfValue:
     """Deserialize an RDF term to a Python value."""
     if isinstance(term, URIRef):
+        if target_type is ResourceRef:
+            return ResourceRef(str(term))
         return str(term)
 
     if not isinstance(term, Literal):
-        if isinstance(term, BNode) and target_type is str:
+        if isinstance(term, BNode) and target_type is not None:
             raise TypeError(
-                "BNode objects cannot be assigned to str fields; "
-                "blank node support is planned for a future release."
+                "BNode objects cannot be assigned to scalar fields; "
+                "use a nested TripleModel field with embed='bnode'."
             )
         return term
+
+    if target_type is ResourceRef:
+        return ResourceRef(str(term))
+
+    if target_type is LangString:
+        return LangString(str(term), term.language or None)
+
+    if target_type is OpaqueLiteral:
+        return OpaqueLiteral.from_literal(term)
 
     if target_type is not None:
         if isinstance(target_type, type) and issubclass(target_type, Enum):
@@ -134,11 +156,25 @@ def term_to_python(
         return term.value in (True, "true", "1", 1)
     if target_type is int:
         return int(term)
+    if target_type is str:
+        return str(term)
+
     if target_type is float:
         return float(term)
     if target_type is datetime:
         return datetime.fromisoformat(str(term))
     if target_type is date:
         return date.fromisoformat(str(term))
+
+    if target_type is None:
+        converted = registry.literal_to_python(term, None)
+        if converted is not None:
+            return converted
+        if term.datatype is not None:
+            return OpaqueLiteral.from_literal(term)
+        return term.toPython()
+
+    if term.datatype is not None:
+        return OpaqueLiteral.from_literal(term)
 
     return term.toPython()

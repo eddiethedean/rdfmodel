@@ -9,6 +9,9 @@ from pydantic.fields import FieldInfo
 
 from triplemodel._typing import AnnotationExpr
 from triplemodel.protocols import is_rdf_resource_class
+from triplemodel.fields.resource_ref import ResourceRef
+from triplemodel.terms.lang import LangString
+from triplemodel.terms.opaque import OpaqueLiteral
 
 FieldCardinality = Literal["scalar", "list", "set", "nested"]
 
@@ -83,6 +86,17 @@ def field_cardinality(field_info: FieldInfo) -> FieldCardinality:
     return "scalar"
 
 
+def union_member_types(field_info: FieldInfo) -> tuple[type, ...]:
+    """Non-optional union members for ``str | int``-style fields."""
+    ann = unwrap_annotation(field_annotation(field_info))
+    origin = get_origin(ann)
+    if origin not in (Union, types.UnionType):
+        return ()
+    return tuple(
+        a for a in get_args(ann) if a is not type(None) and isinstance(a, type)
+    )
+
+
 def scalar_python_type(field_info: FieldInfo) -> type | None:
     """Resolved scalar type for term conversion, if a single type."""
     ann = unwrap_annotation(field_annotation(field_info))
@@ -92,6 +106,12 @@ def scalar_python_type(field_info: FieldInfo) -> type | None:
         return inner if isinstance(inner, type) else None
     if card == "nested":
         return None
+    if ann is LangString:
+        return LangString
+    if ann is ResourceRef:
+        return ResourceRef
+    if ann is OpaqueLiteral:
+        return OpaqueLiteral
     return ann if isinstance(ann, type) else None
 
 

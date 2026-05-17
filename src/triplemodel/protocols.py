@@ -111,4 +111,5 @@ class GraphWriteMode(Protocol):
         bind: bool,
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistryImpl | None = None,
+        skolemize: bool | None = None,
     ) -> Graph: ...

@@ -18,7 +18,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 **TripleModel** is the **typed mapping layer** in a small ecosystem: Pydantic models ↔ RDF triples via field types and predicates. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session, SPARQL queries, ORM) is planned to depend on TripleModel from **0.2** — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.2.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.3.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Features
 
@@ -27,13 +27,20 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 - **Subject IRIs** — build from `namespace` + `id_field`, percent-encoded segments, safe import (no prefix collisions)
 - **XSD round-trip** — `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like strings → `URIRef`
 - **Stateless I/O** — `to_graph` / `from_graph` / `all_from_graph` / `models_to_graph` on in-memory `Graph`
-- **Multi-valued fields** — `list[T]` / `set[T]` round-trip multiple objects per predicate
+- **RDF lists & multi-valued fields** — `list[T]` → `rdf:List`; `set[T]` → multiple objects per predicate
+- **Language tags & opaque literals** — `LangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef`
 - **Nested models** — embed child `TripleModel` instances (`Rdf.embed`: `"iri"` or `"bnode"`)
 - **Sync modes** — `sync_to_graph` / `to_graph(..., mode="replace"|"patch")` remove stale owned triples when fields are cleared
 - **Prefixes & CURIEs** — `Rdf.prefixes`, `rdf_field("foaf:name")`, `bind_namespaces`
 - **Typed package** — `py.typed` for type checkers
 
-**Not in 0.2.0** (on the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file parse/serialize (0.4), RDF lists and full blank-node strategy (0.3), SPARQL helpers (0.6).
+**Not in 0.3.0** (on the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file parse/serialize (0.4), named graphs (0.5), SPARQL helpers (0.6).
+
+### Migrating from 0.2.x
+
+- Fields that meant **multiple objects on one predicate** (tags, duplicate predicates) should use **`set[T]`**, not `list[T]`.
+- Fields that need an **ordered RDF list** (`rdf:List`) should use **`list[T]`** (this was the old `set`/`list` multi-object behaviour in 0.2).
+- No compatibility shim is provided; bump the dependency and update field annotations accordingly.
 
 ## Requirements
 

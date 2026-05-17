@@ -8,6 +8,7 @@ from rdflib import Graph, URIRef
 from triplemodel.config import RdfConfig
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
+from triplemodel.terms.collection import remove_rdf_list
 from triplemodel.terms.iri import subject_ref
 
 
@@ -18,9 +19,7 @@ def remove_triples_for_predicates(
 ) -> None:
     """Remove all triples with ``subject`` as subject and predicate in ``predicates``."""
     for pred in predicates:
-        pred_ref = URIRef(pred)
-        for obj in list(graph.objects(subject, pred_ref)):
-            graph.remove((subject, pred_ref, obj))
+        remove_rdf_list(graph, subject, pred)
 
 
 def remove_owned_triples(

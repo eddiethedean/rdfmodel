@@ -14,9 +14,13 @@ from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.io.export import model_to_triples
 from triplemodel.io.graph import write_model_add
+from triplemodel.io.skolem import apply_skolemize
 from triplemodel.io.ops import graph_set_many
+from triplemodel.terms.collection import write_rdf_list
 from triplemodel.io.sync.nested_cleanup import (
+    clear_nested_bnode_children,
     clear_nested_iri_children,
+    clear_stale_nested_bnode_children,
     clear_stale_nested_iri_children,
 )
 from triplemodel.io.sync.predicate_ops import (
@@ -78,6 +82,7 @@ class AddGraphMode:
         bind: bool,
         resolver: PredicateResolverProtocol | None = None,
         registry: LiteralRegistry | None = None,
+        skolemize: bool | None = None,
     ) -> Graph:
         reg = registry or default_registry
         return write_model_add(
@@ -88,6 +93,7 @@ class AddGraphMode:
             bind=bind,
             resolver=resolver,
             registry=reg,
+            skolemize=skolemize,
         )
 
 
@@ -107,6 +113,7 @@ class ReplaceGraphMode:
         bind: bool,
         resolver: PredicateResolverProtocol | None = None,
         registry: LiteralRegistry | None = None,
+        skolemize: bool | None = None,
     ) -> Graph:
         reg = registry or default_registry
         cls = type(model)
@@ -114,8 +121,14 @@ class ReplaceGraphMode:
         clear_stale_nested_iri_children(
             model, graph, subject, config=config, resolver=resolver
         )
+        clear_stale_nested_bnode_children(
+            model, graph, subject, config=config, resolver=resolver
+        )
         remove_owned_triples(graph, subject, cls, config=config, resolver=resolver)
         clear_nested_iri_children(model, graph, config=config, resolver=resolver)
+        clear_nested_bnode_children(
+            model, graph, subject, config=config, resolver=resolver
+        )
         return write_model_add(
             graph,
             model,
@@ -124,6 +137,7 @@ class ReplaceGraphMode:
             bind=bind,
             resolver=resolver,
             registry=reg,
+            skolemize=skolemize,
         )
 
 
@@ -143,14 +157,20 @@ class PatchGraphMode:
         bind: bool,
         resolver: PredicateResolverProtocol | None = None,
         registry: LiteralRegistry | None = None,
+        skolemize: bool | None = None,
     ) -> Graph:
         if bind and config.prefixes:
             bind_namespaces(graph, config.prefixes_dict)
+        do_skolem = config.skolemize_export if skolemize is None else skolemize
+        graph = apply_skolemize(graph, skolemize=do_skolem)
         reg = registry or default_registry
         subject = uri or config.subject_uri(model)
         subject_ref_node = subject_ref(subject)
         to_clear = predicates_to_patch(model, config=config, resolver=resolver)
         clear_stale_nested_iri_children(
+            model, graph, subject, config=config, resolver=resolver
+        )
+        clear_stale_nested_bnode_children(
             model, graph, subject, config=config, resolver=resolver
         )
         remove_triples_for_predicates(graph, subject_ref_node, to_clear)
@@ -168,6 +188,28 @@ class PatchGraphMode:
 
         for (subj_ref, pred), objects in by_sp.items():
             graph_set_many(graph, subj_ref, pred, objects, registry=reg)
+
+        cls = type(model)
+        prefixes = config.prefixes_dict
+        r = resolver or default_resolver
+        for name, field_info in cls.model_fields.items():
+            if config.id_field and name == config.id_field:
+                continue
+            if field_cardinality(field_info) != "list":
+                continue
+            pred = r.resolve_field_predicate(field_info, prefixes)
+            if pred is None:
+                continue
+            value = getattr(model, name)
+            if value is None or value == []:
+                continue
+            write_rdf_list(
+                graph,
+                subject_ref_node,
+                pred,
+                list(value),
+                registry=reg,
+            )
         return graph
 
 

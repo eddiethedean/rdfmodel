@@ -1,5 +1,15 @@
 # Releasing TripleModel
 
+## 0.3.0 release readiness (repo)
+
+The following should be satisfied on `main` before tagging:
+
+- Version `0.3.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, `docs/conf.py`, and `CHANGELOG.md` (no open `[Unreleased]` entries except an empty stub)
+- `examples/exit_criteria_03.py` runs clean; integration test covers it
+- README includes **0.2 → 0.3** migration (`list` vs `set` semantics)
+
+**Remaining manual steps:** tag `v0.3.0`, GitHub release, confirm PyPI publish. ROADMAP **0.3.0** is marked **Released (alpha)**.
+
 ## 0.2.0 release readiness (repo)
 
 The following should be satisfied on `main` before tagging:

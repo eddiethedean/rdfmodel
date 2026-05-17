@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-17
+
+### Added
+
+- **RDF lists** — `list[T]` fields serialize as `rdf:List` via rdflib `Collection`; `set[T]` maps to multiple objects per predicate (unordered)
+- **Language-tagged literals** — `LangString`, `Annotated[str, Lang("en")]`, and `Lang` field metadata for Dublin Core–style `@lang` values
+- **`ResourceRef`** — validated IRI holder for resource object fields (preferred over bare `str` when the object is always a resource)
+- **`OpaqueLiteral`** — preserves unknown or custom XSD/datatype literals on import when no converter is registered
+- **`rdf:HTML` / `rdf:XMLLiteral`** — round-trip as `str` when the field type is `str`
+- **Blank-node embed hardening** — stale blank-node subgraphs removed on `replace` / `patch`; `Rdf.blank_node_policy` (`"fresh"` | `"stable"`) for deterministic nested blank nodes
+- **Skolemization** — `skolemize` / `de_skolemize` kwargs on `to_graph`, `sync_to_graph`, `model_to_graph`, and `from_graph`; `Rdf.skolemize_export` / `Rdf.skolemize_import` defaults
+- **`examples/exit_criteria_03.py`** — DC `title` with language tag, blank-node `Address` embed, ordered `nick` `rdf:List`
+- Guide: `docs/guides/09-rdf-lists-and-lang.md`
+
+### Changed
+
+- **Breaking:** `list[T]` is no longer “multiple objects per predicate”; use `set[T]` for that semantics (see migration in README)
+
+### Fixed
+
+- Union fields (`str | int`) import using literal datatype to pick the matching member type
+
 ## [0.2.0] - 2026-05-17
 
 ### Added

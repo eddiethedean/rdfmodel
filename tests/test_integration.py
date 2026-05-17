@@ -121,6 +121,14 @@ def test_foaf_exit_criteria_roundtrip_and_sync_clear_age():
     assert list(g.objects(subj, URIRef(f"{FOAF_NS}age"))) == []
 
 
+def test_exit_criteria_03_example_script():
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run(
+        [sys.executable, str(root / "examples" / "exit_criteria_03.py")],
+        check=True,
+    )
+
+
 def test_foaf_person_02_example_script():
     root = Path(__file__).resolve().parents[1]
     env = {**__import__("os").environ, "PYTHONPATH": str(root / "src")}
@@ -146,8 +154,8 @@ def test_list_order_preserved_through_graph_roundtrip():
 
 def test_list_skips_none_elements_on_export():
     p = Person.model_construct(slug="a", name="A", nick=["ok", None, "also"])
-    nick_triples = [t for t in p.to_triples() if t[1] == f"{FOAF_NS}nick"]
-    assert len(nick_triples) == 2
+    restored = Person.from_graph(p.to_graph(), p.subject_uri())
+    assert restored.nick == ["ok", "also"]
 
 
 def test_set_import_dedupes_duplicate_objects():

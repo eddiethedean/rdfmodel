@@ -7,7 +7,8 @@ from typing import Literal, TypeVar, cast
 
 from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
-from rdflib import Graph, URIRef
+from rdflib import Graph, URIRef, XSD
+from rdflib import Literal as RdfLiteral
 from rdflib.term import Node
 
 from triplemodel._typing import ModelFieldScalar, ModelFieldValue, ModelInitData
@@ -26,8 +27,10 @@ from triplemodel.metadata.cardinality import (
     nested_model_type,
     raise_if_nested_collection,
     scalar_python_type,
+    union_member_types,
 )
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
+from triplemodel.terms.collection import read_rdf_list
 from triplemodel.terms.convert import term_to_python
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -53,6 +56,17 @@ def _handle_duplicate(
         warnings.warn(dup_msg, stacklevel=3)
 
 
+def _union_conversion_order(term: Node, members: tuple[type, ...]) -> tuple[type, ...]:
+    """Prefer union members that match the literal datatype."""
+    if not isinstance(term, RdfLiteral) or not members:
+        return members
+    if term.datatype == XSD.integer and int in members:
+        return (int,) + tuple(m for m in members if m is not int)
+    if term.datatype in (XSD.string, None) and str in members:
+        return (str,) + tuple(m for m in members if m is not str)
+    return members
+
+
 def _term_to_field(
     term: Node,
     py_type: type | None,
@@ -60,15 +74,28 @@ def _term_to_field(
     predicate: str,
     uri: str,
     *,
+    field_info: FieldInfo | None = None,
     registry: LiteralRegistry = default_registry,
 ) -> ModelFieldScalar:
-    try:
-        return cast(ModelFieldScalar, term_to_python(term, py_type, registry=registry))
-    except (ValueError, TypeError) as exc:
-        raise ValueError(
-            f"Cannot convert object for field {field_name!r} "
-            f"(predicate {predicate!r}, subject {uri!r}): {exc}"
-        ) from exc
+    members = union_member_types(field_info) if field_info is not None else ()
+    types_to_try: tuple[type | None, ...]
+    if members:
+        types_to_try = _union_conversion_order(term, members)
+    elif py_type is not None:
+        types_to_try = (py_type,)
+    else:
+        types_to_try = (None,)
+    last_exc: Exception | None = None
+    for tp in types_to_try:
+        try:
+            return cast(ModelFieldScalar, term_to_python(term, tp, registry=registry))
+        except (ValueError, TypeError) as exc:
+            last_exc = exc
+    msg = (
+        f"Cannot convert object for field {field_name!r} "
+        f"(predicate {predicate!r}, subject {uri!r})"
+    )
+    raise ValueError(f"{msg}: {last_exc}") from last_exc
 
 
 def import_field_value(
@@ -107,16 +134,23 @@ def import_field_value(
         )
 
     if card == "list":
+        if len(objects) > 1 and on_duplicate != "ignore":
+            _handle_duplicate(field_name, predicate, uri, len(objects), on_duplicate)
         py_type = scalar_python_type(field_info)
-        return [
-            _term_to_field(o, py_type, field_name, predicate, uri, registry=registry)
-            for o in objects
-        ]
+        return read_rdf_list(graph, objects[0], py_type, registry=registry)
 
     if card == "set":
         py_type = scalar_python_type(field_info)
         return {
-            _term_to_field(o, py_type, field_name, predicate, uri, registry=registry)
+            _term_to_field(
+                o,
+                py_type,
+                field_name,
+                predicate,
+                uri,
+                field_info=field_info,
+                registry=registry,
+            )
             for o in objects
         }
 
@@ -124,7 +158,13 @@ def import_field_value(
         _handle_duplicate(field_name, predicate, uri, len(objects), on_duplicate)
     py_type = scalar_python_type(field_info)
     return _term_to_field(
-        objects[0], py_type, field_name, predicate, uri, registry=registry
+        objects[0],
+        py_type,
+        field_name,
+        predicate,
+        uri,
+        field_info=field_info,
+        registry=registry,
     )
 
 
@@ -138,9 +178,14 @@ def graph_to_model(
     on_duplicate: OnDuplicate = "warn",
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
+    de_skolemize: bool | None = None,
 ) -> T:
     """Hydrate a single model instance from triples about ``uri``."""
     cfg = config or get_rdf_config(model_cls)
+    from triplemodel.io.skolem import apply_de_skolemize
+
+    do_de = cfg.skolemize_import if de_skolemize is None else de_skolemize
+    graph = apply_de_skolemize(graph, de_skolemize=do_de)
     r = resolver or default_resolver
     prefixes = cfg.prefixes_dict
     subject: Node = uri if isinstance(uri, Node) else URIRef(uri)

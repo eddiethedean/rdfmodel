@@ -13,6 +13,7 @@ from pydantic.fields import FieldInfo
 
 from triplemodel._typing import AnnotationExpr, JsonSchemaExtra, RdfFieldKwargs
 from triplemodel.metadata.cardinality import field_annotation
+from triplemodel.terms.lang import Lang
 
 _T = TypeVar("_T")
 
@@ -99,6 +100,24 @@ def annotation_has_iri_id(annotation: AnnotationExpr) -> bool:
     if get_origin(annotation) is not Annotated:
         return False
     return any(isinstance(meta, IriId) for meta in get_args(annotation)[1:])
+
+
+def lang_from_annotation(annotation: AnnotationExpr) -> str | None:
+    """Read :class:`Lang` from ``Annotated[..., Lang(...)]``."""
+    if get_origin(annotation) is not Annotated:
+        return None
+    for meta in get_args(annotation)[1:]:
+        if isinstance(meta, Lang):
+            return meta.code
+    return None
+
+
+def lang_for_field(field_info: FieldInfo) -> str | None:
+    """Language tag for a field, if configured."""
+    for meta in field_info.metadata:
+        if isinstance(meta, Lang):
+            return meta.code
+    return lang_from_annotation(field_annotation(field_info))
 
 
 def id_field_is_iri_id(model_cls: type[BaseModel], id_field: str) -> bool:

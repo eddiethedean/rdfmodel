@@ -14,7 +14,7 @@ project = "TripleModel"
 author = "TripleModel contributors"
 copyright = f"{datetime.now().year}, {author}"
 
-version = "0.2.0"
+version = "0.3.0"
 release = version
 
 extensions = [
