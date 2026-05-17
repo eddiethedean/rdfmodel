@@ -66,8 +66,22 @@ def sync_to_graph(
         )
 
     if resolved_mode == "replace":
-        return ReplaceGraphMode().apply(g, model, uri=uri, config=cfg, bind=False)
+        return ReplaceGraphMode().apply(
+            g,
+            model,
+            uri=uri,
+            config=cfg,
+            bind=False,
+            resolver=resolver,
+            registry=registry,
+        )
 
     return PatchGraphMode().apply(
-        g, model, uri=uri, config=cfg, bind=False, registry=registry
+        g,
+        model,
+        uri=uri,
+        config=cfg,
+        bind=False,
+        resolver=resolver,
+        registry=registry,
     )

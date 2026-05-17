@@ -19,7 +19,8 @@ from triplemodel.io import (
     sync_to_graph,
 )
 from triplemodel._typing import TripleRow
-from triplemodel.protocols import register_rdf_resource
+from triplemodel.protocols import PredicateResolver, register_rdf_resource
+from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 
 class TripleModel(BaseModel):
@@ -58,9 +59,17 @@ class TripleModel(BaseModel):
             return uri
         return get_rdf_config(type(self)).subject_uri(self)
 
-    def to_triples(self, *, uri: str | None = None) -> list[TripleRow]:
+    def to_triples(
+        self,
+        *,
+        uri: str | None = None,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry | None = None,
+    ) -> list[TripleRow]:
         """Export instance data as (subject, predicate, object) tuples."""
-        return model_to_triples(self, uri=uri)
+        return model_to_triples(
+            self, uri=uri, resolver=resolver, registry=registry
+        )
 
     def to_graph(
         self,
@@ -68,12 +77,21 @@ class TripleModel(BaseModel):
         *,
         uri: str | None = None,
         mode: GraphMode | None = None,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
     ) -> Graph:
         """Serialize this instance into an rdflib ``Graph``.
 
         When ``mode`` is omitted, uses ``Rdf.graph_mode`` (default ``"add"``).
         """
-        return model_to_graph(self, graph, uri=uri, mode=mode)
+        return model_to_graph(
+            self,
+            graph,
+            uri=uri,
+            mode=mode,
+            resolver=resolver,
+            registry=registry,
+        )
 
     def sync_to_graph(
         self,
@@ -81,13 +99,22 @@ class TripleModel(BaseModel):
         *,
         uri: str | None = None,
         mode: GraphMode | None = None,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
     ) -> Graph:
         """Update ``graph`` with owned triples for this instance (see ``mode``).
 
         When ``mode`` is omitted, uses ``Rdf.graph_mode`` if set to something other
         than ``"add"``; otherwise defaults to ``"replace"``.
         """
-        return sync_to_graph(self, graph, uri=uri, mode=mode)
+        return sync_to_graph(
+            self,
+            graph,
+            uri=uri,
+            mode=mode,
+            resolver=resolver,
+            registry=registry,
+        )
 
     @classmethod
     def from_graph(

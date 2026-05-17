@@ -77,6 +77,8 @@ def model_to_graph(
         uri=uri,
         config=cfg,
         bind=should_bind,
+        resolver=resolver,
+        registry=registry,
     )
 
 

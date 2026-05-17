@@ -22,7 +22,7 @@ RdfScalar: TypeAlias = str | int | float | bool | date | datetime | Decimal | UU
 
 PythonToTermInput: TypeAlias = RdfScalar | Enum | Node
 
-"""Values accepted by :func:`~triplemodel._types.python_to_term`."""
+"""Values accepted by :func:`~triplemodel.terms.convert.python_to_term`."""
 
 TripleObject: TypeAlias = PythonToTermInput | str
 
@@ -32,7 +32,7 @@ TripleRow: TypeAlias = tuple[str | Node, str, TripleObject]
 
 RdfValue: TypeAlias = RdfScalar | Node | Enum
 
-"""Values produced by :func:`~triplemodel._types.term_to_python` for mapped fields."""
+"""Values produced by :func:`~triplemodel.terms.convert.term_to_python` for mapped fields."""
 
 ModelFieldScalar: TypeAlias = RdfScalar | str
 

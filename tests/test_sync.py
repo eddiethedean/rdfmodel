@@ -149,3 +149,43 @@ def test_to_graph_patch_preserves_multiple_values():
     p.to_graph(g, mode="patch")
     subj = URIRef(EX + "a")
     assert sorted(str(o) for o in g.objects(subj, URIRef(f"{FOAF}nick"))) == ["a", "b"]
+
+
+ALT_NAME = "http://example.org/altName"
+
+
+class _AltNameResolver:
+    """Maps foaf:name to a custom predicate for extension-point tests."""
+
+    def resolve_field_predicate(self, field_info, prefixes):
+        from triplemodel.fields.resolver import default_resolver
+
+        pred = default_resolver.resolve_field_predicate(field_info, prefixes)
+        if pred == f"{FOAF}name":
+            return ALT_NAME
+        return pred
+
+    def owned_predicates(self, model_cls, config=None):
+        from triplemodel.fields.resolver import default_resolver
+
+        preds = set(default_resolver.owned_predicates(model_cls, config))
+        if f"{FOAF}name" in preds:
+            preds.discard(f"{FOAF}name")
+            preds.add(ALT_NAME)
+        return frozenset(preds)
+
+
+def test_replace_and_patch_honor_custom_resolver():
+    p = Person(slug="a", name="A")
+    subj = URIRef(p.subject_uri())
+    resolver = _AltNameResolver()
+
+    g = Graph()
+    sync_to_graph(p, g, mode="replace", resolver=resolver)
+    assert list(g.objects(subj, URIRef(ALT_NAME)))
+    assert list(g.objects(subj, URIRef(f"{FOAF}name"))) == []
+
+    g2 = Graph()
+    p.to_graph(g2, mode="patch", resolver=resolver)
+    assert list(g2.objects(subj, URIRef(ALT_NAME)))
+    assert list(g2.objects(subj, URIRef(f"{FOAF}name"))) == []

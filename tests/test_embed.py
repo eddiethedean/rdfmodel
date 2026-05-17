@@ -194,6 +194,33 @@ def test_replace_removes_child_triples_when_mbox_cleared():
     assert list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}mbox"))) == []
 
 
+def test_patch_removes_child_triples_when_mbox_cleared():
+    mbox = Mailbox(slug="m1", address="alice@example.org")
+    p = Person(slug="alice", name="Alice", mbox=mbox)
+    g = p.to_graph()
+    child_uri = URIRef(mbox.subject_uri())
+    assert len(list(g.triples((child_uri, None, None)))) >= 1
+
+    sync_to_graph(Person(slug="alice", name="Alice", mbox=None), g, mode="patch")
+    assert list(g.triples((child_uri, None, None))) == []
+    assert list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}mbox"))) == []
+    restored = Person.from_graph(g, p.subject_uri())
+    assert restored.mbox is None
+
+
+def test_to_graph_patch_removes_child_triples_when_mbox_cleared():
+    mbox = Mailbox(slug="m1", address="alice@example.org")
+    p = Person(slug="alice", name="Alice", mbox=mbox)
+    g = p.to_graph()
+    child_uri = URIRef(mbox.subject_uri())
+
+    Person(slug="alice", name="Alice", mbox=None).to_graph(g, mode="patch")
+    assert list(g.triples((child_uri, None, None))) == []
+    assert list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}mbox"))) == []
+    restored = Person.from_graph(g, p.subject_uri())
+    assert restored.mbox is None
+
+
 def test_patch_updates_nested_child_scalar():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)

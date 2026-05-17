@@ -39,6 +39,8 @@ def freeze_prefixes(
 ) -> Mapping[str, str]:
     if not raw:
         return MappingProxyType({})
+    if isinstance(raw, list):
+        return MappingProxyType({str(k): str(v) for k, v in raw})
     if not isinstance(raw, Mapping):
         return MappingProxyType({})
     return MappingProxyType({str(k): str(v) for k, v in raw.items()})

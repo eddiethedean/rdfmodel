@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Union
+from typing import Any, Union, cast
 
 import pytest
 from rdflib import Graph
@@ -133,7 +133,8 @@ def test_freeze_prefixes_non_mapping():
     from triplemodel.config import freeze_prefixes
 
     assert dict(freeze_prefixes(None)) == {}
-    assert dict(freeze_prefixes([("ex", EX)])) == {}
+    assert dict(freeze_prefixes([("ex", EX)])) == {"ex": EX}
+    assert dict(freeze_prefixes(cast(Any, "not-a-mapping"))) == {}
 
 
 def test_expand_curie_hash_namespace():

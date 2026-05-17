@@ -9,6 +9,7 @@ from pydantic.fields import FieldInfo
 from rdflib import Graph, Literal
 
 from triplemodel.config import GraphMode, RdfConfig
+from triplemodel.terms.registry import LiteralRegistry as LiteralRegistryImpl
 
 _rdf_resource_classes: set[type] = set()
 
@@ -108,4 +109,6 @@ class GraphWriteMode(Protocol):
         uri: str | None = None,
         config: RdfConfig,
         bind: bool,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistryImpl | None = None,
     ) -> Graph: ...

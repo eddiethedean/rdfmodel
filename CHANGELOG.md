@@ -7,43 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **Subpackages** — `triplemodel.io`, `triplemodel.fields`, `triplemodel.config`, `triplemodel.terms`, `triplemodel.embed`, `triplemodel.metadata` with single-responsibility modules (export, import, discovery, writer, sync modes, embed strategies).
-- **`triplemodel.protocols`** — public extension points: `RdfResource`, `PredicateResolver`, `LiteralRegistry`, `EmbedStrategy`, `GraphWriteMode`, plus `register_rdf_resource` / `is_rdf_resource_class` for nested-type detection without importing `TripleModel` from cardinality helpers.
-- **`LiteralRegistry` class** — `register_literal_type` remains a thin wrapper over `default_registry`.
-- **Advanced kwargs** — `model_to_graph` / `sync_to_graph` accept optional `registry=` and `resolver=` for tests and custom converters (defaults unchanged).
-- **`Rdf.graph_mode`** — when `to_graph()` / `sync_to_graph()` / `model_to_graph()` omit `mode=`, they use the class `Rdf.graph_mode` (`sync_to_graph` still defaults to `"replace"` when `graph_mode` is `"add"`).
-- **`all_from_graph` without `type_uri`** — discovers subjects that have triples for mapped field predicates when no RDF type is configured.
-- **`graph_set_many`** — helper for multi-object predicate updates (used by patch sync).
-- Root exports: `LiteralRegistry`, `RdfResource`, `register_rdf_resource`, `freeze_prefixes`, `default_registry`.
-
-### Changed
-
-- **Preferred imports** — graph I/O via `triplemodel.io`; field helpers via `triplemodel.fields`; configuration via `triplemodel.config`. The package root still re-exports the common developer surface.
-- **`objects_for_field`** — resolves field predicates with the same prefix/CURIE expansion as export/import (fixes inconsistency with `graph_value` / `graph_set`).
-- **`freeze_prefixes`** — public name (was `_freeze_prefixes`).
-- Invalid `Rdf.embed` / `Rdf.graph_mode` values emit a `UserWarning` and fall back to `"iri"` / `"add"`.
-- Internal layout: no import cycles between `io`, `embed`, `terms`, `fields`, and `config`; `model_to_graph` delegates non-`add` modes to sync mode handlers instead of cross-importing monolithic modules.
-
-### Fixed
-
-- **`patch` sync for multi-valued fields** — `sync_to_graph(..., mode="patch")` and `to_graph(..., mode="patch")` now replace all objects per predicate in one step, so `list`/`set` fields keep every value instead of only the last.
-- **Nested IRI embed + `replace` sync** — clears owned triples on embedded child subjects before re-export.
-- **Stale nested IRI children** — `replace` and `patch` remove owned triples for nested child subjects that are no longer linked.
-- **`set` export** — `None` elements are skipped on export, matching `list` behaviour.
-- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` on export and import.
-- **`graph_to_model` with `URIRef` subjects** — `id_field` is derived from the subject URI when the URI is passed as a `URIRef`.
-
-### Removed
-
-- **Private modules** — `triplemodel._graph`, `_sync`, `_embed`, `_config`, `_fields`, `_cardinality`, `_types`, `_registry`, `_graph_ops`, `_namespaces` are no longer importable.
-- **`_unwrap_optional`** — use `triplemodel.metadata.cardinality.unwrap_annotation` (also exported from `triplemodel.metadata`).
-
-### Documentation
-
-- API reference updated for new module paths; README documents import path changes.
-
 ## [0.2.0] - 2026-05-17
 
 ### Added
@@ -56,17 +19,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Literal registry** — `register_literal_type` with defaults for `Decimal`, `UUID`, and `Enum`
 - **Graph helpers** — `merge_graphs`, `graph_value`, `graph_set`, `objects_for_field`
 - **`IriId`** metadata and full-IRI `id_field` values when `Rdf.namespace` is set
-- Export `GraphMode`, `sync_to_graph`, `expand_curie`, `bind_namespaces`, `merge_graphs` from package root
+- **`Rdf.graph_mode`** — when `to_graph()` / `sync_to_graph()` / `model_to_graph()` omit `mode=`, they use the class `Rdf.graph_mode` (`sync_to_graph` still defaults to `"replace"` when `graph_mode` is `"add"`)
+- **`all_from_graph` without `type_uri`** — discovers subjects that have triples for mapped field predicates when no RDF type is configured
+- **`graph_set_many`** — helper for multi-object predicate updates (used by patch sync)
+- **Subpackages** — `triplemodel.io`, `triplemodel.fields`, `triplemodel.config`, `triplemodel.terms`, `triplemodel.embed`, `triplemodel.metadata` with single-responsibility modules (export, import, discovery, writer, sync modes, embed strategies)
+- **`triplemodel.protocols`** — public extension points: `RdfResource`, `PredicateResolver`, `LiteralRegistry`, `EmbedStrategy`, `GraphWriteMode`, plus `register_rdf_resource` / `is_rdf_resource_class` for nested-type detection without importing `TripleModel` from cardinality helpers
+- **`LiteralRegistry` class** — `register_literal_type` remains a thin wrapper over `default_registry`
+- **Advanced kwargs** — `model_to_graph` / `sync_to_graph` accept optional `registry=` and `resolver=` for tests and custom converters (all graph modes)
+- Root exports: `GraphMode`, `sync_to_graph`, `expand_curie`, `bind_namespaces`, `merge_graphs`, `LiteralRegistry`, `RdfResource`, `register_rdf_resource`, `freeze_prefixes`, `default_registry`
 
 ### Changed
 
 - Scalar fields still use `on_duplicate` for multiple objects; collection fields import all values
 - `to_graph` defaults to `mode="add"` (0.1 behaviour); use `sync_to_graph(..., mode="replace")` to drop cleared fields
+- **Preferred imports** — graph I/O via `triplemodel.io`; field helpers via `triplemodel.fields`; configuration via `triplemodel.config`. The package root still re-exports the common developer surface
+- **`objects_for_field`** — resolves field predicates with the same prefix/CURIE expansion as export/import (fixes inconsistency with `graph_value` / `graph_set`)
+- **`freeze_prefixes`** — public name (was `_freeze_prefixes`); accepts `dict` or `list[tuple[str, str]]` for `Rdf.prefixes`
+- Invalid `Rdf.embed` / `Rdf.graph_mode` values emit a `UserWarning` and fall back to `"iri"` / `"add"`
+- Internal layout: no import cycles between `io`, `embed`, `terms`, `fields`, and `config`; `model_to_graph` delegates non-`add` modes to sync mode handlers instead of cross-importing monolithic modules
+
+### Fixed
+
+- **`patch` sync for multi-valued fields** — `sync_to_graph(..., mode="patch")` and `to_graph(..., mode="patch")` now replace all objects per predicate in one step, so `list`/`set` fields keep every value instead of only the last
+- **Nested IRI embed + `replace` sync** — clears owned triples on embedded child subjects before re-export
+- **Stale nested IRI children** — `replace` and `patch` remove owned triples for nested child subjects that are no longer linked (including `mbox=None`)
+- **`set` export** — `None` elements are skipped on export, matching `list` behaviour
+- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` on export and import
+- **`graph_to_model` with `URIRef` subjects** — `id_field` is derived from the subject URI when the URI is passed as a `URIRef`
+- **`replace` / `patch` extension kwargs** — custom `resolver=` and `registry=` are honored in all graph write modes (not only `add`)
+
+### Removed
+
+- **Private modules** — `triplemodel._graph`, `_sync`, `_embed`, `_config`, `_fields`, `_cardinality`, `_types`, `_registry`, `_graph_ops`, `_namespaces` are no longer importable
+- **`_unwrap_optional`** — use `triplemodel.metadata.cardinality.unwrap_annotation` (also exported from `triplemodel.metadata`)
 
 ### Documentation
 
 - `examples/foaf_person_02.py` demonstrates 0.2 exit criteria
 - Triple ownership documented for SparqlModel integration (SM-1)
+- API reference updated for new module paths; README documents import path changes
 
 ## [0.1.0] - 2026-05-17
 

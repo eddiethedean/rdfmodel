@@ -44,3 +44,19 @@ def test_bind_namespaces_strategies():
     bind_namespaces(g, {"ex": EX}, strategy="none")
     bind_namespaces(g, {"foaf": FOAF}, strategy="core")
     bind_namespaces(g, {}, strategy="rdflib")
+
+
+def test_rdf_prefixes_as_list_of_tuples_roundtrip():
+    class Person(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+            prefixes = [("foaf", FOAF)]
+
+        slug: str
+        name: str = rdf_field("foaf:name")
+
+    p = Person(slug="a", name="A")
+    restored = Person.from_graph(p.to_graph(), p.subject_uri())
+    assert restored == p

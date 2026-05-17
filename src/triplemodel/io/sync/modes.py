@@ -75,8 +75,19 @@ class AddGraphMode:
         uri: str | None = None,
         config: RdfConfig,
         bind: bool,
+        resolver: PredicateResolverProtocol | None = None,
+        registry: LiteralRegistry | None = None,
     ) -> Graph:
-        return write_model_add(graph, model, uri=uri, config=config, bind=bind)
+        reg = registry or default_registry
+        return write_model_add(
+            graph,
+            model,
+            uri=uri,
+            config=config,
+            bind=bind,
+            resolver=resolver,
+            registry=reg,
+        )
 
 
 @dataclass(frozen=True)
@@ -93,13 +104,26 @@ class ReplaceGraphMode:
         uri: str | None = None,
         config: RdfConfig,
         bind: bool,
+        resolver: PredicateResolverProtocol | None = None,
+        registry: LiteralRegistry | None = None,
     ) -> Graph:
+        reg = registry or default_registry
         cls = type(model)
         subject = uri or config.subject_uri(model)
-        clear_stale_nested_iri_children(model, graph, subject, config=config)
-        remove_owned_triples(graph, subject, cls, config=config)
-        clear_nested_iri_children(model, graph, config=config)
-        return write_model_add(graph, model, uri=uri, config=config, bind=bind)
+        clear_stale_nested_iri_children(
+            model, graph, subject, config=config, resolver=resolver
+        )
+        remove_owned_triples(graph, subject, cls, config=config, resolver=resolver)
+        clear_nested_iri_children(model, graph, config=config, resolver=resolver)
+        return write_model_add(
+            graph,
+            model,
+            uri=uri,
+            config=config,
+            bind=bind,
+            resolver=resolver,
+            registry=reg,
+        )
 
 
 @dataclass(frozen=True)
@@ -116,22 +140,32 @@ class PatchGraphMode:
         uri: str | None = None,
         config: RdfConfig,
         bind: bool,
-        registry: LiteralRegistry = default_registry,
+        resolver: PredicateResolverProtocol | None = None,
+        registry: LiteralRegistry | None = None,
     ) -> Graph:
         _ = bind
+        reg = registry or default_registry
         subject = uri or config.subject_uri(model)
         subject_ref_node = subject_ref(subject)
-        to_clear = predicates_to_patch(model, config=config)
-        clear_stale_nested_iri_children(model, graph, subject, config=config)
+        to_clear = predicates_to_patch(model, config=config, resolver=resolver)
+        clear_stale_nested_iri_children(
+            model, graph, subject, config=config, resolver=resolver
+        )
         remove_triples_for_predicates(graph, subject_ref_node, to_clear)
 
         by_sp: dict[tuple[Node, str], list[TripleObject]] = defaultdict(list)
-        for subj, pred, obj in model_to_triples(model, uri=subject, config=config):
+        for subj, pred, obj in model_to_triples(
+            model,
+            uri=subject,
+            config=config,
+            resolver=resolver,
+            registry=reg,
+        ):
             subj_ref = subj if isinstance(subj, Node) else subject_node(subj)
             by_sp[(subj_ref, pred)].append(obj)
 
         for (subj_ref, pred), objects in by_sp.items():
-            graph_set_many(graph, subj_ref, pred, objects, registry=registry)
+            graph_set_many(graph, subj_ref, pred, objects, registry=reg)
         return graph
 
 
