@@ -279,3 +279,109 @@ def test_duplicate_predicate_ignore():
     g.add((subj, URIRef(f"{FOAF}name"), Literal("Alicia")))
     person = Person.from_graph(g, str(subj), on_duplicate="ignore")
     assert person.name == "Alice"
+
+
+class AnnotatedAgePerson(TripleModel):
+    class Rdf:
+        namespace = EX
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+
+    slug: str
+    name: str = rdf_field(f"{FOAF}name")
+    age: Annotated[int, Predicate(f"{FOAF}age")]
+
+
+def test_annotated_int_roundtrip():
+    person = AnnotatedAgePerson(slug="alice", name="Alice", age=30)
+    restored = AnnotatedAgePerson.from_graph(person.to_graph(), person.subject_uri())
+    assert restored == person
+    assert isinstance(restored.age, int)
+
+
+class Flagged(TripleModel):
+    class Rdf:
+        namespace = EX
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+
+    slug: str
+    name: str = rdf_field(f"{FOAF}name")
+    active: bool = rdf_field("http://example.org/active", default=False)
+    count: int = rdf_field("http://example.org/count", default=0)
+
+
+def test_false_and_zero_roundtrip():
+    item = Flagged(slug="a", name="A", active=False, count=0)
+    restored = Flagged.from_graph(item.to_graph(), item.subject_uri())
+    assert restored.active is False
+    assert restored.count == 0
+
+
+class WithBio(TripleModel):
+    class Rdf:
+        namespace = EX
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+
+    slug: str
+    name: str = rdf_field(f"{FOAF}name")
+    bio: str = rdf_field(f"{FOAF}nick", default="")
+
+
+def test_empty_string_field_roundtrip():
+    person = WithBio(slug="a", name="A", bio="")
+    triples = person.to_triples()
+    assert any(obj == "" for _, _, obj in triples)
+    restored = WithBio.from_graph(person.to_graph(), person.subject_uri())
+    assert restored.bio == ""
+
+
+def test_from_graph_missing_required_field():
+    g = Graph()
+    subj = URIRef(EX + "alice")
+    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
+    with pytest.raises(ValueError, match="Cannot validate Person"):
+        Person.from_graph(g, str(subj))
+
+
+def test_union_type_string_roundtrip():
+    class Mixed(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = "http://example.org/Mixed"
+            id_field = "slug"
+
+        slug: str
+        val: str | int = rdf_field("http://example.org/val")
+
+    original = Mixed(slug="a", val="hello")
+    restored = Mixed.from_graph(original.to_graph(), original.subject_uri())
+    assert restored.val == "hello"
+    assert isinstance(restored.val, str)
+
+
+def test_off_namespace_uri_import_fails():
+    person = Person(slug="alice", name="Alice")
+    uri = "http://custom.example/alice"
+    g = person.to_graph(uri=uri)
+    with pytest.raises(ValueError, match="Cannot validate Person"):
+        Person.from_graph(g, uri, validate_type=False)
+
+
+def test_empty_child_rdf_shadows_parent():
+    class Base(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+
+    class Child(Base):
+        class Rdf:
+            pass
+
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+
+    with pytest.raises(ValueError, match="namespace"):
+        Child(slug="a", name="A").subject_uri()

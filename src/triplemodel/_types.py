@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from typing import Any
 
@@ -59,5 +60,9 @@ def term_to_python(term: Node, target_type: type | None = None) -> Any:
     return term.toPython()
 
 
+_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+
 def _looks_like_iri(value: str) -> bool:
-    return value.startswith(("http://", "https://", "urn:"))
+    """True when ``value`` has an RFC 3986 scheme (e.g. http:, mailto:, file:)."""
+    return bool(_SCHEME_RE.match(value))

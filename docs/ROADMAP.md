@@ -4,7 +4,7 @@ Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**)
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
-**Ecosystem:** TripleModel is the **stateless mapping and file I/O** layer. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on TripleModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). TripleModel must never depend on SparqlModel.
+**Ecosystem:** TripleModel is the **stateless in-memory mapping** layer (file parse/serialize from **0.4**). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on TripleModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). TripleModel must never depend on SparqlModel.
 
 | Document | Purpose |
 |----------|---------|

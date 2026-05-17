@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Add missing `py.typed` PEP 561 marker; verify wheel includes it in tests and CI build
+- `_unwrap_optional` peels `Annotated[...]` so `Annotated[int, Predicate(...)]` imports with correct XSD coercion
+- IRI-like `str` values use any RFC 3986 scheme (`mailto:`, `file:`, etc.) on export, not only `http`/`https`/`urn`
+
+### Added
+
+- Export `OnDuplicate` from the package root for type checkers
+- Regression tests: `False`/`0` round-trip, empty string fields, missing required fields, `str | int` string branch, off-namespace `uri=` import, empty child `Rdf` footgun
+
+### Documentation
+
+- README limitations: `uri=` namespace alignment, empty child `Rdf`, falsy `type_uri`, `id_from_subject_uri`, BNode subjects, loose bool coercion
+- `TripleModel` docstring: subclass `Rdf` replaces parent config
+- RELEASING test count; ROADMAP/PLAN wording for 0.1 in-memory scope; CI Python 3.11 and `ruff format --check`
+
 ## [0.1.0] - 2026-05-17
 
 ### Added

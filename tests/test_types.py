@@ -104,3 +104,19 @@ def test_term_to_python_plain_literal():
 def test_urn_string_becomes_uri_ref():
     term = python_to_term("urn:example:resource")
     assert isinstance(term, URIRef)
+
+
+def test_mailto_string_becomes_uri_ref():
+    term = python_to_term("mailto:alice@example.org")
+    assert isinstance(term, URIRef)
+
+
+def test_file_string_becomes_uri_ref():
+    term = python_to_term("file:///tmp/example.ttl")
+    assert isinstance(term, URIRef)
+
+
+def test_plain_string_without_scheme_stays_literal():
+    term = python_to_term("not an iri")
+    assert isinstance(term, Literal)
+    assert term.datatype == XSD.string

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from rdflib import BNode, Graph, Literal, URIRef
 
-from triplemodel import TripleModel, models_to_graph, rdf_field
+from triplemodel import Predicate, TripleModel, models_to_graph, rdf_field
 from triplemodel._config import RDF_TYPE
 from triplemodel._graph import _unwrap_optional, graph_to_model, model_to_triples
 
@@ -59,6 +61,16 @@ def test_unwrap_optional_plain_type():
 
 def test_unwrap_optional_non_union_generic():
     assert _unwrap_optional(list[str]) == list[str]
+
+
+def test_unwrap_optional_annotated_int():
+    ann = Annotated[int, Predicate("http://example.org/age")]
+    assert _unwrap_optional(ann) is int
+
+
+def test_unwrap_optional_annotated_optional_int():
+    ann = Annotated[int | None, Predicate("http://example.org/age")]
+    assert _unwrap_optional(ann) is int
 
 
 def test_models_to_graph_into_existing_graph():

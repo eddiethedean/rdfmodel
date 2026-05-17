@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.1.0)
 
-**Ready for PyPI (alpha):** Flat `TripleModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.12 / 3.13), ruff, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
+**Ready for PyPI (alpha):** Flat `TripleModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.11 / 3.12 / 3.13), ruff, `ty check`, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
 
 **Not yet shipped (blocks SparqlModel PyPI dependency):** Multi-value fields, nested models, sync/remove on re-export, namespaces/`bind`, file parse/serialize — see **0.2** and [ROADMAP § SM-1](ROADMAP.md#sparqlmodel-integration-milestones).
 
@@ -16,7 +16,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Mission
 
-**TripleModel** is the shared **typed Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models, file interchange, and rdflib feature coverage — without application session or query machinery.
+**TripleModel** is the shared **typed Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models and rdflib feature coverage (file interchange from **0.4**) — without application session or query machinery.
 
 **Not the mission:** ORM-style persistence, Python-to-SPARQL compilers, HTTP stores, or web frameworks. That is **SparqlModel**.
 

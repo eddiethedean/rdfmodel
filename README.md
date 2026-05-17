@@ -113,14 +113,14 @@ title: Annotated[str, Predicate("http://purl.org/dc/terms/title")]
 
 Fields **without** a predicate mapping are skipped on export and import (handy for computed or app-only fields).
 
-Subclasses **inherit** a parent’s nested `Rdf` class (walked via the MRO); override `class Rdf` on the child to replace metadata.
+Subclasses **inherit** a parent’s nested `Rdf` class when the child does not define `Rdf`. If the child declares `class Rdf:`, it **replaces** the parent’s config entirely — do not use an empty nested `Rdf` on a subclass.
 
 ### Term conversion
 
 | Python | RDF (export) |
 |--------|----------------|
 | `str` (not IRI-like) | `xsd:string` literal |
-| `str` with `http://`, `https://`, `urn:` | `URIRef` |
+| `str` with an RFC 3986 scheme (`http:`, `https:`, `urn:`, `mailto:`, `file:`, …) | `URIRef` |
 | `int`, `float`, `bool`, `date`, `datetime` | XSD-typed literal |
 
 Import uses each field’s type annotation. `BNode` objects cannot be coerced into `str` fields.
@@ -142,7 +142,7 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 
 | Name | Description |
 |------|-------------|
-| `rdf_field`, `Predicate` | Predicate metadata for fields |
+| `rdf_field`, `Predicate`, `OnDuplicate` | Predicate metadata; duplicate-import policy type |
 | `RdfConfig`, `TripleModel` | Config dataclass and base model |
 | `model_to_graph`, `model_to_triples`, `models_to_graph` | Export without subclassing |
 | `graph_to_model`, `graph_to_models` | Import into a model class |
@@ -222,7 +222,13 @@ Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/do
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.
-- **IRI-like strings** — only `http://`, `https://`, and `urn:` are treated as `URIRef` on export.
+- **`uri=` override** — `from_graph` can only derive `id_field` when the subject URI is under `Rdf.namespace`; off-namespace URIs fail validation unless you add triples another way.
+- **Empty child `class Rdf:`** — shadows the parent and clears `namespace` / `type_uri` / `id_field`; omit `Rdf` on the child to inherit.
+- **`type_uri=""` or other falsy config** — treated as unset (no `rdf:type` on export, no type filter on import).
+- **`id_from_subject_uri`** — returns the URI suffix after the namespace base (may include extra `/` segments); not a single-segment validator.
+- **`id_field` values `False` or `0`** — are valid ids (not treated as empty).
+- **BNode subjects** — skipped in `all_from_graph()`.
+- **Non-XSD boolean literals** — `bool` fields without `xsd:boolean` use a loose truthiness heuristic on import.
 - **Union field types** (e.g. `str | int`) rely on rdflib `toPython()` when the annotation is not a single scalar type.
 
 ## Development
@@ -239,7 +245,7 @@ ty check src tests
 PYTHONPATH=src python examples/readme_examples.py
 ```
 
-CI runs on Python 3.10, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/triplemodel/blob/main/RELEASING.md).
+CI runs on Python 3.10, 3.11, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/triplemodel/blob/main/RELEASING.md).
 
 ## Documentation
 

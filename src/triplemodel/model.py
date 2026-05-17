@@ -14,7 +14,6 @@ from triplemodel._graph import (
     graph_to_models,
     model_to_graph,
     model_to_triples,
-    models_to_graph,
 )
 
 
@@ -23,6 +22,9 @@ class TripleModel(BaseModel):
 
     Subclasses declare RDF metadata on a nested ``Rdf`` class and map fields
     with :func:`~triplemodel.rdf_field` or ``Annotated[..., Predicate(...)]``.
+    A nested ``Rdf`` on a subclass **replaces** the parent's config entirely;
+    do not declare an empty ``class Rdf:`` on a child if you intend to inherit
+    the parent's ``namespace``, ``type_uri``, or ``id_field``.
 
     Example::
 
@@ -97,11 +99,4 @@ class TripleModel(BaseModel):
         return get_rdf_config(cls)
 
 
-__all__ = [
-    "TripleModel",
-    "model_to_graph",
-    "model_to_triples",
-    "models_to_graph",
-    "graph_to_model",
-    "graph_to_models",
-]
+__all__ = ["TripleModel"]

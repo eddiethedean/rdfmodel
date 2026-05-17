@@ -14,6 +14,7 @@ from triplemodel._config import (
 )
 from triplemodel._fields import Predicate, rdf_field
 from triplemodel._graph import (
+    OnDuplicate,
     graph_to_model,
     graph_to_models,
     model_to_graph,
@@ -25,6 +26,7 @@ from triplemodel.model import TripleModel
 __version__ = "0.1.0"
 
 __all__ = [
+    "OnDuplicate",
     "RDF",
     "RDFS",
     "RDF_TYPE",

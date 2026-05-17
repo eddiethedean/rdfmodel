@@ -78,9 +78,11 @@ def models_to_graph(
 
 def _unwrap_optional(annotation: Any) -> Any:
     import types
-    from typing import Union
+    from typing import Annotated, Union
 
     origin = get_origin(annotation)
+    if origin is Annotated:
+        return _unwrap_optional(get_args(annotation)[0])
     if origin is None:
         return annotation
     if origin in (Union, types.UnionType):
