@@ -73,11 +73,13 @@ assert len(Person.all_from_graph(graph)) == 1
 | `type_uri` | Emitted as `rdf:type`; used to filter `all_from_graph()` |
 | `id_field` | Field value appended to `namespace` for the subject IRI |
 
-Subject IRIs use `subject_base(namespace)` + percent-encoded id (`quote` / `unquote`). Override per call with `uri=`:
+Subject IRIs use `subject_base(namespace)` + percent-encoded id (`quote` / `unquote`). Override the subject IRI per call with `uri=` (round-trip works when the URI still matches `namespace`):
 
 ```python
-alice.to_graph(uri="http://custom.example/alice")
-Person.from_graph(graph, "http://custom.example/alice")
+alice = Person(slug="alice", name="Alice")
+custom_uri = "http://example.org/people/alice"
+graph = alice.to_graph(uri=custom_uri)
+assert Person.from_graph(graph, custom_uri) == alice
 ```
 
 Shared helpers (also on the package root):
@@ -146,7 +148,20 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 
 ```python
 from rdflib import Graph
-from rdfmodel import models_to_graph
+from rdfmodel import RDFModel, models_to_graph, rdf_field
+
+FOAF = "http://xmlns.com/foaf/0.1/"
+
+
+class Person(RDFModel):
+    class Rdf:
+        namespace = "http://example.org/people/"
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+
+    slug: str
+    name: str = rdf_field(f"{FOAF}name")
+
 
 people = [
     Person(slug="alice", name="Alice"),
@@ -162,9 +177,25 @@ models_to_graph(people, existing)
 ### Encoded subject ids
 
 ```python
+from rdfmodel import RDFModel, rdf_field
+
+FOAF = "http://xmlns.com/foaf/0.1/"
+
+
+class Person(RDFModel):
+    class Rdf:
+        namespace = "http://example.org/people/"
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+
+    slug: str
+    name: str = rdf_field(f"{FOAF}name")
+
+
 bob = Person(slug="bob jones", name="Bob")
 uri = bob.subject_uri()  # .../bob%20jones
 restored = Person.from_graph(bob.to_graph(), uri)
+assert restored == bob
 ```
 
 ## RDFModel vs SparqlModel
@@ -195,6 +226,7 @@ pip install -e ".[dev]"
 pytest
 ruff format src tests && ruff check src tests
 ty check src tests
+PYTHONPATH=src python examples/readme_examples.py
 ```
 
 CI runs on Python 3.10, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/rdfmodel/blob/main/RELEASING.md).
