@@ -1,22 +1,22 @@
 # SparqlModel ecosystem guide (for SparqlModel development)
 
-Copy this file into the SparqlModel repo (e.g. `docs/ECOSYSTEM.md`). RDFModel-side summary: [ECOSYSTEM.md](ECOSYSTEM.md). Strategy: [PLAN.md](PLAN.md).
+Copy this file into the SparqlModel repo (e.g. `docs/ECOSYSTEM.md`). TripleModel-side summary: [ECOSYSTEM.md](ECOSYSTEM.md). Strategy: [PLAN.md](PLAN.md).
 
 ---
 
 ## Stack
 
 ```text
-SparqlModel  →  RDFModel  →  rdflib · pydantic
+SparqlModel  →  TripleModel  →  rdflib · pydantic
 ```
 
-**Rules:** SparqlModel may depend on RDFModel; RDFModel must never import SparqlModel. Do not reimplement mapping in `graph.py` once upstream APIs exist.
+**Rules:** SparqlModel may depend on TripleModel (`triplemodel`); TripleModel must never import SparqlModel. Do not reimplement mapping in `graph.py` once upstream APIs exist.
 
 ---
 
 ## Division of labour
 
-| SparqlModel owns | RDFModel owns |
+| SparqlModel owns | TripleModel owns |
 |------------------|---------------|
 | `SPARQLSession`, stores | `to_graph` / `from_graph`, sync/remove |
 | Query DSL + compiler | Terms, literals, subject IRIs |
@@ -28,9 +28,9 @@ SparqlModel  →  RDFModel  →  rdflib · pydantic
 
 ## Dependency gate
 
-Pin `rdfmodel` only after:
+Pin `triplemodel` only after:
 
-| RDFModel | Unblocks |
+| TripleModel | Unblocks |
 |----------|----------|
 | **0.2** | Multi-value, nested models, sync/remove, prefixes |
 | **0.3** | Blanks / RDF lists (if needed) |
@@ -44,9 +44,9 @@ Pin `rdfmodel` only after:
 
 | SparqlModel | Action |
 |-------------|--------|
-| `graph.py` | Delegate to RDFModel; keep cascade in `session.py` |
-| `serializers.py` | Wrap RDFModel 0.4+ |
-| `fields.py` | Adapter to RDFModel predicate metadata |
+| `graph.py` | Delegate to TripleModel; keep cascade in `session.py` |
+| `serializers.py` | Wrap TripleModel 0.4+ |
+| `fields.py` | Adapter to TripleModel predicate metadata |
 | `compiler.py`, `query.py`, `stores/` | **Keep** |
 
 ---
@@ -55,8 +55,8 @@ Pin `rdfmodel` only after:
 
 | Issue | Repo |
 |-------|------|
-| Wrong `Literal` datatype | RDFModel |
-| Stale triple after `put` | RDFModel sync + SparqlModel policy |
+| Wrong `Literal` datatype | TripleModel |
+| Stale triple after `put` | TripleModel sync + SparqlModel policy |
 | `!=` filter semantics | SparqlModel |
 | Orphan embedded IRI | SparqlModel |
 
@@ -66,10 +66,10 @@ Full tables: [ECOSYSTEM.md](ECOSYSTEM.md).
 
 ## Integration checklist (SparqlModel repo)
 
-1. **Before 0.2:** Keep mapping in `graph.py`; optionally vendor or path-depend on RDFModel for comparison tests only.
-2. **At RDFModel 0.2:** Add `rdfmodel` as optional extra or dev dependency; replace export/import core with `RDFModel.to_graph` / `from_graph` + RDFModel sync API; retain `session.put` / `delete` for cascade and orphans.
-3. **At 0.4:** Point `serializers.py` at RDFModel `parse` / `serialize`; delete duplicate format tables.
-4. **At 0.9+:** Require `rdfmodel` in `pyproject.toml` with a documented semver range; publish migration note for users who only used SparqlModel mapping APIs.
+1. **Before 0.2:** Keep mapping in `graph.py`; optionally vendor or path-depend on TripleModel for comparison tests only.
+2. **At TripleModel 0.2:** Add `triplemodel` as optional extra or dev dependency; replace export/import core with `TripleModel.to_graph` / `from_graph` + TripleModel sync API; retain `session.put` / `delete` for cascade and orphans.
+3. **At 0.4:** Point `serializers.py` at TripleModel `parse` / `serialize`; delete duplicate format tables.
+4. **At 0.9+:** Require `triplemodel` in `pyproject.toml` with a documented semver range; publish migration note for users who only used SparqlModel mapping APIs.
 
 ---
 
@@ -77,9 +77,9 @@ Full tables: [ECOSYSTEM.md](ECOSYSTEM.md).
 
 | Change | Open in |
 |--------|---------|
-| Predicate metadata, literals, subject URI | RDFModel |
+| Predicate metadata, literals, subject URI | TripleModel |
 | New `Field()` CURIE sugar only | SparqlModel (thin wrapper) |
 | `where()` / compiler / `NOT EXISTS` | SparqlModel |
-| Turtle round-trip in unit tests | RDFModel (or SparqlModel integration test calling RDFModel) |
+| Turtle round-trip in unit tests | TripleModel (or SparqlModel integration test calling TripleModel) |
 
-Cross-package contract tests (optional): export `put(person)` triple set equals RDFModel `sync_to_graph` + SparqlModel-owned cascade rules.
+Cross-package contract tests (optional): export `put(person)` triple set equals TripleModel `sync_to_graph` + SparqlModel-owned cascade rules.

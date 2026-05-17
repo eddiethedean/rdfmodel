@@ -7,8 +7,8 @@ from typing_extensions import Self
 from pydantic import BaseModel, ConfigDict
 from rdflib import Graph
 
-from rdfmodel._config import RdfConfig, get_rdf_config
-from rdfmodel._graph import (
+from triplemodel._config import RdfConfig, get_rdf_config
+from triplemodel._graph import (
     graph_to_model,
     graph_to_models,
     model_to_graph,
@@ -17,15 +17,15 @@ from rdfmodel._graph import (
 )
 
 
-class RDFModel(BaseModel):
+class TripleModel(BaseModel):
     """Pydantic model that can be serialized to and from an RDF graph.
 
     Subclasses declare RDF metadata on a nested ``Rdf`` class and map fields
-    with :func:`~rdfmodel.rdf_field` or ``Annotated[..., Predicate(...)]``.
+    with :func:`~triplemodel.rdf_field` or ``Annotated[..., Predicate(...)]``.
 
     Example::
 
-        class Person(RDFModel):
+        class Person(TripleModel):
             class Rdf:
                 namespace = "http://example.org/people/"
                 type_uri = "http://xmlns.com/foaf/0.1/Person"
@@ -76,7 +76,7 @@ class RDFModel(BaseModel):
 
 
 __all__ = [
-    "RDFModel",
+    "TripleModel",
     "model_to_graph",
     "model_to_triples",
     "models_to_graph",

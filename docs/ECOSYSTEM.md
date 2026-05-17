@@ -1,6 +1,6 @@
-# RDFModel and SparqlModel — separation of responsibilities
+# TripleModel and SparqlModel — separation of responsibilities
 
-Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel will depend on RDFModel** once the graph-mapping APIs are aligned. Until then, this document is the contract for what each package owns.
+Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel will depend on TripleModel** (`triplemodel`) once the graph-mapping APIs are aligned. Until then, this document is the contract for what each package owns.
 
 | Doc | Purpose |
 |-----|---------|
@@ -17,7 +17,7 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 └────────────────────┬─────────────────────┘
                      │ depends on (future)
 ┌────────────────────▼─────────────────────┐
-│  RDFModel (rdfmodel)                     │
+│  TripleModel (triplemodel)                  │
 │  Pydantic ↔ RDF mapping · graph I/O      │
 └────────────────────┬─────────────────────┘
                      │
@@ -26,11 +26,11 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 └──────────────────────────────────────────┘
 ```
 
-**Rule:** dependency flows downward only. RDFModel must never import SparqlModel.
+**Rule:** dependency flows downward only. TripleModel must never import SparqlModel.
 
 ---
 
-## RDFModel — the mapping layer
+## TripleModel — the mapping layer
 
 **Tagline:** Typed Pydantic models ↔ RDF graphs (terms, triples, files).
 
@@ -41,7 +41,7 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 | Area | Examples |
 |------|----------|
 | **Model metadata** | Nested `Rdf` config (`namespace`, `type_uri`, `id_field`), `rdf_field()`, `Predicate` |
-| **Subject identity** | `subject_base()`, `id_from_subject_uri()`, `RDFModel.subject_uri()` (encoding, safe prefix matching) |
+| **Subject identity** | `subject_base()`, `id_from_subject_uri()`, `TripleModel.subject_uri()` (encoding, safe prefix matching) |
 | **Term conversion** | Python scalars ↔ `URIRef` / `Literal` / XSD datatypes |
 | **Graph serialization** | `to_graph`, `from_graph`, `all_from_graph`, `models_to_graph`, low-level helpers |
 | **Field ↔ predicate** | Single- and multi-valued fields, nested embedded models (roadmap) |
@@ -100,7 +100,7 @@ restored = Person.from_graph(g, person.subject_uri())
 | **App integration** | FastAPI extras, remote SPARQL (roadmap) |
 | **Raw SPARQL** | `session.execute(sparql)` with prefix injection |
 
-### Does not own (delegates to RDFModel, once integrated)
+### Does not own (delegates to TripleModel, once integrated)
 
 - Canonical `python_to_term` / `term_to_python`
 - Predicate metadata resolution and duplicate-predicate rules
@@ -132,24 +132,24 @@ When choosing a package (or deciding where a feature belongs):
 
 | If you need… | Package |
 |--------------|---------|
-| Round-trip a model from an existing `Graph` | **RDFModel** |
-| Load/save Turtle, JSON-LD, Trig files | **RDFModel** |
-| Shared vocabulary / term conversion bugs fixed once | **RDFModel** |
+| Round-trip a model from an existing `Graph` | **TripleModel** |
+| Load/save Turtle, JSON-LD, Trig files | **TripleModel** |
+| Shared vocabulary / term conversion bugs fixed once | **TripleModel** |
 | `session.put` / `delete` with cascade | **SparqlModel** |
 | `Model.field == value` queries | **SparqlModel** |
 | SPARQL endpoint over HTTP | **SparqlModel** |
 | FastAPI RDF responses | **SparqlModel** |
-| Raw `graph.query("SELECT …")` without a DSL | **rdflib** or RDFModel passthrough; not a SparqlModel requirement |
+| Raw `graph.query("SELECT …")` without a DSL | **rdflib** or TripleModel passthrough; not a SparqlModel requirement |
 
 When **implementing** a feature:
 
 | Touching… | Belongs in |
 |-----------|------------|
-| “This `str` became the wrong `Literal`” | RDFModel |
-| “Re-export dropped a triple on update” | RDFModel (sync/merge) + SparqlModel policy |
+| “This `str` became the wrong `Literal`” | TripleModel |
+| “Re-export dropped a triple on update” | TripleModel (sync/merge) + SparqlModel policy |
 | “`!=` filter should mean NOT EXISTS” | SparqlModel compiler |
-| “Two parents deleted the same embedded IRI” | SparqlModel cascade rules (may call RDFModel for triple sets) |
-| “TriG named graph round-trip” | RDFModel; SparqlModel uses it via session/store |
+| “Two parents deleted the same embedded IRI” | SparqlModel cascade rules (may call TripleModel for triple sets) |
+| “TriG named graph round-trip” | TripleModel; SparqlModel uses it via session/store |
 
 ---
 
@@ -157,21 +157,21 @@ When **implementing** a feature:
 
 Today the two libraries use different surface names; convergence is intentional, not required to be identical.
 
-| Concept | RDFModel | SparqlModel (current) | Notes |
+| Concept | TripleModel | SparqlModel (current) | Notes |
 |---------|----------|------------------------|-------|
-| Base model | `RDFModel` | `SPARQLModel` | SparqlModel may subclass or compose `RDFModel` later |
-| RDF type | `Rdf.type_uri` | `rdf_type` (CURIE) | Unify via prefixes + expansion in RDFModel |
+| Base model | `TripleModel` | `SPARQLModel` | SparqlModel may subclass or compose `TripleModel` later |
+| RDF type | `Rdf.type_uri` | `rdf_type` (CURIE) | Unify via prefixes + expansion in TripleModel |
 | Predicates | `rdf_field(iri)` | `Field("curie")` | Same metadata; different constructors |
-| Subject id | `Rdf.id_field` + `namespace` | `id: IRI` | RDFModel may add explicit `IRI` id field support |
-| Prefixes | `Rdf.prefixes` (planned) | `__prefixes__` | Single implementation in RDFModel |
-| Export graph | `to_graph()` | via internal graph + `export_model` | SparqlModel calls RDFModel |
+| Subject id | `Rdf.id_field` + `namespace` | `id: IRI` | TripleModel may add explicit `IRI` id field support |
+| Prefixes | `Rdf.prefixes` (planned) | `__prefixes__` | Single implementation in TripleModel |
+| Export graph | `to_graph()` | via internal graph + `export_model` | SparqlModel calls TripleModel |
 | Import graph | `from_graph(g, uri)` | `get` + hydration | SparqlModel adds depth and relationships |
 
 ---
 
-## RDFModel APIs SparqlModel needs before a hard dependency
+## TripleModel APIs SparqlModel needs before a hard dependency
 
-Track these on the RDFModel roadmap; SparqlModel should not fork duplicate logic once they exist:
+Track these on the TripleModel roadmap; SparqlModel should not fork duplicate logic once they exist:
 
 1. **0.2** — Multi-valued fields; nested embedded models; **remove/replace** triples on sync; namespace/`bind`; merge policies.
 2. **0.3** — Blank nodes and RDF lists (if SparqlModel keeps embedded graphs).
@@ -186,8 +186,8 @@ SparqlModel-specific behaviour (cascade, query compiler, session) stays in Sparq
 
 | Extra | Package |
 |-------|---------|
-| `rdfmodel[shacl]` | RDFModel |
-| `rdfmodel[sqlalchemy]`, `[berkeleydb]` | RDFModel (store backends for graphs) |
+| `triplemodel[shacl]` | TripleModel |
+| `triplemodel[sqlalchemy]`, `[berkeleydb]` | TripleModel (store backends for graphs) |
 | `sparqlmodel[fastapi]` | SparqlModel |
 | `httpx` remote SPARQL | SparqlModel dev / optional extra |
 
@@ -195,7 +195,7 @@ SparqlModel-specific behaviour (cascade, query compiler, session) stays in Sparq
 
 ## Summary
 
-- **RDFModel** = **what** the data is in RDF (mapping + files + rdflib parity for models).
+- **TripleModel** = **what** the data is in RDF (mapping + files + rdflib parity for models).
 - **SparqlModel** = **how** an application **uses** that data (session, queries, updates, stores).
 
-Keep RDFModel thin, library-friendly, and stateless. Keep SparqlModel opinionated about persistence and querying. Share one mapping implementation; do not share one public API.
+Keep TripleModel thin, library-friendly, and stateless. Keep SparqlModel opinionated about persistence and querying. Share one mapping implementation; do not share one public API.

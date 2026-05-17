@@ -7,8 +7,8 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 
-from rdfmodel import Predicate, rdf_field
-from rdfmodel._fields import (
+from triplemodel import Predicate, rdf_field
+from triplemodel._fields import (
     predicate_for_field,
     predicate_from_annotation,
 )

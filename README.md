@@ -1,8 +1,8 @@
-# RDFModel
+# TripleModel
 
-[![CI](https://github.com/eddiethedean/rdfmodel/actions/workflows/ci.yml/badge.svg)](https://github.com/eddiethedean/rdfmodel/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/eddiethedean/rdfmodel)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/eddiethedean/rdfmodel/blob/main/LICENSE)
+[![CI](https://github.com/eddiethedean/triplemodel/actions/workflows/ci.yml/badge.svg)](https://github.com/eddiethedean/triplemodel/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/eddiethedean/triplemodel)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/eddiethedean/triplemodel/blob/main/LICENSE)
 
 **Pydantic models for RDF graphs.** Map typed Python classes to [rdflib](https://github.com/RDFLib/rdflib) triples and back — without hand-writing `graph.add` for every field.
 
@@ -10,9 +10,9 @@
 Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Person(...)
 ```
 
-RDFModel is the **stateless mapping layer** in a small ecosystem: it owns terms, predicates, and graph round-trip. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session, SPARQL queries, ORM) is planned to depend on RDFModel from **0.2** — see the [ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md).
+**TripleModel** is the **typed mapping layer** in a small ecosystem: Pydantic models ↔ RDF triples via field types and predicates. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session, SPARQL queries, ORM) is planned to depend on TripleModel from **0.2** — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.1.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
+> **0.1.0 is alpha.** The API may change until 1.0. See [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Features
 
@@ -23,7 +23,7 @@ RDFModel is the **stateless mapping layer** in a small ecosystem: it owns terms,
 - **Stateless I/O** — `to_graph` / `from_graph` / `all_from_graph` / `models_to_graph` on in-memory `Graph`
 - **Typed package** — `py.typed` for type checkers
 
-**Not in 0.1.0** (on the [roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md)): file parse/serialize, multi-valued fields, nested models, sync/remove, SPARQL helpers.
+**Not in 0.1.0** (on the [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file parse/serialize, multi-valued fields, nested models, sync/remove, SPARQL helpers.
 
 ## Requirements
 
@@ -34,17 +34,17 @@ RDFModel is the **stateless mapping layer** in a small ecosystem: it owns terms,
 ## Install
 
 ```bash
-pip install rdfmodel
+pip install triplemodel
 ```
 
 ## Quick start
 
 ```python
-from rdfmodel import RDFModel, rdf_field
+from triplemodel import TripleModel, rdf_field
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 
-class Person(RDFModel):
+class Person(TripleModel):
     class Rdf:
         namespace = "http://example.org/people/"
         type_uri = f"{FOAF}Person"
@@ -85,7 +85,7 @@ assert Person.from_graph(graph, custom_uri) == alice
 Shared helpers (also on the package root):
 
 ```python
-from rdfmodel import id_from_subject_uri, subject_base
+from triplemodel import id_from_subject_uri, subject_base
 
 base = subject_base("http://example.org/people")  # ensures trailing / or #
 id_from_subject_uri("http://example.org/people", "http://example.org/people/alice")  # "alice"
@@ -101,7 +101,7 @@ Or with **`Annotated`**:
 
 ```python
 from typing import Annotated
-from rdfmodel import Predicate
+from triplemodel import Predicate
 
 title: Annotated[str, Predicate("http://purl.org/dc/terms/title")]
 ```
@@ -120,7 +120,7 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 
 ## API reference
 
-### `RDFModel` methods
+### `TripleModel` methods
 
 | | Method | Description |
 |---|--------|-------------|
@@ -136,7 +136,7 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 | Name | Description |
 |------|-------------|
 | `rdf_field`, `Predicate` | Predicate metadata for fields |
-| `RdfConfig`, `RDFModel` | Config dataclass and base model |
+| `RdfConfig`, `TripleModel` | Config dataclass and base model |
 | `model_to_graph`, `model_to_triples`, `models_to_graph` | Export without subclassing |
 | `graph_to_model`, `graph_to_models` | Import into a model class |
 | `subject_base`, `id_from_subject_uri` | Subject IRI building and parsing |
@@ -148,12 +148,12 @@ Import uses each field’s type annotation. `BNode` objects cannot be coerced in
 
 ```python
 from rdflib import Graph
-from rdfmodel import RDFModel, models_to_graph, rdf_field
+from triplemodel import TripleModel, models_to_graph, rdf_field
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 
 
-class Person(RDFModel):
+class Person(TripleModel):
     class Rdf:
         namespace = "http://example.org/people/"
         type_uri = f"{FOAF}Person"
@@ -177,12 +177,12 @@ models_to_graph(people, existing)
 ### Encoded subject ids
 
 ```python
-from rdfmodel import RDFModel, rdf_field
+from triplemodel import TripleModel, rdf_field
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 
 
-class Person(RDFModel):
+class Person(TripleModel):
     class Rdf:
         namespace = "http://example.org/people/"
         type_uri = f"{FOAF}Person"
@@ -198,28 +198,28 @@ restored = Person.from_graph(bob.to_graph(), uri)
 assert restored == bob
 ```
 
-## RDFModel vs SparqlModel
+## TripleModel vs SparqlModel
 
 | Need | Use |
 |------|-----|
-| Turn a model instance into triples / load from a `Graph` | **RDFModel** |
-| Turtle/JSON-LD files, namespaces, datasets (roadmap) | **RDFModel** |
+| Turn a model instance into triples / load from a `Graph` | **TripleModel** (`pip install triplemodel`) |
+| Turtle/JSON-LD files, namespaces, datasets (roadmap) | **TripleModel** |
 | `session.put`, queries, cascade delete, HTTP store | **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** |
 
-Details: [project plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md).
+Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
 ## Limitations (0.1.0)
 
-- **Single value per predicate** — multiple objects import only the first ([0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) adds multi-value fields).
-- **Flat models** — no nested `RDFModel` or RDF lists yet.
-- **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
-- **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md).
+- **Single value per predicate** — multiple objects import only the first ([0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md) adds multi-value fields).
+- **Flat models** — no nested `TripleModel` or RDF lists yet.
+- **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+- **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Development
 
 ```bash
-git clone https://github.com/eddiethedean/rdfmodel.git
-cd rdfmodel
+git clone https://github.com/eddiethedean/triplemodel.git
+cd triplemodel
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
@@ -229,17 +229,17 @@ ty check src tests
 PYTHONPATH=src python examples/readme_examples.py
 ```
 
-CI runs on Python 3.10, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/rdfmodel/blob/main/RELEASING.md).
+CI runs on Python 3.10, 3.12, and 3.13. Release steps: [RELEASING.md](https://github.com/eddiethedean/triplemodel/blob/main/RELEASING.md).
 
 ## Documentation
 
 | Doc | Description |
 |-----|-------------|
-| [CHANGELOG](https://github.com/eddiethedean/rdfmodel/blob/main/CHANGELOG.md) | Release notes |
-| [Roadmap](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ROADMAP.md) | Versions and rdflib parity |
-| [Plan](https://github.com/eddiethedean/rdfmodel/blob/main/docs/PLAN.md) | Strategy and priorities |
-| [Ecosystem](https://github.com/eddiethedean/rdfmodel/blob/main/docs/ECOSYSTEM.md) | RDFModel ↔ SparqlModel boundaries |
+| [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) | Release notes |
+| [Roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md) | Versions and rdflib parity |
+| [Plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) | Strategy and priorities |
+| [Ecosystem](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md) | TripleModel ↔ SparqlModel boundaries |
 
 ## License
 
-MIT — see [LICENSE](https://github.com/eddiethedean/rdfmodel/blob/main/LICENSE).
+MIT — see [LICENSE](https://github.com/eddiethedean/triplemodel/blob/main/LICENSE).

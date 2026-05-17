@@ -1,12 +1,12 @@
-# RDFModel project plan
+# TripleModel project plan
 
-This document is the **strategic plan** for RDFModel. [ROADMAP.md](ROADMAP.md) tracks **releases and rdflib parity** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
+This document is the **strategic plan** for TripleModel (PyPI: `triplemodel`). [ROADMAP.md](ROADMAP.md) tracks **releases and rdflib parity** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
 
 ---
 
 ## Current status (0.1.0)
 
-**Ready for PyPI (alpha):** Flat `RDFModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.12 / 3.13), ruff, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
+**Ready for PyPI (alpha):** Flat `TripleModel` round-trip on in-memory `Graph`; `rdf_field` / `Predicate`; subject IRI build/import with safe prefix matching and percent-encoded id segments; public `subject_base` / `id_from_subject_uri`; CI (Python 3.10 / 3.12 / 3.13), ruff, **100% test coverage** enforced in pytest. See [CHANGELOG.md](../CHANGELOG.md).
 
 **Not yet shipped (blocks SparqlModel PyPI dependency):** Multi-value fields, nested models, sync/remove on re-export, namespaces/`bind`, file parse/serialize — see **0.2** and [ROADMAP § SM-1](ROADMAP.md#sparqlmodel-integration-milestones).
 
@@ -16,7 +16,7 @@ This document is the **strategic plan** for RDFModel. [ROADMAP.md](ROADMAP.md) t
 
 ## Mission
 
-**RDFModel** is the shared **Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models, file interchange, and rdflib feature coverage — without application session or query machinery.
+**TripleModel** is the shared **typed Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models, file interchange, and rdflib feature coverage — without application session or query machinery.
 
 **Not the mission:** ORM-style persistence, Python-to-SPARQL compilers, HTTP stores, or web frameworks. That is **SparqlModel**.
 
@@ -25,7 +25,7 @@ This document is the **strategic plan** for RDFModel. [ROADMAP.md](ROADMAP.md) t
 ## Stack and dependency rule
 
 ```text
-sparqlmodel  →  rdfmodel  →  rdflib, pydantic
+sparqlmodel  →  triplemodel  →  rdflib, pydantic
                   ↑
             (never imports sparqlmodel)
 ```
@@ -33,7 +33,7 @@ sparqlmodel  →  rdfmodel  →  rdflib, pydantic
 | Layer | Package | Stateful? |
 |-------|---------|-----------|
 | Application ORM | `sparqlmodel` | Yes (`SPARQLSession`) |
-| Mapping / I/O | `rdfmodel` | No (explicit `Graph` in/out) |
+| Mapping / I/O | `triplemodel` | No (explicit `Graph` in/out) |
 | RDF engine | `rdflib` | Varies |
 
 ---
@@ -45,7 +45,7 @@ sparqlmodel  →  rdfmodel  →  rdflib, pydantic
 3. **One mapping implementation** — term conversion and subject-IRI rules live here once; downstream packages must not fork them.
 4. **Explicit over magic** — `to_graph` / `from_graph` behavior is documented; merge and null semantics are testable.
 5. **Optional heaviness** — SHACL, SQLAlchemy/BerkeleyDB stores, JSON-LD extras are install extras, not core deps.
-6. **Stable mapping before ORM sugar** — prioritize releases that unblock SparqlModel’s `rdfmodel` dependency over duplicating SparqlModel features in RDFModel.
+6. **Stable mapping before ORM sugar** — prioritize releases that unblock SparqlModel’s `triplemodel` dependency over duplicating SparqlModel features in TripleModel.
 
 ---
 
@@ -61,7 +61,7 @@ Runtime core stays **pydantic + rdflib + typing-extensions**. Everything else is
 
 ---
 
-## What RDFModel builds (in scope)
+## What TripleModel builds (in scope)
 
 - Field ↔ predicate mapping (`rdf_field`, `Predicate`, future CURIE/`Rdf.prefixes`)
 - Subject identity (namespace + id, percent-encoding, safe import)
@@ -70,12 +70,12 @@ Runtime core stays **pydantic + rdflib + typing-extensions**. Everything else is
 - Document formats via rdflib (`parse` / `serialize`)
 - Named graphs (`Dataset`) where models need contexts
 - Thin SPARQL **passthrough** (`graph.query`, optional helpers) — not a Python query DSL
-- Vocabulary helpers (`rdfmodel.vocab`)
+- Vocabulary helpers (`triplemodel.vocab`)
 - Stable mapping API for **SparqlModel** to prototype against from **0.2** (SM-1); semver pin at **0.9–1.0** (SM-5)
 
 ---
 
-## What RDFModel does not build (out of scope)
+## What TripleModel does not build (out of scope)
 
 See also [ROADMAP.md § Explicitly out of scope](ROADMAP.md#explicitly-out-of-scope-even-pre-10).
 
@@ -88,7 +88,7 @@ See also [ROADMAP.md § Explicitly out of scope](ROADMAP.md#explicitly-out-of-sc
 | `HttpStore`, FastAPI, identity map | SparqlModel |
 | Full OWL reasoning, path algebra, HTML scraping | Other tools / rdflib direct |
 
-RDFModel **may** add `select_models`-style helpers in 0.6 for users who want SPARQL without SparqlModel; SparqlModel remains the home for ergonomic app queries.
+TripleModel **may** add `select_models`-style helpers in 0.6 for users who want SPARQL without SparqlModel; SparqlModel remains the home for ergonomic app queries.
 
 ---
 
@@ -96,32 +96,32 @@ RDFModel **may** add `select_models`-style helpers in 0.6 for users who want SPA
 
 SparqlModel today duplicates mapping logic (`graph.py`, `fields.py`, `serializers.py`). The plan is to **converge implementation**, not merge public APIs.
 
-### Integration gates (when SparqlModel should pin `rdfmodel`)
+### Integration gates (when SparqlModel should pin `triplemodel`)
 
-| RDFModel release | Capability SparqlModel needs | SparqlModel action |
+| TripleModel release | Capability SparqlModel needs | SparqlModel action |
 |------------------|------------------------------|-------------------|
 | **0.2** | Multi-value fields; nested models; **sync/remove** on re-export; namespaces/`bind`; merge policies | Replace core of `graph.py` export/import; keep cascade in session |
-| **0.3** | Blank nodes / RDF lists (if embedding retained) | Align hydration with RDFModel loaders |
-| **0.4** | `parse` / `serialize`, base URI | Thin `serializers.py` → RDFModel |
-| **0.5** | `Dataset` / named graphs (if models use `@graph`) | Store layer uses RDFModel dataset helpers |
-| **≥0.9** | API freeze, `py.typed`, documented semver | `sparqlmodel` depends on `rdfmodel~=1.0` (or `>=0.9,<2`) |
+| **0.3** | Blank nodes / RDF lists (if embedding retained) | Align hydration with TripleModel loaders |
+| **0.4** | `parse` / `serialize`, base URI | Thin `serializers.py` → TripleModel |
+| **0.5** | `Dataset` / named graphs (if models use `@graph`) | Store layer uses TripleModel dataset helpers |
+| **≥0.9** | API freeze, `py.typed`, documented semver | `sparqlmodel` depends on `triplemodel~=1.0` (or `>=0.9,<2`) |
 
-Until **0.2** sync/remove ships, SparqlModel should **not** declare a required `rdfmodel` dependency (local dev pin only).
+Until **0.2** sync/remove ships, SparqlModel should **not** declare a required `triplemodel` dependency (local dev pin only).
 
 ### API convergence (internal, not necessarily public)
 
-| SparqlModel (public) | RDFModel (implementation) |
+| SparqlModel (public) | TripleModel (implementation) |
 |----------------------|---------------------------|
-| `SPARQLModel` | Compose / subclass `RDFModel` |
+| `SPARQLModel` | Compose / subclass `TripleModel` |
 | `Field("schema:name")` | Predicate metadata + CURIE expand |
 | `__prefixes__` | `Rdf.prefixes` |
 | `id: IRI` | Explicit IRI id or `id_field` + namespace |
-| `session.put` | RDFModel `sync_to_graph` + SparqlModel cascade |
+| `session.put` | TripleModel `sync_to_graph` + SparqlModel cascade |
 
 ### Contract tests (future)
 
-- Cross-repo or published-wheel tests: SparqlModel `put` triple set equals RDFModel sync + cascade rules.
-- RDFModel owns literal/subject bugs; SparqlModel owns compiler/session bugs.
+- Cross-repo or published-wheel tests: SparqlModel `put` triple set equals TripleModel sync + cascade rules.
+- TripleModel owns literal/subject bugs; SparqlModel owns compiler/session bugs.
 
 ---
 
@@ -149,7 +149,7 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 2. **SparqlModel gate items** — sync/remove (0.2), namespaces (0.2), nested models (0.2).
 3. **rdflib matrix** — per [ROADMAP.md](ROADMAP.md).
 4. **Ergonomic extras** — codegen, advanced SPARQL helpers.
-5. **Never** — session/query compiler in RDFModel core.
+5. **Never** — session/query compiler in TripleModel core.
 
 ---
 
@@ -160,14 +160,14 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 | [README.md](../README.md) | Library users |
 | [ROADMAP.md](ROADMAP.md) | Releases, rdflib matrix |
 | [docs/PLAN.md](PLAN.md) | Strategy (this file) |
-| [ECOSYSTEM.md](ECOSYSTEM.md) | RDFModel ↔ SparqlModel boundaries |
+| [ECOSYSTEM.md](ECOSYSTEM.md) | TripleModel ↔ SparqlModel boundaries |
 | [docs/ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | Copy into SparqlModel repo |
 
 ---
 
 ## Success metrics
 
-- **0.2:** SparqlModel can prototype `rdfmodel` for `model_to_graph` / load without losing `put` semantics.
+- **0.2:** SparqlModel can prototype `triplemodel` for `model_to_graph` / load without losing `put` semantics.
 - **0.4:** Load/save Turtle/JSON-LD without SparqlModel-only parsers.
-- **0.9:** SparqlModel pins released `rdfmodel`; duplicate term code removed from SparqlModel.
-- **1.0:** Downstream apps choose **rdfmodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.
+- **0.9:** SparqlModel pins released `triplemodel`; duplicate term code removed from SparqlModel.
+- **1.0:** Downstream apps choose **triplemodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from rdflib import BNode, Graph, Literal, URIRef
 
-from rdfmodel import RDFModel, models_to_graph, rdf_field
-from rdfmodel._graph import _unwrap_optional, graph_to_model, model_to_triples
+from triplemodel import TripleModel, models_to_graph, rdf_field
+from triplemodel._graph import _unwrap_optional, graph_to_model, model_to_triples
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
 
-class Person(RDFModel):
+class Person(TripleModel):
     class Rdf:
         namespace = EX
         type_uri = f"{FOAF}Person"
@@ -23,7 +23,7 @@ class Person(RDFModel):
 
 
 def test_unmapped_field_omitted_from_triples():
-    class WithExtra(RDFModel):
+    class WithExtra(TripleModel):
         class Rdf:
             namespace = EX
             type_uri = f"{FOAF}Person"
@@ -82,7 +82,7 @@ def test_graph_to_models_skips_bnode_subjects():
 
 
 def test_graph_to_model_skips_unmapped_fields():
-    class WithExtra(RDFModel):
+    class WithExtra(TripleModel):
         class Rdf:
             namespace = EX
             type_uri = f"{FOAF}Person"

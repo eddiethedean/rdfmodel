@@ -22,7 +22,7 @@ def id_from_subject_uri(namespace: str, uri: str) -> str | None:
 
 @dataclass(frozen=True)
 class RdfConfig:
-    """RDF metadata for an :class:`~rdfmodel.RDFModel` subclass."""
+    """RDF metadata for an :class:`~triplemodel.TripleModel` subclass."""
 
     namespace: str = ""
     type_uri: str | None = None

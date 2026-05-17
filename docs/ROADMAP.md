@@ -1,10 +1,10 @@
-# RDFModel roadmap
+# TripleModel roadmap
 
-Roadmap for **RDFModel** (Python package: `rdfmodel`). This document tracks planned releases from the current **0.1.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for **TripleModel** (Python package: `triplemodel`). This document tracks planned releases from the current **0.1.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
-**Ecosystem:** RDFModel is the **stateless mapping and file I/O** layer. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on RDFModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). RDFModel must never depend on SparqlModel.
+**Ecosystem:** TripleModel is the **stateless mapping and file I/O** layer. [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on TripleModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). TripleModel must never depend on SparqlModel.
 
 | Document | Purpose |
 |----------|---------|
@@ -14,28 +14,28 @@ Roadmap for **RDFModel** (Python package: `rdfmodel`). This document tracks plan
 | [ECOSYSTEM.md](ECOSYSTEM.md) | Boundary contract (both packages) |
 | [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | SparqlModel maintainer guide (copy to SparqlModel repo) |
 
-**Pre-1.0 commitment:** Every **0.x** release adds capability until RDFModel exposes all [rdflib](https://github.com/RDFLib/rdflib) features that sensibly map to typed Pydantic models. We wrap and orchestrate rdflib; we do not reimplement parsers, stores, or SPARQL engines. We do **not** build sessions, query compilers, or cascade `put` semantics — that stays in SparqlModel. **1.0.0** is API stability and production hardening — not a catch-up release for rdflib parity.
+**Pre-1.0 commitment:** Every **0.x** release adds capability until TripleModel exposes all [rdflib](https://github.com/RDFLib/rdflib) features that sensibly map to typed Pydantic models. We wrap and orchestrate rdflib; we do not reimplement parsers, stores, or SPARQL engines. We do **not** build sessions, query compilers, or cascade `put` semantics — that stays in SparqlModel. **1.0.0** is API stability and production hardening — not a catch-up release for rdflib parity.
 
-**Matrix legend:** **SM** in release sections = required for SparqlModel’s planned `rdfmodel` dependency (see integration milestones).
+**Matrix legend:** **SM** in release sections = required for SparqlModel’s planned `triplemodel` dependency (see integration milestones).
 
 ---
 
 ## SparqlModel integration milestones
 
-SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.py`. RDFModel should replace that **implementation** while SparqlModel keeps **session, compiler, and cascade policy**.
+SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.py`. TripleModel should replace that **implementation** while SparqlModel keeps **session, compiler, and cascade policy**.
 
-| Milestone | RDFModel deliverable | SparqlModel outcome |
+| Milestone | TripleModel deliverable | SparqlModel outcome |
 |-----------|----------------------|---------------------|
 | **SM-0** (now) | 0.1.x mapping, subject IRI fixes | Optional dev pin; no PyPI dependency yet |
 | **SM-1** | **0.2** — sync/remove, nested models, multi-value, `Rdf.prefixes`, vocab | Replace export/import core; keep `put`/`delete` orchestration |
-| **SM-2** | **0.3** — blanks, RDF lists (if embed model kept) | Align hydration with RDFModel loaders |
+| **SM-2** | **0.3** — blanks, RDF lists (if embed model kept) | Align hydration with TripleModel loaders |
 | **SM-3** | **0.4** — `parse` / `serialize`, base URI | Retire duplicate serializers |
-| **SM-4** | **0.5** — `Dataset` (if named graphs on models) | Store uses RDFModel dataset helpers |
-| **SM-5** | **0.9–1.0** — API freeze, `py.typed`, semver | `sparqlmodel` requires `rdfmodel~=1.0` (exact range TBD) |
+| **SM-4** | **0.5** — `Dataset` (if named graphs on models) | Store uses TripleModel dataset helpers |
+| **SM-5** | **0.9–1.0** — API freeze, `py.typed`, semver | `sparqlmodel` requires `triplemodel~=1.0` (exact range TBD) |
 
-**RDFModel will not implement:** `SPARQLSession`, Python `where(Model.field == x)`, SPARQL expression compiler, identity map, FastAPI, or HTTP store — see [ECOSYSTEM.md](ECOSYSTEM.md).
+**TripleModel will not implement:** `SPARQLSession`, Python `where(Model.field == x)`, SPARQL expression compiler, identity map, FastAPI, or HTTP store — see [ECOSYSTEM.md](ECOSYSTEM.md).
 
-**0.6 SPARQL helpers** (`select_models`, etc.) are optional conveniences for RDFModel-only users; SparqlModel keeps its own compiler and may use raw `graph.query` internally.
+**0.6 SPARQL helpers** (`select_models`, etc.) are optional conveniences for TripleModel-only users; SparqlModel keeps its own compiler and may use raw `graph.query` internally.
 
 ---
 
@@ -43,7 +43,7 @@ SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.p
 
 Status key: **done** (0.1.0) · **planned** (target version) · **partial** · **out of scope**
 
-| rdflib area | Capability | RDFModel surface (planned) | Ver |
+| rdflib area | Capability | TripleModel surface (planned) | Ver |
 |-------------|------------|----------------------------|-----|
 | **Terms** | `URIRef`, `Literal`, XSD datatypes | `python_to_term` / `term_to_python` | 0.1 |
 | | `BNode`, anonymous subjects/objects | `Rdf.blank_node` strategy, skolemize on export | 0.3 |
@@ -62,7 +62,7 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | | slice / `__getitem__` triple patterns | **out of scope** (rdflib convenience sugar) | — |
 | | `bind`, `namespaces`, `compute_qname`, `qname` | `Rdf.prefixes`, `Namespace` helpers on models | 0.2 |
 | | `bind_namespaces` strategies (`core` / `rdflib` / `none`) | passthrough when creating `Graph` / `Dataset` | 0.2 |
-| | `parse` / `serialize` (all registered formats) | `RDFModel.parse`, `.serialize`, `load_*` / `dump_*` | 0.4 |
+| | `parse` / `serialize` (all registered formats) | `TripleModel.parse`, `.serialize`, `load_*` / `dump_*` | 0.4 |
 | | parse base URI (`publicID`, rdflib 7) | `Rdf.base_uri` / `parse(..., base=)` for relative IRIs | 0.4 |
 | | `query` (SELECT, ASK, CONSTRUCT, DESCRIBE) | `select_models`, `ask`, `construct_models` | 0.6 |
 | | SPARQL `SERVICE` (federated) | works via `Graph.query`; document patterns | 0.6 |
@@ -83,16 +83,16 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | | TriG, TriX, HexTuples, longTurtle | same where rdflib registers parser/serializer | 0.4 |
 | | Microdata, RDFa | **out of scope** (HTML scraping, not domain modeling) | — |
 | **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 |
-| | Remote SPARQL read (`SPARQLStore`) | `RDFModel.load_sparql(url, query)` | 0.6 |
+| | Remote SPARQL read (`SPARQLStore`) | `TripleModel.load_sparql(url, query)` | 0.6 |
 | | Remote SPARQL read-write (`SPARQLUpdateStore`) | persistent endpoint + `update()` passthrough | 0.6 |
-| | BerkeleyDB, SQLAlchemy | optional extras `rdfmodel[berkeleydb]`, `[sqlalchemy]` | 0.8 |
+| | BerkeleyDB, SQLAlchemy | optional extras `triplemodel[berkeleydb]`, `[sqlalchemy]` | 0.8 |
 | | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
 | | `open` / `close` / `destroy` on store | context manager / lifecycle helpers | 0.8 |
 | | Store transactions (`commit` / `rollback` / `open`) | passthrough when backing store supports | 0.8 |
-| **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from rdfmodel.vocab import FOAF, SKOS, ...` | 0.2 |
+| **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 |
 | **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | 1.0 |
-| **Plugins** | Register custom Parser/Serializer/Store | `rdfmodel.plugins.register_*` passthrough | 0.9 |
-| **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `rdfmodel[shacl]` pre-export hook | 0.4 |
+| **Plugins** | Register custom Parser/Serializer/Store | `triplemodel.plugins.register_*` passthrough | 0.9 |
+| **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `triplemodel[shacl]` pre-export hook | 0.4 |
 | **contrib** | GraphDB, RDF4J clients | **out of scope** for core; link in cookbook only | — |
 | **Tools** | `rdflib.tools` CLI (csv2rdf, etc.) | **out of scope** (use rdflib directly) | — |
 | **Paths** | Path algebra | **out of scope** (graph traversal, not ORM) | — |
@@ -107,7 +107,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 | Area | Delivered |
 |------|-----------|
-| Core | `RDFModel` base, `Rdf` config class, `rdf_field()` / `Predicate` |
+| Core | `TripleModel` base, `Rdf` config class, `rdf_field()` / `Predicate` |
 | Graph I/O | `to_graph()`, `from_graph()`, `all_from_graph()`, `models_to_graph()` |
 | Terms | XSD scalars; IRI-like `str` → `URIRef` |
 | Identity | Subject IRI from `Rdf.namespace` + `Rdf.id_field`; `subject_base` / `id_from_subject_uri`; explicit `uri=` override |
@@ -115,9 +115,9 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **rdflib parity:** minimal `Graph.add` path via serialization; most of the matrix still open.
 
-**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `RDFModel`; CI + `py.typed` + 100% coverage.
+**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `TripleModel`; CI + `py.typed` + 100% coverage.
 
-**SparqlModel (SM-0):** Optional local/dev pin on `rdfmodel==0.1.*` for experiments; **no** required `rdfmodel` dependency in `sparqlmodel` until **0.2** (SM-1).
+**SparqlModel (SM-0):** Optional local/dev pin on `triplemodel==0.1.*` for experiments; **no** required `triplemodel` dependency in `sparqlmodel` until **0.2** (SM-1).
 
 ---
 
@@ -126,11 +126,11 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 **Theme:** Everything needed for ordinary RDF-shaped Pydantic models on a single default graph.
 
 - [ ] **Multi-valued fields** — `list[T]`, `set[T]` ↔ multiple objects per predicate
-- [ ] **Nested `RDFModel`** — blank node or named IRI embedding (configurable)
+- [ ] **Nested `TripleModel`** — blank node or named IRI embedding (configurable)
 - [ ] **Optional & null semantics** — omit vs explicit empty; **remove** prior triples when a field is cleared on re-export
 - [ ] **Custom `Literal` datatypes** — register converters (`Decimal`, `UUID`, `Enum`, …); wire **rdflib `term.bind()`**
 - [ ] **Namespace helpers** — `Namespace`, CURIE expansion, `Rdf.prefixes` → `Graph.bind`
-- [ ] **`DefinedNamespace` vocabs** — re-export common rdflib namespaces from `rdfmodel.vocab`
+- [ ] **`DefinedNamespace` vocabs** — re-export common rdflib namespaces from `triplemodel.vocab`
 - [ ] **`bind_namespaces` strategies** — passthrough `core` / `rdflib` / `none` when constructing graphs
 - [ ] **Graph merge policies** — replace / patch / only-own-triples when writing into existing `Graph`
 - [ ] **Graph set operations** — document BNode behaviour for `g1 + g2`; optional `merge_graphs()` helper
@@ -158,7 +158,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** Dublin Core `title` with language tags; blank-node `Address`; RDF list of `nick` values all round-trip.
 
-**SparqlModel (SM-2):** Hydration can delegate single-resource load to RDFModel before relationship expansion; blank-node strategy documented for embedded `SPARQLModel` values.
+**SparqlModel (SM-2):** Hydration can delegate single-resource load to TripleModel before relationship expansion; blank-node strategy documented for embedded `SPARQLModel` values.
 
 ---
 
@@ -166,11 +166,11 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Theme:** All rdflib **syntaxes** that make sense for documents (not HTML).
 
-- [ ] **`RDFModel.parse` / `.serialize`** — delegate to `Graph.parse` / `Graph.serialize`
+- [ ] **`TripleModel.parse` / `.serialize`** — delegate to `Graph.parse` / `Graph.serialize`
 - [ ] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (each format rdflib registers in CI)
 - [ ] **Format autodetection** — filename suffix and `format=` / media type passthrough
 - [ ] **Base URI on parse** — rdflib 7 `publicID` semantics: `Rdf.base_uri` for resolving relative IRIs (not named-graph id)
-- [ ] **`parse_file` / `parse_url`** — stream from path or URL into `list[RDFModel]`
+- [ ] **`parse_file` / `parse_url`** — stream from path or URL into `list[TripleModel]`
 - [ ] **`parse(data=...)`** — load from string (Turtle/JSON-LD snippets in apps and tests)
 - [ ] **JSON-LD context** — optional `@context` on `Rdf` class for compaction; passthrough compact/expand kwargs
 - [ ] **SHACL (optional extra)** — validate before `to_graph()` via pyshacl or equivalent
@@ -179,7 +179,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** Same `Person` instance equivalent from Turtle file, JSON-LD string, and in-memory `Graph`; invalid data fails SHACL when extra installed.
 
-**SparqlModel (SM-3):** `export_model` / file load paths call RDFModel; remove parallel format registry from SparqlModel.
+**SparqlModel (SM-3):** `export_model` / file load paths call TripleModel; remove parallel format registry from SparqlModel.
 
 ---
 
@@ -203,9 +203,9 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.6.0 — SPARQL and remote graphs
 
-**Theme:** rdflib **query** and **SPARQL store** integration (RDFModel **passthrough** — not a Python query DSL).
+**Theme:** rdflib **query** and **SPARQL store** integration (TripleModel **passthrough** — not a Python query DSL).
 
-- [ ] **`select_models`** — SPARQL SELECT → `list[RDFModel]` with variable→field mapping
+- [ ] **`select_models`** — SPARQL SELECT → `list[TripleModel]` with variable→field mapping
 - [ ] **`construct_models`** — CONSTRUCT/DESCRIBE → target model class
 - [ ] **`ask`** — thin wrapper returning `bool`
 - [ ] **SPARQL UPDATE** — `apply_update(graph, query)` with documented interaction with models
@@ -218,7 +218,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Exit criteria:** Load `Person` rows from a public SPARQL endpoint in ≤10 lines; UPDATE example in docs.
 
-**SparqlModel:** Not required for integration gate — SparqlModel owns app-side SPARQL ergonomics. RDFModel may expose thin helpers; SparqlModel keeps compiler + `HttpStore` roadmap.
+**SparqlModel:** Not required for integration gate — SparqlModel owns app-side SPARQL ergonomics. TripleModel may expose thin helpers; SparqlModel keeps compiler + `HttpStore` roadmap.
 
 ---
 
@@ -226,14 +226,14 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Theme:** rdflib **graph operations** that help modeling, not replace reasoners.
 
-- [ ] **`cbd` wrapper** — extract concise bounded description as nested `RDFModel`
+- [ ] **`cbd` wrapper** — extract concise bounded description as nested `TripleModel`
 - [ ] **Transitive helpers** — optional field decorators using `transitiveClosure` / `transitive_subjects`
 - [ ] **`graphs_equal`** — `isomorphic` + term-normalized compare for tests
 - [ ] **`model_diff` / graph diff** — compare two instances or graphs for migration tests
 - [ ] **Safe graph merge** — guidance when combining graphs parsed separately (BNode identity)
 - [ ] **RDFS subclass import** — follow `rdfs:subClassOf` when choosing model class
 - [ ] **Vocabulary registry** — prefix ↔ model class ↔ `type_uri` registry
-- [ ] **Codegen (experimental)** — OWL/RDFS → stub `RDFModel` classes (CLI)
+- [ ] **Codegen (experimental)** — OWL/RDFS → stub `TripleModel` classes (CLI)
 
 **Exit criteria:** Subclass graph imports into correct `Agent` vs `Person`; `cbd` example in cookbook.
 
@@ -288,13 +288,13 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 | Packaging | PyPI wheels; extras: `shacl`, `jsonld`, `sqlalchemy`, `berkeleydb`, `dev` |
 | Governance | CONTRIBUTING.md, CODE_OF_CONDUCT, Keep a Changelog |
 
-**Celebration criteria:** A downstream app can depend on `rdfmodel~=1.0` knowing rdflib features are available through RDFModel where they apply to typed models, SparqlModel can pin this release for mapping, and patch releases are safe.
+**Celebration criteria:** A downstream app can depend on `triplemodel~=1.0` knowing rdflib features are available through TripleModel where they apply to typed models, SparqlModel can pin this release for mapping, and patch releases are safe.
 
 ---
 
 ## Explicitly out of scope (even pre-1.0)
 
-### rdflib areas RDFModel does not wrap
+### rdflib areas TripleModel does not wrap
 
 Use rdflib directly, SparqlModel, or another integration package:
 
@@ -309,9 +309,9 @@ Use rdflib directly, SparqlModel, or another integration package:
 | `rdflib.tools` CLI utilities | CLI is rdflib’s job |
 | Custom SPARQL algebra (`CUSTOM_EVALS`) | Expert extension point; use rdflib directly |
 | Full OWL reasoning | Use dedicated reasoners |
-| Replacing rdflib parsers, stores, or SPARQL engine | RDFModel orchestrates, never forks |
+| Replacing rdflib parsers, stores, or SPARQL engine | TripleModel orchestrates, never forks |
 
-### Application features owned by SparqlModel (not RDFModel)
+### Application features owned by SparqlModel (not TripleModel)
 
 | Item | Package |
 |------|---------|
@@ -326,11 +326,11 @@ Use rdflib directly, SparqlModel, or another integration package:
 
 ## Ecosystem summary
 
-| | RDFModel | SparqlModel |
+| | TripleModel | SparqlModel |
 |---|----------|-------------|
 | **Role** | Mapping + files | Session + queries |
 | **State** | Stateless | Stateful |
-| **Depends on** | rdflib, pydantic | rdflib, pydantic; **rdfmodel** (future) |
+| **Depends on** | rdflib, pydantic | rdflib, pydantic; **triplemodel** (future) |
 
 Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.md)** · SparqlModel dev copy: **[ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md)**
 
@@ -340,7 +340,7 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 
 1. Open an issue with the label `roadmap` describing your use case.
 2. If requesting a new rdflib feature, name the rdflib API (`Graph.method`, format, store plugin).
-3. For SparqlModel integration needs, reference milestone **SM-*** and whether the feature belongs in RDFModel or SparqlModel per [ECOSYSTEM.md](ECOSYSTEM.md).
+3. For SparqlModel integration needs, reference milestone **SM-*** and whether the feature belongs in TripleModel or SparqlModel per [ECOSYSTEM.md](ECOSYSTEM.md).
 4. Link vocabularies, sample data, or SHACL shapes when possible.
 
 ---
@@ -358,4 +358,4 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | — |
 | 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | — |
 | 0.9.0 | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
-| **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `rdfmodel` |
+| **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `triplemodel` |

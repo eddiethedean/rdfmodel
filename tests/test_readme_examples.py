@@ -6,9 +6,9 @@ from typing import Annotated
 
 from rdflib import Graph
 
-from rdfmodel import (
+from triplemodel import (
     Predicate,
-    RDFModel,
+    TripleModel,
     id_from_subject_uri,
     models_to_graph,
     rdf_field,
@@ -18,7 +18,7 @@ from rdfmodel import (
 FOAF = "http://xmlns.com/foaf/0.1/"
 
 
-class Person(RDFModel):
+class Person(TripleModel):
     class Rdf:
         namespace = "http://example.org/people/"
         type_uri = f"{FOAF}Person"
@@ -61,7 +61,7 @@ def test_readme_subject_helpers() -> None:
 def test_readme_annotated_predicate() -> None:
     """README § Field → predicate — Annotated + Predicate."""
 
-    class Document(RDFModel):
+    class Document(TripleModel):
         class Rdf:
             namespace = "http://example.org/docs/"
             type_uri = "http://example.org/Doc"

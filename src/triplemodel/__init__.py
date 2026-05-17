@@ -1,9 +1,9 @@
-"""RDFModel — Pydantic models backed by RDF graphs via rdflib.
+"""TripleModel — Pydantic models backed by RDF graphs via rdflib.
 
-Install: ``pip install rdfmodel``
+Install: ``pip install triplemodel``
 """
 
-from rdfmodel._config import (
+from triplemodel._config import (
     RDF,
     RDFS,
     RDF_TYPE,
@@ -12,15 +12,15 @@ from rdfmodel._config import (
     id_from_subject_uri,
     subject_base,
 )
-from rdfmodel._fields import Predicate, rdf_field
-from rdfmodel._graph import (
+from triplemodel._fields import Predicate, rdf_field
+from triplemodel._graph import (
     graph_to_model,
     graph_to_models,
     model_to_graph,
     model_to_triples,
     models_to_graph,
 )
-from rdfmodel.model import RDFModel
+from triplemodel.model import TripleModel
 
 __version__ = "0.1.0"
 
@@ -31,7 +31,7 @@ __all__ = [
     "XSD",
     "Predicate",
     "RdfConfig",
-    "RDFModel",
+    "TripleModel",
     "graph_to_model",
     "graph_to_models",
     "id_from_subject_uri",

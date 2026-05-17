@@ -8,9 +8,9 @@ from typing import Any, TypeVar, get_args, get_origin
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
 
-from rdfmodel._config import RDF_TYPE, RdfConfig, get_rdf_config, id_from_subject_uri
-from rdfmodel._fields import predicate_for_field, predicate_from_annotation
-from rdfmodel._types import python_to_term, term_to_python
+from triplemodel._config import RDF_TYPE, RdfConfig, get_rdf_config, id_from_subject_uri
+from triplemodel._fields import predicate_for_field, predicate_from_annotation
+from triplemodel._types import python_to_term, term_to_python
 
 T = TypeVar("T", bound=BaseModel)
 

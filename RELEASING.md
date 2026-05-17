@@ -1,12 +1,12 @@
-# Releasing RDFModel
+# Releasing TripleModel
 
 ## Pre-release checklist
 
-- [x] `version` `0.1.0` in `pyproject.toml`, `src/rdfmodel/__init__.py`, and `CHANGELOG.md`
+- [x] `version` `0.1.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
 - [x] CI on `main`: `pytest` (62 tests, 100% coverage), `ruff check` (Python 3.10 / 3.12 / 3.13)
 - [x] Local: `ruff format`, `ty check src tests`, `PYTHONPATH=src python examples/readme_examples.py`
 - [x] `python -m build` and `twine check dist/*` pass
-- [x] PyPI name `rdfmodel` available (not yet published)
+- [x] PyPI name `triplemodel` available (not yet published)
 - [ ] Create and push git tag `v0.1.0` (triggers Release workflow build)
 - [ ] `twine upload dist/*`
 - [ ] GitHub release from tag; set `docs/ROADMAP.md` **0.1.0** to **Released (alpha)**

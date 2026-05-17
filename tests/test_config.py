@@ -4,23 +4,23 @@ from __future__ import annotations
 
 import pytest
 
-import rdfmodel
-from rdfmodel import (
-    RDFModel,
+import triplemodel
+from triplemodel import (
+    TripleModel,
     id_from_subject_uri,
     rdf_field,
     subject_base,
 )
-from rdfmodel._config import RdfConfig, get_rdf_config
+from triplemodel._config import RdfConfig, get_rdf_config
 
 EX = "http://example.org/people/"
 
 
 def test_public_package_exports_subject_helpers():
-    assert rdfmodel.subject_base is subject_base
-    assert rdfmodel.id_from_subject_uri is id_from_subject_uri
-    assert "subject_base" in rdfmodel.__all__
-    assert "id_from_subject_uri" in rdfmodel.__all__
+    assert triplemodel.subject_base is subject_base
+    assert triplemodel.id_from_subject_uri is id_from_subject_uri
+    assert "subject_base" in triplemodel.__all__
+    assert "id_from_subject_uri" in triplemodel.__all__
 
 
 def test_subject_base_adds_slash():
@@ -56,7 +56,7 @@ def test_subject_uri_empty_id_field():
 
 
 def test_get_rdf_config_without_rdf_class():
-    class Bare(RDFModel):
+    class Bare(TripleModel):
         label: str = rdf_field("http://example.org/label")
 
     cfg = get_rdf_config(Bare)
