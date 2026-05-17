@@ -19,8 +19,9 @@ The following are satisfied on `main` before tagging:
 - [x] PyPI name `triplemodel` available (not yet published)
 - [x] GitHub repo `eddiethedean/triplemodel` (renamed from `tripletyped`)
 - [ ] Create and push git tag `v0.1.0` (triggers Release workflow build)
-- [ ] `twine upload dist/*`
-- [ ] GitHub release from tag; set `docs/ROADMAP.md` **0.1.0** to **Released (alpha)**
+- [x] `twine upload dist/*` (published `triplemodel==0.1.0`)
+- [ ] GitHub release from tag
+- [x] Set `docs/ROADMAP.md` **0.1.0** to **Released (alpha)**
 
 ## Publish to PyPI
 

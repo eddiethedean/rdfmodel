@@ -103,7 +103,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.1.0 — Foundation (current)
 
-**Status:** Ready for PyPI (alpha) — first public release
+**Status:** Released (alpha) — on PyPI as `triplemodel==0.1.0`
 
 | Area | Delivered |
 |------|-----------|
