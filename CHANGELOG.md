@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Export `rdf:List` fields on nested IRI and blank-node embeds; patch sync clears and updates nested lists and scalars
-- Replace-mode blank-node cleanup order; `remove_rdf_list` clears non-list blank-node subgraphs
-- Documentation updated for 0.3 `list`/`set` semantics
-
 ## [0.3.0] - 2026-05-17
 
 ### Added
@@ -34,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Union fields (`str | int`) import using literal datatype to pick the matching member type
+- Export `rdf:List` fields on nested IRI and blank-node embeds; patch sync clears and updates nested lists and scalars
+- Replace-mode blank-node cleanup order; `remove_rdf_list` clears non-list blank-node subgraphs
+- Documentation updated for 0.3 `list`/`set` semantics
 
 ## [0.2.0] - 2026-05-17
 
