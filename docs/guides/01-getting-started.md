@@ -78,7 +78,7 @@ restored = graph_to_model(graph, Person, alice.subject_uri())
 
 ## What is not covered yet
 
-TripleModel **0.2.x** works on in-memory graphs. File `parse` / `serialize` helpers are planned for **0.4** — today you can still call `graph.serialize(format="turtle")` from rdflib directly after `to_graph()`.
+TripleModel **0.3.x** works on in-memory graphs. File `parse` / `serialize` helpers are planned for **0.4** — today you can still call `graph.serialize(format="turtle")` from rdflib directly after `to_graph()`.
 
 See the {doc}`guides index <index>` for multi-value fields, sync/update semantics, nested models, and prefixes.
 

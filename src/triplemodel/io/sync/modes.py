@@ -10,13 +10,16 @@ from rdflib import Graph
 from rdflib.term import Node
 
 from triplemodel._typing import TripleObject
-from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
-from triplemodel.fields.resolver import default_resolver
+from triplemodel.config import GraphMode, RdfConfig
 from triplemodel.io.export import model_to_triples
 from triplemodel.io.graph import write_model_add
+from triplemodel.io.list_fields import (
+    collect_patch_clear_predicates,
+    export_all_rdf_lists,
+    predicates_to_patch_for_model,
+)
 from triplemodel.io.skolem import apply_skolemize
 from triplemodel.io.ops import graph_set_many
-from triplemodel.terms.collection import write_rdf_list
 from triplemodel.io.sync.nested_cleanup import (
     clear_nested_bnode_children,
     clear_nested_iri_children,
@@ -27,13 +30,12 @@ from triplemodel.io.sync.predicate_ops import (
     remove_owned_triples,
     remove_triples_for_predicates,
 )
-from triplemodel.metadata.cardinality import field_cardinality
 from triplemodel.protocols import (
     GraphWriteMode,
     PredicateResolver as PredicateResolverProtocol,
 )
 from triplemodel.namespaces import bind_namespaces
-from triplemodel.terms.iri import subject_node, subject_ref
+from triplemodel.terms.iri import subject_node
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 
@@ -43,27 +45,8 @@ def predicates_to_patch(
     config: RdfConfig | None = None,
     resolver: PredicateResolverProtocol | None = None,
 ) -> set[str]:
-    """Predicates that should be cleared (field is None or empty collection)."""
-    cls = type(model)
-    cfg = config or get_rdf_config(cls)
-    r = resolver or default_resolver
-    clear: set[str] = set()
-    prefixes = cfg.prefixes_dict
-    for name, field_info in cls.model_fields.items():
-        if cfg.id_field and name == cfg.id_field:
-            continue
-        pred = r.resolve_field_predicate(field_info, prefixes)
-        if pred is None:
-            continue
-        value = getattr(model, name)
-        card = field_cardinality(field_info)
-        if value is None:
-            clear.add(pred)
-        elif card == "list" and value == []:
-            clear.add(pred)
-        elif card == "set" and value == set():
-            clear.add(pred)
-    return clear
+    """Predicates that should be cleared on the root model (field empty or None)."""
+    return predicates_to_patch_for_model(model, config=config, resolver=resolver)
 
 
 @dataclass(frozen=True)
@@ -124,11 +107,11 @@ class ReplaceGraphMode:
         clear_stale_nested_bnode_children(
             model, graph, subject, config=config, resolver=resolver
         )
-        remove_owned_triples(graph, subject, cls, config=config, resolver=resolver)
         clear_nested_iri_children(model, graph, config=config, resolver=resolver)
         clear_nested_bnode_children(
             model, graph, subject, config=config, resolver=resolver
         )
+        remove_owned_triples(graph, subject, cls, config=config, resolver=resolver)
         return write_model_add(
             graph,
             model,
@@ -165,15 +148,20 @@ class PatchGraphMode:
         graph = apply_skolemize(graph, skolemize=do_skolem)
         reg = registry or default_registry
         subject = uri or config.subject_uri(model)
-        subject_ref_node = subject_ref(subject)
-        to_clear = predicates_to_patch(model, config=config, resolver=resolver)
         clear_stale_nested_iri_children(
             model, graph, subject, config=config, resolver=resolver
         )
         clear_stale_nested_bnode_children(
             model, graph, subject, config=config, resolver=resolver
         )
-        remove_triples_for_predicates(graph, subject_ref_node, to_clear)
+        for subj_node, to_clear in collect_patch_clear_predicates(
+            model,
+            subject=subject,
+            config=config,
+            resolver=resolver,
+            graph=graph,
+        ):
+            remove_triples_for_predicates(graph, subj_node, to_clear)
 
         by_sp: dict[tuple[Node, str], list[TripleObject]] = defaultdict(list)
         for subj, pred, obj in model_to_triples(
@@ -189,27 +177,14 @@ class PatchGraphMode:
         for (subj_ref, pred), objects in by_sp.items():
             graph_set_many(graph, subj_ref, pred, objects, registry=reg)
 
-        cls = type(model)
-        prefixes = config.prefixes_dict
-        r = resolver or default_resolver
-        for name, field_info in cls.model_fields.items():
-            if config.id_field and name == config.id_field:
-                continue
-            if field_cardinality(field_info) != "list":
-                continue
-            pred = r.resolve_field_predicate(field_info, prefixes)
-            if pred is None:
-                continue
-            value = getattr(model, name)
-            if value is None or value == []:
-                continue
-            write_rdf_list(
-                graph,
-                subject_ref_node,
-                pred,
-                list(value),
-                registry=reg,
-            )
+        export_all_rdf_lists(
+            graph,
+            model,
+            subject=subject,
+            config=config,
+            resolver=resolver,
+            registry=reg,
+        )
         return graph
 
 

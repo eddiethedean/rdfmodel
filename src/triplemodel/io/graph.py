@@ -14,7 +14,7 @@ from triplemodel.config import (
     get_rdf_config,
 )
 from triplemodel.io.export import model_to_triples
-from triplemodel.io.list_fields import export_model_rdf_lists
+from triplemodel.io.list_fields import export_all_rdf_lists
 from triplemodel.io.skolem import apply_skolemize
 from triplemodel.io.writer import apply_triple_rows
 from triplemodel.namespaces import bind_namespaces
@@ -43,7 +43,7 @@ def write_model_add(
         model, uri=uri, config=cfg, resolver=resolver, registry=registry
     )
     apply_triple_rows(graph, rows, registry=registry)
-    export_model_rdf_lists(
+    export_all_rdf_lists(
         graph,
         model,
         subject=uri,

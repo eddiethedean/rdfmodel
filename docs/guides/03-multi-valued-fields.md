@@ -29,7 +29,7 @@ On import, duplicate objects in the graph collapse to one set member. Export ord
 
 ## Sync and cleared fields
 
-When a field is cleared (`None` or empty `set()`), `sync_to_graph(..., mode="replace"|"patch")` removes owned triples for that predicate. See {doc}`04-sync-modes`.
+When a field is cleared (`None`, empty `set()`, or empty `list`), `sync_to_graph(..., mode="replace"|"patch")` removes owned triples for that predicate. See {doc}`04-updating-graphs`.
 
 ## Migration from 0.2.x
 

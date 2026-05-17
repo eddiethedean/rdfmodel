@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Annotated
+from typing import Annotated, Any
 
 import pytest
 from pydantic import ValidationError
@@ -133,8 +133,9 @@ def test_resource_ref_roundtrip():
 
 
 def test_resource_ref_validation():
+    invalid_ref: Any = ""
     with pytest.raises(ValidationError):
-        Linked(slug="a", ref="")
+        Linked(slug="a", ref=invalid_ref)
     with pytest.raises(ValueError, match="must not be empty"):
         ResourceRef._validate("")
     assert ResourceRef._validate(ResourceRef("http://example.org/r")) == ResourceRef(
@@ -154,6 +155,7 @@ def test_opaque_literal_roundtrip():
     assert OpaqueHolder(slug="a", data=opaque).data.value == "payload"
     term = python_to_term(opaque)
     restored = term_to_python(term, OpaqueLiteral)
+    assert isinstance(restored, OpaqueLiteral)
     assert restored == opaque
     assert restored.to_literal().datatype == lit.datatype
 
@@ -182,7 +184,10 @@ def test_lang_metadata_on_field():
 
     d = Doc(slug="d", title="Bonjour")
     g = d.to_graph()
+    from rdflib import Literal as RdfLiteral
+
     lit = list(g.objects(URIRef(d.subject_uri()), URIRef(f"{DC}title")))[0]
+    assert isinstance(lit, RdfLiteral)
     assert lit.language == "fr"
 
 

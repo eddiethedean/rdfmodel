@@ -88,7 +88,7 @@ def model_to_triples(
 
         lang = lang_for_field(field_info)
         for item in _field_values_for_export(name, value, field_info):
-            obj: ModelFieldScalar = cast(ModelFieldScalar, item)
+            obj = item
             if lang and isinstance(obj, str):
                 obj = LangString(obj, lang)
             triples.append((subject, predicate, obj))

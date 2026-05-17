@@ -99,6 +99,6 @@ When `type_uri` is set, `from_graph(..., validate_type=True)` (default) requires
 
 ## Duplicate objects on scalar fields
 
-If the graph has **multiple objects** for one scalar predicate, import keeps the first and warns by default (`on_duplicate="warn"`). Use `"error"` or `"ignore"` as needed. Collection fields import **all** values — see [Multi-valued fields](03-multi-valued-fields.md).
+If the graph has **multiple objects** for one scalar predicate, import keeps the first and warns by default (`on_duplicate="warn"`). Use `"error"` or `"ignore"` as needed. **`set[T]`** fields import all objects on the predicate; **`list[T]`** reads an `rdf:List` — see [Multi-valued fields](03-multi-valued-fields.md) and [RDF lists and language tags](09-rdf-lists-and-lang.md).
 
 **Next:** [Multi-valued fields →](03-multi-valued-fields.md)

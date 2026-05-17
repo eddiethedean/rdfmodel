@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
+from rdflib import Graph
+from rdflib.term import Node
 
 from triplemodel.config import RdfConfig
 from triplemodel.fields.resolver import default_resolver
@@ -14,10 +15,10 @@ from triplemodel.terms.iri import subject_ref
 
 def remove_triples_for_predicates(
     graph: Graph,
-    subject: URIRef,
+    subject: Node,
     predicates: set[str],
 ) -> None:
-    """Remove all triples with ``subject`` as subject and predicate in ``predicates``."""
+    """Remove triples for ``(subject, predicate)`` including RDF lists and embed bnodes."""
     for pred in predicates:
         remove_rdf_list(graph, subject, pred)
 

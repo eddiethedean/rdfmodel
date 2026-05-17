@@ -10,7 +10,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 |--|--|
 | PyPI | `pip install triplemodel` |
 | Python | 3.10+ |
-| Status | Alpha (0.2.x) |
+| Status | Alpha (0.3.x) |
 
 ```{toctree}
 :hidden:
@@ -61,10 +61,11 @@ contributing
 releasing
 ```
 
-## Features (0.2.x)
+## Features (0.3.x)
 
 - **Pydantic v2** with declarative RDF mapping (`class Rdf`, `rdf_field`, `Predicate`)
-- **Multi-valued fields** — `list[T]` and `set[T]`
+- **Multi-valued fields** — `set[T]` for multiple objects per predicate; `list[T]` for ordered `rdf:List`
+- **Language tags & opaque literals** — `LangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef`
 - **Nested models** — embed child `TripleModel` resources (IRI or experimental blank node)
 - **Sync modes** — `sync_to_graph` and `to_graph(..., mode=)` (`add`, `replace`, `patch`)
 - **Prefixes & CURIEs** — `Rdf.prefixes`, compact predicates, Turtle `PREFIX` output

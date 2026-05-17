@@ -39,7 +39,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 ### Migrating from 0.2.x
 
 - Fields that meant **multiple objects on one predicate** (tags, duplicate predicates) should use **`set[T]`**, not `list[T]`.
-- Fields that need an **ordered RDF list** (`rdf:List`) should use **`list[T]`** (this was the old `set`/`list` multi-object behaviour in 0.2).
+- Fields that need an **ordered RDF list** (`rdf:List`) should use **`list[T]`**. In 0.2, neither `list` nor `set` produced `rdf:List` — both meant multiple objects per predicate.
 - No compatibility shim is provided; bump the dependency and update field annotations accordingly.
 
 ## Requirements
@@ -229,11 +229,11 @@ assert restored == bob
 
 Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) · [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-## Limitations (0.2.x)
+## Limitations (0.3.x)
 
-- **Scalar duplicates** — multiple objects on a non-collection field still warn/error via `on_duplicate` (collections import all values).
-- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred. `replace`/`patch` may leave orphan blank-node subgraphs.
-- **RDF lists** — use `list[T]` for multiple objects per predicate, not `rdf:List` syntax ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)).
+- **Scalar duplicates** — multiple objects on a non-collection field still warn/error via `on_duplicate`. `set[T]` imports all objects on the predicate; `list[T]` reads an `rdf:List`.
+- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred. `replace`/`patch` remove stale blank-node subgraphs in common cases; prefer `blank_node_policy="stable"` when you need deterministic bnodes.
+- **RDF lists** — `list[T]` serializes as `rdf:List`; use `set[T]` for multiple objects on one predicate without a list. RDF Containers (`Bag`/`Seq`/`Alt`) are out of scope — see [guide 09](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/09-rdf-lists-and-lang.md).
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **Stale triples on re-export** — use [`sync_to_graph`](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/04-updating-graphs.md) or `to_graph(..., mode="replace")` to remove cleared fields; default `mode="add"` only appends.
 - **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.

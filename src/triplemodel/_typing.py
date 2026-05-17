@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import ForwardRef, TypedDict, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, ForwardRef, TypedDict, TypeAlias, TypeVar, Union
 
 from uuid import UUID
 
@@ -20,7 +20,25 @@ RdfScalar: TypeAlias = str | int | float | bool | date | datetime | Decimal | UU
 
 """Scalars serialized to XSD literals or IRIs."""
 
-PythonToTermInput: TypeAlias = RdfScalar | Enum | Node
+if TYPE_CHECKING:
+    from triplemodel.fields.resource_ref import ResourceRef
+    from triplemodel.terms.lang import LangString
+    from triplemodel.terms.opaque import OpaqueLiteral
+
+    RdfTermValue: TypeAlias = RdfScalar | LangString | ResourceRef | OpaqueLiteral
+else:
+    RdfTermValue: TypeAlias = RdfScalar
+
+"""Field values and term-conversion inputs beyond plain XSD scalars."""
+
+if TYPE_CHECKING:
+    PythonToTermInput: TypeAlias = RdfTermValue | Enum | Node
+    RdfValue: TypeAlias = RdfTermValue | Node | Enum
+    ModelFieldScalar: TypeAlias = RdfTermValue | str
+else:
+    PythonToTermInput: TypeAlias = Union[RdfScalar, Enum, Node]
+    RdfValue: TypeAlias = Union[RdfScalar, Node, Enum]
+    ModelFieldScalar: TypeAlias = Union[RdfScalar, str]
 
 """Values accepted by :func:`~triplemodel.terms.convert.python_to_term`."""
 
@@ -30,13 +48,7 @@ TripleObject: TypeAlias = PythonToTermInput | str
 
 TripleRow: TypeAlias = tuple[str | Node, str, TripleObject]
 
-RdfValue: TypeAlias = RdfScalar | Node | Enum
-
 """Values produced by :func:`~triplemodel.terms.convert.term_to_python` for mapped fields."""
-
-ModelFieldScalar: TypeAlias = (
-    RdfScalar | str
-)  # includes :class:`~triplemodel.terms.lang.LangString`
 
 ModelFieldValue: TypeAlias = (
     ModelFieldScalar | list[ModelFieldScalar] | set[ModelFieldScalar] | BaseModel | None
