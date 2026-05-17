@@ -6,6 +6,11 @@
 
 **Pydantic models for RDF graphs.** Map typed Python classes to [rdflib](https://github.com/RDFLib/rdflib) triples and back — without hand-writing `graph.add` for every field.
 
+| | |
+|--|--|
+| PyPI / import | `triplemodel` |
+| Base class | `TripleModel` |
+
 ```text
 Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Person(...)
 ```
@@ -238,7 +243,7 @@ CI runs on Python 3.10, 3.12, and 3.13. Release steps: [RELEASING.md](https://gi
 | [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) | Release notes |
 | [Roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md) | Versions and rdflib parity |
 | [Plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) | Strategy and priorities |
-| [Ecosystem](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md) | TripleModel ↔ SparqlModel boundaries |
+| [Ecosystem](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md) | triplemodel ↔ SparqlModel boundaries |
 
 ## License
 

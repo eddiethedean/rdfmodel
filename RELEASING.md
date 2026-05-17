@@ -7,6 +7,7 @@
 - [x] Local: `ruff format`, `ty check src tests`, `PYTHONPATH=src python examples/readme_examples.py`
 - [x] `python -m build` and `twine check dist/*` pass
 - [x] PyPI name `triplemodel` available (not yet published)
+- [x] GitHub repo `eddiethedean/triplemodel` (renamed from `tripletyped`)
 - [ ] Create and push git tag `v0.1.0` (triggers Release workflow build)
 - [ ] `twine upload dist/*`
 - [ ] GitHub release from tag; set `docs/ROADMAP.md` **0.1.0** to **Released (alpha)**

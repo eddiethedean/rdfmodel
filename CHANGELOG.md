@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rename PyPI/import package **`tripletyped` → `triplemodel`** (project **TripleModel**)
 - Rename base class **`TripleTyped` → `TripleModel`**
+- Rename GitHub repository **`tripletyped` → `triplemodel`**
+
+### Documentation
+
+- Align README, plan, roadmap, and ecosystem docs with `triplemodel` / `TripleModel` naming
 
 ## [0.1.0] - 2026-05-17
 
@@ -46,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 
+- **Prior names (pre-release):** `rdfmodel` / `tripletyped` on PyPI and GitHub; public name is **`triplemodel`** / **`TripleModel`**.
 - **Alpha:** API may change until 1.0. Multi-value fields, nested models, sync/remove, and file I/O are planned for **0.2+**.
 - **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** integration (optional `triplemodel` dependency) is targeted from **0.2**; see `docs/ECOSYSTEM.md`.
 

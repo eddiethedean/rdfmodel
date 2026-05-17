@@ -1,6 +1,6 @@
 # TripleModel project plan
 
-This document is the **strategic plan** for TripleModel (PyPI: `triplemodel`). [ROADMAP.md](ROADMAP.md) tracks **releases and rdflib parity** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
+This document is the **strategic plan** for **TripleModel** (PyPI package **`triplemodel`**). [ROADMAP.md](ROADMAP.md) tracks **releases and rdflib parity** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
 
 ---
 
@@ -98,7 +98,7 @@ SparqlModel today duplicates mapping logic (`graph.py`, `fields.py`, `serializer
 
 ### Integration gates (when SparqlModel should pin `triplemodel`)
 
-| TripleModel release | Capability SparqlModel needs | SparqlModel action |
+| triplemodel release | Capability SparqlModel needs | SparqlModel action |
 |------------------|------------------------------|-------------------|
 | **0.2** | Multi-value fields; nested models; **sync/remove** on re-export; namespaces/`bind`; merge policies | Replace core of `graph.py` export/import; keep cascade in session |
 | **0.3** | Blank nodes / RDF lists (if embedding retained) | Align hydration with TripleModel loaders |
@@ -159,9 +159,9 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 |----------|----------|
 | [README.md](../README.md) | Library users |
 | [ROADMAP.md](ROADMAP.md) | Releases, rdflib matrix |
-| [docs/PLAN.md](PLAN.md) | Strategy (this file) |
-| [ECOSYSTEM.md](ECOSYSTEM.md) | TripleModel ↔ SparqlModel boundaries |
-| [docs/ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | Copy into SparqlModel repo |
+| [PLAN.md](PLAN.md) | Strategy (this file) |
+| [ECOSYSTEM.md](ECOSYSTEM.md) | triplemodel ↔ SparqlModel boundaries |
+| [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | Copy into SparqlModel repo |
 
 ---
 

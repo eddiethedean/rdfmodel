@@ -7,10 +7,10 @@ Copy this file into the SparqlModel repo (e.g. `docs/ECOSYSTEM.md`). TripleModel
 ## Stack
 
 ```text
-SparqlModel  →  TripleModel  →  rdflib · pydantic
+sparqlmodel  →  triplemodel  →  rdflib · pydantic
 ```
 
-**Rules:** SparqlModel may depend on TripleModel (`triplemodel`); TripleModel must never import SparqlModel. Do not reimplement mapping in `graph.py` once upstream APIs exist.
+**Rules:** SparqlModel may depend on **`triplemodel`** (PyPI); `triplemodel` must never import `sparqlmodel`. Do not reimplement mapping in `graph.py` once upstream APIs exist.
 
 ---
 

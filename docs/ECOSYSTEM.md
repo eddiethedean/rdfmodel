@@ -1,6 +1,8 @@
 # TripleModel and SparqlModel — separation of responsibilities
 
-Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel will depend on TripleModel** (`triplemodel`) once the graph-mapping APIs are aligned. Until then, this document is the contract for what each package owns.
+Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel will depend on the `triplemodel` package** once the graph-mapping APIs are aligned. Until then, this document is the contract for what each package owns.
+
+**Naming:** PyPI/install name **`triplemodel`**; base class **`TripleModel`**; project title **TripleModel**.
 
 | Doc | Purpose |
 |-----|---------|
@@ -17,8 +19,8 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 └────────────────────┬─────────────────────┘
                      │ depends on (future)
 ┌────────────────────▼─────────────────────┐
-│  TripleModel (triplemodel)                  │
-│  Pydantic ↔ RDF mapping · graph I/O      │
+│  triplemodel (PyPI)                      │
+│  TripleModel · Pydantic ↔ RDF · I/O      │
 └────────────────────┬─────────────────────┘
                      │
 ┌────────────────────▼─────────────────────┐
@@ -26,11 +28,11 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 └──────────────────────────────────────────┘
 ```
 
-**Rule:** dependency flows downward only. TripleModel must never import SparqlModel.
+**Rule:** dependency flows downward only. `triplemodel` must never import `sparqlmodel`.
 
 ---
 
-## TripleModel — the mapping layer
+## triplemodel — the mapping layer
 
 **Tagline:** Typed Pydantic models ↔ RDF graphs (terms, triples, files).
 

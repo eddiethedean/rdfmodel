@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for **TripleModel** (Python package: `triplemodel`). This document tracks planned releases from the current **0.1.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.1.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -24,7 +24,7 @@ Roadmap for **TripleModel** (Python package: `triplemodel`). This document track
 
 SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.py`. TripleModel should replace that **implementation** while SparqlModel keeps **session, compiler, and cascade policy**.
 
-| Milestone | TripleModel deliverable | SparqlModel outcome |
+| Milestone | triplemodel deliverable | SparqlModel outcome |
 |-----------|----------------------|---------------------|
 | **SM-0** (now) | 0.1.x mapping, subject IRI fixes | Optional dev pin; no PyPI dependency yet |
 | **SM-1** | **0.2** — sync/remove, nested models, multi-value, `Rdf.prefixes`, vocab | Replace export/import core; keep `put`/`delete` orchestration |
@@ -326,11 +326,12 @@ Use rdflib directly, SparqlModel, or another integration package:
 
 ## Ecosystem summary
 
-| | TripleModel | SparqlModel |
-|---|----------|-------------|
+| | triplemodel | sparqlmodel |
+|---|-------------|-------------|
 | **Role** | Mapping + files | Session + queries |
 | **State** | Stateless | Stateful |
-| **Depends on** | rdflib, pydantic | rdflib, pydantic; **triplemodel** (future) |
+| **Base class** | `TripleModel` | `SPARQLModel` |
+| **Depends on** | rdflib, pydantic | rdflib, pydantic; **triplemodel** (from 0.2) |
 
 Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.md)** · SparqlModel dev copy: **[ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md)**
 
