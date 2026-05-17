@@ -53,14 +53,20 @@ Load every instance of an RDF class from a graph:
 people = Person.all_from_graph(graph)
 ```
 
-## What’s in 0.1.0
+## What’s in 0.1.x
 
 - `RdfModel` base class (Pydantic v2)
 - Field → predicate mapping via `rdf_field()` or `Predicate`
-- Subject IRI from `Rdf.namespace` + `Rdf.id_field`
+- Subject IRI from `Rdf.namespace` + `Rdf.id_field` (id values are percent-encoded in the path)
 - `rdf:type` from `Rdf.type_uri`
 - Round-trip for common XSD scalars (`str`, `int`, `float`, `bool`, `date`, `datetime`)
 - String values that look like IRIs become `URIRef` objects in the graph
+
+### Current limitations
+
+- **Single value per predicate** — if a graph has multiple objects for the same predicate on one subject, only the first is imported (multi-valued fields are planned for 0.2.0).
+- **Unmapped fields are omitted** — model fields without `rdf_field()` or `Predicate` are not written to or read from the graph.
+- **Blank nodes** — BNode objects cannot be imported into `str` fields (support planned for 0.3.0).
 
 Pre-**1.0.0** releases will wrap every [rdflib](https://github.com/RDFLib/rdflib) feature that fits typed Pydantic models (parsers, datasets, SPARQL, stores, and more). See [ROADMAP.md](ROADMAP.md) for the coverage matrix and path to **1.0.0**.
 

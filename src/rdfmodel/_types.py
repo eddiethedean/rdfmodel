@@ -5,17 +5,8 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from rdflib import Literal, URIRef, XSD
+from rdflib import BNode, Literal, URIRef, XSD
 from rdflib.term import Node
-
-_SCALAR_MAP: dict[type, URIRef] = {
-    str: XSD.string,
-    int: XSD.integer,
-    float: XSD.double,
-    bool: XSD.boolean,
-    date: XSD.date,
-    datetime: XSD.dateTime,
-}
 
 
 def python_to_term(value: Any) -> Node:
@@ -32,8 +23,10 @@ def python_to_term(value: Any) -> Node:
         return Literal(value.isoformat(), datatype=XSD.dateTime)
     if isinstance(value, date):
         return Literal(value.isoformat(), datatype=XSD.date)
-    if isinstance(value, str) and _looks_like_iri(value):
-        return URIRef(value)
+    if isinstance(value, str):
+        if _looks_like_iri(value):
+            return URIRef(value)
+        return Literal(value, datatype=XSD.string)
     return Literal(value)
 
 
@@ -43,9 +36,16 @@ def term_to_python(term: Node, target_type: type | None = None) -> Any:
         return str(term)
 
     if not isinstance(term, Literal):
+        if isinstance(term, BNode) and target_type is str:
+            raise TypeError(
+                "BNode objects cannot be assigned to str fields; "
+                "blank node support is planned for a future release."
+            )
         return term
 
     if target_type is bool:
+        if term.datatype == XSD.boolean:
+            return bool(term.toPython())
         return term.value in (True, "true", "1", 1)
     if target_type is int:
         return int(term)

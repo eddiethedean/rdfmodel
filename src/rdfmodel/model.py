@@ -37,7 +37,7 @@ class RdfModel(BaseModel):
 
     model_config = ConfigDict(
         validate_assignment=True,
-        str_strip_whitespace=True,
+        str_strip_whitespace=False,
     )
 
     def subject_uri(self, *, uri: str | None = None) -> str:

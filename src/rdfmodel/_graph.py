@@ -7,7 +7,7 @@ from typing import Any, TypeVar, get_args, get_origin
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
 
-from rdfmodel._config import RDF_TYPE, RdfConfig, get_rdf_config
+from rdfmodel._config import RDF_TYPE, RdfConfig, get_rdf_config, id_from_subject_uri
 from rdfmodel._fields import predicate_for_field, predicate_from_annotation
 from rdfmodel._types import python_to_term, term_to_python
 
@@ -97,11 +97,10 @@ def graph_to_model(
     subject = URIRef(uri)
     data: dict[str, Any] = {}
 
-    if cfg.id_field:
-        ns = cfg.namespace
-        if ns and uri.startswith(ns):
-            suffix = uri[len(ns) :].lstrip("/")
-            data[cfg.id_field] = suffix
+    if cfg.id_field and cfg.namespace:
+        extracted = id_from_subject_uri(cfg.namespace, uri)
+        if extracted is not None:
+            data[cfg.id_field] = extracted
 
     for name, field_info in model_cls.model_fields.items():
         if cfg.id_field and name == cfg.id_field:
@@ -115,9 +114,16 @@ def graph_to_model(
         objects = list(graph.objects(subject, pred_ref))
         if not objects:
             continue
+        # Multi-valued predicates: first object only until 0.2.0.
         target = _unwrap_optional(field_info.annotation)
         py_type = target if isinstance(target, type) else None
-        data[name] = term_to_python(objects[0], py_type)
+        try:
+            data[name] = term_to_python(objects[0], py_type)
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"Cannot convert object for field {name!r} "
+                f"(predicate {predicate!r}, subject {uri!r}): {exc}"
+            ) from exc
 
     return model_cls.model_validate(data)
 

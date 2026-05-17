@@ -3,7 +3,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, ClassVar
+from typing import Any
+from urllib.parse import quote, unquote
+
+
+def subject_base(namespace: str) -> str:
+    """Return the prefix used when appending an id to ``namespace``."""
+    return namespace if namespace.endswith(("/", "#")) else namespace + "/"
+
+
+def id_from_subject_uri(namespace: str, uri: str) -> str | None:
+    """Extract the id segment from ``uri`` when it was built from ``namespace``."""
+    base = subject_base(namespace)
+    if not uri.startswith(base):
+        return None
+    return unquote(uri[len(base) :])
 
 
 @dataclass(frozen=True)
@@ -31,8 +45,9 @@ class RdfConfig:
             raise ValueError(
                 f"Cannot build subject IRI: field {self.id_field!r} is empty."
             )
-        base = self.namespace if self.namespace.endswith(("/", "#")) else self.namespace + "/"
-        return f"{base}{raw}"
+        base = subject_base(self.namespace)
+        segment = quote(str(raw), safe="")
+        return f"{base}{segment}"
 
 
 def get_rdf_config(model_cls: type) -> RdfConfig:
@@ -51,4 +66,4 @@ RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 RDFS = "http://www.w3.org/2000/01/rdf-schema#"
 XSD = "http://www.w3.org/2001/XMLSchema#"
 
-RDF_TYPE: ClassVar[str] = f"{RDF}type"
+RDF_TYPE = f"{RDF}type"
