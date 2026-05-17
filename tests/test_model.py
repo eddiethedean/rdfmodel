@@ -199,3 +199,15 @@ def test_union_type_roundtrip():
 def test_slug_whitespace_not_stripped():
     person = Person(slug="  alice  ", name="Alice")
     assert person.slug == "  alice  "
+
+
+def test_subject_uri_override():
+    person = Person(slug="alice", name="Alice")
+    assert person.subject_uri(uri="http://custom.example/alice") == "http://custom.example/alice"
+
+
+def test_rdf_config_classmethod():
+    cfg = Person.rdf_config()
+    assert cfg.namespace == EX
+    assert cfg.type_uri == f"{FOAF}Person"
+    assert cfg.id_field == "slug"

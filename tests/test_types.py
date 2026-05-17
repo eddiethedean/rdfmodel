@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from decimal import Decimal
 
 import pytest
-from rdflib import Literal, URIRef, XSD
+from rdflib import BNode, Literal, URIRef, XSD
 
 from rdfmodel._types import python_to_term, term_to_python
 
@@ -53,7 +54,47 @@ def test_bool_xsd_boolean():
 
 
 def test_bnode_rejected_for_str():
-    from rdflib import BNode
-
     with pytest.raises(TypeError, match="BNode"):
         term_to_python(BNode(), str)
+
+
+def test_python_to_term_passes_through_node():
+    ref = URIRef("http://example.org/resource")
+    assert python_to_term(ref) is ref
+
+
+def test_python_to_term_fallback_literal():
+    term = python_to_term(Decimal("1.5"))
+    assert isinstance(term, Literal)
+    assert str(term) == "1.5"
+
+
+def test_term_to_python_uri_ref():
+    ref = URIRef("http://example.org/resource")
+    assert term_to_python(ref) == "http://example.org/resource"
+
+
+def test_term_to_python_bnode_without_str_target():
+    node = BNode()
+    assert term_to_python(node) is node
+    assert term_to_python(node, int) is node
+
+
+def test_term_to_python_bool_from_non_xsd_literal():
+    lit = Literal(1, datatype=XSD.integer)
+    assert term_to_python(lit, bool) is True
+
+
+def test_term_to_python_float():
+    lit = python_to_term(3.14)
+    assert term_to_python(lit, float) == 3.14
+
+
+def test_term_to_python_plain_literal():
+    lit = Literal("hello")
+    assert term_to_python(lit) == "hello"
+
+
+def test_urn_string_becomes_uri_ref():
+    term = python_to_term("urn:example:resource")
+    assert isinstance(term, URIRef)

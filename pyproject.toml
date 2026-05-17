@@ -53,6 +53,11 @@ include = ["src/rdfmodel", "tests", "README.md", "ROADMAP.md", "LICENSE"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+addopts = ["--cov=rdfmodel", "--cov-report=term-missing", "--cov-fail-under=100"]
 
 [tool.coverage.run]
 source = ["rdfmodel"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
