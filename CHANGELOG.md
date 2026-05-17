@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-17
+
+### Added
+
+- **File I/O** — `TripleModel.parse`, `parse_file`, `parse_url`, and `serialize` delegate to rdflib; `load_models` / `dump_model` helpers
+- **Format autodetection** — filename suffix and explicit `format=` passthrough (Turtle, TriG, N-Triples, N-Quads, RDF/XML, N3, Hextuples, longTurtle, JSON-LD when rdflib supports it)
+- **`Rdf.base_uri`** — default `publicID` for resolving relative IRIs on parse
+- **`Rdf.jsonld_context`** — default JSON-LD `@context` for parse/serialize when `format` is json-ld
+- **Subclass dispatch** — `parse(..., dispatch=True)` and `graph_to_model_dispatch` pick the most specific registered class by `rdf:type`
+- **`InverseOf` / `rdf_field(..., inverse=...)`** — import from inverse predicates; export uses the canonical forward predicate
+- **SHACL (optional)** — `triplemodel[shacl]` extra; `validate_graph` and `shacl_shapes=` on `to_graph` / `serialize`
+- **`examples/exit_criteria_04.py`** — Turtle / JSON-LD / graph round-trip exit criteria
+
 ## [0.3.0] - 2026-05-17
 
 ### Added

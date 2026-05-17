@@ -1,6 +1,6 @@
 # User guides
 
-These guides explain how to use TripleModel **0.3.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read {doc}`01-getting-started`.
+These guides explain how to use TripleModel **0.4.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read {doc}`01-getting-started`.
 
 | # | Guide | Topics |
 |---|--------|--------|
@@ -13,5 +13,6 @@ These guides explain how to use TripleModel **0.3.x** in order of increasing com
 | 6 | {doc}`06-namespaces-and-curies` | Prefixes, compact predicates |
 | 7 | {doc}`07-custom-literals-and-types` | Registry, `Decimal`, `Enum` |
 | 8 | {doc}`08-working-with-graphs` | Batch export/import, helpers |
+| 10 | {doc}`10-file-io` | Parse/serialize files, base URI, SHACL |
 
 **Next:** {doc}`01-getting-started`

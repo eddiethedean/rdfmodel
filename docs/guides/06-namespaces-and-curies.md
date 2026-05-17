@@ -47,7 +47,7 @@ ttl = graph.serialize(format="turtle")
 # PREFIX foaf: <http://xmlns.com/foaf/0.1/> ...
 ```
 
-TripleModel does not yet ship file `parse` / `serialize` wrappers (**0.4**); use rdflib’s `serialize` as above.
+For file round-trips, prefer `person.serialize(format="turtle")` and `Person.parse_file("person.ttl")` — see {doc}`10-file-io`.
 
 ## Manual bind on an existing graph
 

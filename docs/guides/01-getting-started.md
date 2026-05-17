@@ -82,9 +82,14 @@ graph = model_to_graph(alice)
 restored = graph_to_model(graph, Person, alice.subject_uri())
 ```
 
-## What is not covered yet
+## File I/O
 
-TripleModel **0.3.x** works on in-memory graphs. File `parse` / `serialize` helpers are planned for **0.4** — today you can still call `graph.serialize(format="turtle")` from rdflib directly after `to_graph()`.
+```python
+ttl = alice.serialize(format="turtle")
+restored = Person.parse(data=ttl, format="turtle")[0]
+```
+
+See {doc}`10-file-io` for `parse_file`, `parse_url`, format autodetection, and optional SHACL.
 
 See the {doc}`guides index <index>` for multi-value fields, sync/update semantics, nested models, and prefixes.
 

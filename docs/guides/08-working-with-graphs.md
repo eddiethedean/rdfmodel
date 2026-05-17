@@ -32,6 +32,17 @@ by_slug = {p.slug: p for p in everyone}
 
 Only subjects with `rdf:type` matching `Rdf.type_uri` are returned. Blank-node subjects are skipped. Override the type filter with `type_uri=` when needed.
 
+## File helpers
+
+```python
+from triplemodel import load_models, dump_model
+
+people = load_models("people.ttl", Person)
+dump_model(people[0], "alice.ttl", format="turtle")
+```
+
+See {doc}`10-file-io` for `parse_url`, subclass `dispatch=True`, and SHACL.
+
 ## Merge graphs
 
 ```python

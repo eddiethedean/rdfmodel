@@ -1,6 +1,13 @@
 """RDF field metadata and predicate resolution."""
 
-from triplemodel.fields.metadata import IriId, Predicate, id_field_is_iri_id, rdf_field
+from triplemodel.fields.metadata import (
+    IriId,
+    InverseOf,
+    Predicate,
+    id_field_is_iri_id,
+    inverse_for_field,
+    rdf_field,
+)
 from triplemodel.fields.metadata import (
     annotation_has_iri_id,
     predicate_for_field,
@@ -16,7 +23,9 @@ from triplemodel.fields.resolver import (
 __all__ = [
     "FieldPredicateResolver",
     "IriId",
+    "InverseOf",
     "Predicate",
+    "inverse_for_field",
     "annotation_has_iri_id",
     "default_resolver",
     "id_field_is_iri_id",

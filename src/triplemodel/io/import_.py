@@ -20,7 +20,8 @@ from triplemodel.config import (
     id_from_subject_uri,
 )
 from triplemodel.embed.strategies import import_nested_value
-from triplemodel.fields.metadata import id_field_is_iri_id
+from triplemodel.fields.metadata import id_field_is_iri_id, inverse_for_field
+from triplemodel.namespaces import resolve_predicate
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.metadata.cardinality import (
     field_cardinality,
@@ -219,6 +220,11 @@ def graph_to_model(
         raise_if_nested_collection(field_info)
         pred_ref = URIRef(predicate)
         objects = list(graph.objects(subject, pred_ref))
+        if not objects:
+            inv_raw = inverse_for_field(field_info)
+            if inv_raw is not None:
+                inv_pred = resolve_predicate(inv_raw, prefixes)
+                objects = list(graph.subjects(URIRef(inv_pred), subject))
         if not objects:
             continue
         card = field_cardinality(field_info)

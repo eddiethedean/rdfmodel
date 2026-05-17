@@ -17,10 +17,32 @@ from triplemodel.io.ops import (
     objects_for_field,
 )
 from triplemodel.io.sync import sync_to_graph
+from triplemodel.io.files import (
+    dump_graph,
+    dump_model,
+    fetch_url,
+    infer_format,
+    load_models,
+    parse_into_graph,
+    parse_url_into_graph,
+)
+from triplemodel.io.dispatch import (
+    all_from_graph_dispatch,
+    graph_to_model_dispatch,
+)
 
 __all__ = [
     "OnDuplicate",
+    "all_from_graph_dispatch",
     "discover_subject_uris",
+    "dump_graph",
+    "dump_model",
+    "fetch_url",
+    "graph_to_model_dispatch",
+    "infer_format",
+    "load_models",
+    "parse_into_graph",
+    "parse_url_into_graph",
     "graph_set",
     "graph_set_many",
     "graph_to_model",

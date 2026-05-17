@@ -10,7 +10,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 |--|--|
 | PyPI | `pip install triplemodel` |
 | Python | 3.10+ |
-| Status | Alpha (0.3.x) |
+| Status | Alpha (0.4.x) |
 
 ```{toctree}
 :hidden:

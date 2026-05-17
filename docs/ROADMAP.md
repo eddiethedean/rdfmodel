@@ -1,10 +1,10 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.3.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.4.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
-**Ecosystem:** TripleModel is the **stateless in-memory mapping** layer (file parse/serialize from **0.4**). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on TripleModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). TripleModel must never depend on SparqlModel.
+**Ecosystem:** TripleModel is the **stateless mapping** layer (file parse/serialize from **0.4**). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on TripleModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). TripleModel must never depend on SparqlModel.
 
 | Document | Purpose |
 |----------|---------|
@@ -168,20 +168,22 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.4.0 — Parsing, serialization, and validation
 
+**Status:** Released (alpha) — on PyPI as `triplemodel==0.4.0`
+
 **Theme:** All rdflib **syntaxes** that make sense for documents (not HTML).
 
-- [ ] **`TripleModel.parse` / `.serialize`** — delegate to `Graph.parse` / `Graph.serialize`
-- [ ] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (each format rdflib registers in CI)
-- [ ] **Format autodetection** — filename suffix and `format=` / media type passthrough
-- [ ] **Base URI on parse** — rdflib 7 `publicID` semantics: `Rdf.base_uri` for resolving relative IRIs (not named-graph id)
-- [ ] **`parse_file` / `parse_url`** — stream from path or URL into `list[TripleModel]`
-- [ ] **`parse(data=...)`** — load from string (Turtle/JSON-LD snippets in apps and tests)
-- [ ] **JSON-LD context** — optional `@context` on `Rdf` class for compaction; passthrough compact/expand kwargs
-- [ ] **SHACL (optional extra)** — validate before `to_graph()` via pyshacl or equivalent
-- [ ] **Inverse predicates** — `owl:inverseOf` pairs for import/export symmetry
-- [ ] **Subclass dispatch** — multiple `type_uri`; import picks most specific registered model
+- [x] **`TripleModel.parse` / `.serialize`** — delegate to `Graph.parse` / `Graph.serialize`
+- [x] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (each format rdflib registers in CI)
+- [x] **Format autodetection** — filename suffix and `format=` / media type passthrough
+- [x] **Base URI on parse** — rdflib 7 `publicID` semantics: `Rdf.base_uri` for resolving relative IRIs (not named-graph id)
+- [x] **`parse_file` / `parse_url`** — stream from path or URL into `list[TripleModel]`
+- [x] **`parse(data=...)`** — load from string (Turtle/JSON-LD snippets in apps and tests)
+- [x] **JSON-LD context** — optional `@context` on `Rdf` class for compaction; passthrough compact/expand kwargs
+- [x] **SHACL (optional extra)** — validate before `to_graph()` via pyshacl or equivalent
+- [x] **Inverse predicates** — `owl:inverseOf` pairs for import/export symmetry
+- [x] **Subclass dispatch** — multiple `type_uri`; import picks most specific registered model
 
-**Exit criteria:** Same `Person` instance equivalent from Turtle file, JSON-LD string, and in-memory `Graph`; invalid data fails SHACL when extra installed.
+**Exit criteria:** Same `Person` instance equivalent from Turtle file, JSON-LD string, and in-memory `Graph`; invalid data fails SHACL when extra installed (`examples/exit_criteria_04.py`).
 
 **SparqlModel (SM-3):** `export_model` / file load paths call TripleModel; remove parallel format registry from SparqlModel.
 
@@ -357,7 +359,7 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | **0.1.0** | Flat models, in-memory graph round-trip | `Graph.add`, basic terms | SM-0 (optional dev pin) |
 | 0.2.0 | Fields, namespaces, merge, remove/set | `bind`, `remove`, `value`, vocabs | **SM-1** (dependency gate) |
 | 0.3.0 | Literals, blanks, lists, skolemize | `term`, `collection`, `resource` | SM-2 |
-| 0.4.0 | All document formats, base URI, SHACL | `parse`, `serialize` | **SM-3** |
+| **0.4.0** | All document formats, base URI, SHACL | `parse`, `serialize` | **SM-3** |
 | 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` | SM-4 (if needed) |
 | 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
 | 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | — |

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
+from pathlib import Path
+from typing import Any, cast
 
 from typing_extensions import Self
 
@@ -17,6 +18,12 @@ from triplemodel.io import (
     model_to_graph,
     model_to_triples,
     sync_to_graph,
+)
+from triplemodel.io.files import (
+    dump_graph,
+    infer_format,
+    parse_into_graph,
+    parse_url_into_graph,
 )
 from triplemodel._typing import TripleRow
 from triplemodel.protocols import PredicateResolver, register_rdf_resource
@@ -78,12 +85,13 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
+        shacl_shapes: Graph | str | Path | None = None,
     ) -> Graph:
         """Serialize this instance into an rdflib ``Graph``.
 
         When ``mode`` is omitted, uses ``Rdf.graph_mode`` (default ``"add"``).
         """
-        return model_to_graph(
+        result = model_to_graph(
             self,
             graph,
             uri=uri,
@@ -91,6 +99,48 @@ class TripleModel(BaseModel):
             resolver=resolver,
             registry=registry,
             skolemize=skolemize,
+        )
+        if shacl_shapes is not None:
+            from triplemodel.validation.shacl import validate_graph
+
+            validate_graph(result, shacl_shapes)
+        return result
+
+    def serialize(
+        self,
+        *,
+        format: str = "turtle",
+        destination: str | Path | None = None,
+        uri: str | None = None,
+        mode: GraphMode | None = None,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        skolemize: bool | None = None,
+        shacl_shapes: Graph | str | Path | None = None,
+        **rdflib_kwargs: Any,
+    ) -> str | bytes | None:
+        """Serialize this instance to an RDF document string or file."""
+        cfg = get_rdf_config(type(self))
+        graph = model_to_graph(
+            self,
+            None,
+            uri=uri,
+            mode=mode,
+            bind=True,
+            resolver=resolver,
+            registry=registry,
+            skolemize=skolemize,
+        )
+        if shacl_shapes is not None:
+            from triplemodel.validation.shacl import validate_graph
+
+            validate_graph(graph, shacl_shapes)
+        return dump_graph(
+            graph,
+            destination,
+            format=format,
+            jsonld_context=cfg.jsonld_context,
+            **rdflib_kwargs,
         )
 
     def sync_to_graph(
@@ -160,6 +210,138 @@ class TripleModel(BaseModel):
     def rdf_config(cls) -> RdfConfig:
         """Return resolved RDF configuration for this model class."""
         return get_rdf_config(cls)
+
+    @classmethod
+    def _instances_from_parsed_graph(
+        cls,
+        graph: Graph,
+        *,
+        dispatch: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        de_skolemize: bool | None = None,
+    ) -> list[Self]:
+        if dispatch:
+            from triplemodel.io.dispatch import all_from_graph_dispatch
+
+            return cast(
+                list[Self],
+                all_from_graph_dispatch(
+                    graph,
+                    validate_type=validate_type,
+                    on_duplicate=on_duplicate,
+                    de_skolemize=de_skolemize,
+                ),
+            )
+        return cls.all_from_graph(
+            graph,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+        )
+
+    @classmethod
+    def parse(
+        cls,
+        source: str | Path | None = None,
+        *,
+        data: str | bytes | None = None,
+        format: str | None = None,
+        base: str | None = None,
+        dispatch: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        de_skolemize: bool | None = None,
+        **rdflib_kwargs: Any,
+    ) -> list[Self]:
+        """Parse an RDF document and load model instances."""
+        cfg = get_rdf_config(cls)
+        resolved_base = base if base is not None else cfg.base_uri
+        resolved_format = infer_format(source if data is None else None, format)
+        graph = parse_into_graph(
+            source=source,
+            data=data,
+            format=resolved_format,
+            base=resolved_base,
+            bind_prefixes=cfg.prefixes_dict,
+            jsonld_context=cfg.jsonld_context,
+            **rdflib_kwargs,
+        )
+        return cls._instances_from_parsed_graph(
+            graph,
+            dispatch=dispatch,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            de_skolemize=de_skolemize,
+        )
+
+    @classmethod
+    def parse_file(  # ty: ignore[invalid-method-override]
+        cls,
+        path: str | Path,
+        *,
+        format: str | None = None,
+        base: str | None = None,
+        dispatch: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        de_skolemize: bool | None = None,
+        **rdflib_kwargs: Any,
+    ) -> list[Self]:
+        """Parse RDF from a local file path."""
+        path_obj = Path(path)
+        resolved_format = infer_format(path_obj, format)
+        return cls.parse(
+            source=path_obj,
+            format=resolved_format,
+            base=base,
+            dispatch=dispatch,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            de_skolemize=de_skolemize,
+            **rdflib_kwargs,
+        )
+
+    @classmethod
+    def parse_url(
+        cls,
+        url: str,
+        *,
+        format: str | None = None,
+        base: str | None = None,
+        timeout: float = 30.0,
+        dispatch: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        de_skolemize: bool | None = None,
+        **rdflib_kwargs: Any,
+    ) -> list[Self]:
+        """Parse RDF from a URL."""
+        cfg = get_rdf_config(cls)
+        resolved_base = base if base is not None else cfg.base_uri
+        graph = parse_url_into_graph(
+            url,
+            format=format,
+            base=resolved_base,
+            timeout=timeout,
+            bind_prefixes=cfg.prefixes_dict,
+            jsonld_context=cfg.jsonld_context,
+            **rdflib_kwargs,
+        )
+        return cls._instances_from_parsed_graph(
+            graph,
+            dispatch=dispatch,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            de_skolemize=de_skolemize,
+        )
 
 
 register_rdf_resource(TripleModel)

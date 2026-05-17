@@ -2,21 +2,51 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import Protocol, cast, runtime_checkable
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from rdflib import Graph, Literal
+from rdflib import Graph, Literal, URIRef
+from rdflib.term import Node
 
-from triplemodel.config import GraphMode, RdfConfig
+from triplemodel.config import GraphMode, RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel.terms.registry import LiteralRegistry as LiteralRegistryImpl
 
 _rdf_resource_classes: set[type] = set()
+_type_uri_index: dict[str, type[BaseModel]] = {}
 
 
 def register_rdf_resource(model_cls: type) -> None:
     """Record a :class:`~triplemodel.TripleModel` subclass for nested-embed detection."""
     _rdf_resource_classes.add(model_cls)
+    cfg = get_rdf_config(model_cls)
+    if cfg.type_uri:
+        _type_uri_index[cfg.type_uri] = cast(type[BaseModel], model_cls)
+
+
+def iter_registered_type_uris() -> frozenset[str]:
+    """Return all ``type_uri`` values registered on model classes."""
+    return frozenset(_type_uri_index)
+
+
+def _mro_depth(model_cls: type) -> int:
+    return len(model_cls.__mro__)
+
+
+def resolve_model_class(graph: Graph, subject: Node) -> type[BaseModel]:
+    """Pick the most specific registered class for ``subject``'s ``rdf:type`` values."""
+    type_nodes = list(graph.objects(subject, URIRef(RDF_TYPE)))
+    candidates: list[type[BaseModel]] = []
+    for t in type_nodes:
+        cls = _type_uri_index.get(str(t))
+        if cls is not None:
+            candidates.append(cls)
+    if not candidates:
+        raise ValueError(
+            f"No registered TripleModel class for subject {subject!r} "
+            f"(rdf:types: {[str(t) for t in type_nodes]})."
+        )
+    return cast(type[BaseModel], max(candidates, key=_mro_depth))
 
 
 def is_rdf_resource_class(tp: type) -> bool:

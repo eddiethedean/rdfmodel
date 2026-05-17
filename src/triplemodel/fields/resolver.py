@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from triplemodel.config import RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel.fields.metadata import (
+    inverse_for_field,
     predicate_for_field,
     predicate_from_annotation,
 )
@@ -42,6 +43,9 @@ class FieldPredicateResolver:
             pred = self.resolve_field_predicate(field_info, prefixes)
             if pred is not None:
                 preds.add(pred)
+            inv = inverse_for_field(field_info)
+            if inv is not None:
+                preds.add(resolve_predicate(inv, prefixes))
         return frozenset(preds)
 
 

@@ -18,9 +18,9 @@
 Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Person(...)
 ```
 
-TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, and graph sync. It is **stateless** and in-memory today; [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) is planned to build on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
+TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.3.0 is alpha.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.4.0 is alpha.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 
@@ -72,9 +72,10 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **Nesting** | Child `TripleModel` with `Rdf.embed` `"iri"` or `"bnode"` |
 | **Graph writes** | `to_graph` / `sync_to_graph` with `add`, `replace`, or `patch` |
 | **Namespaces** | `Rdf.prefixes`, CURIE predicates (`"foaf:name"`), `bind_namespaces` |
+| **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_models` / `dump_model` (rdflib formats) |
 | **Typing** | PEP 561 `py.typed` |
 
-**Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file `parse` / `serialize` (0.4), named graphs (0.5), SPARQL helpers (0.6).
+**Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): named graphs / Dataset (0.5), SPARQL helpers (0.6).
 
 ### `list` vs `set`
 
@@ -275,7 +276,7 @@ http://example.org/people/bob%20jones
 
 ## Known limitations
 
-- **In-memory only** until 0.4 (`parse` / `serialize` on the roadmap).
+- **Named graphs** — use rdflib `Dataset` directly until 0.5 (`to_dataset` on the roadmap).
 - **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
 - **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` is not supported.
 - **BNode subjects** are skipped by `all_from_graph()`.

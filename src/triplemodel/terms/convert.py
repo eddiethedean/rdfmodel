@@ -7,6 +7,7 @@ from enum import Enum
 from typing import overload
 
 from rdflib import BNode, Literal, URIRef, XSD
+from rdflib.namespace import RDF as RdfNS
 from rdflib.term import Node
 
 from triplemodel._typing import PythonToTermInput, RdfValue
@@ -157,6 +158,10 @@ def term_to_python(
     if target_type is int:
         return int(term)
     if target_type is str:
+        if term.datatype == RdfNS.XMLLiteral:
+            return str(term)
+        if term.datatype == RdfNS.HTML:
+            return str(term)
         return str(term)
 
     if target_type is float:

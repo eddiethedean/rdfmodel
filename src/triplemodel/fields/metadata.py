@@ -26,6 +26,13 @@ class Predicate:
 
 
 @dataclass(frozen=True)
+class InverseOf:
+    """Inverse predicate IRI used on import when the forward predicate is absent."""
+
+    uri: str
+
+
+@dataclass(frozen=True)
 class IriId:
     """Mark ``id_field`` as a full IRI string (not appended to ``namespace``)."""
 
@@ -51,6 +58,7 @@ def rdf_field(
 def rdf_field(
     predicate: str,
     *,
+    inverse: str | None = None,
     default: _T | EllipsisType = ...,
     **field_kwargs: Unpack[RdfFieldKwargs],
 ) -> _T:
@@ -62,6 +70,8 @@ def rdf_field(
         **cast(JsonSchemaExtra, extra),
         "rdf_predicate": predicate,
     }
+    if inverse is not None:
+        merged_extra["rdf_inverse"] = inverse
     return cast(
         _T,
         Field(
@@ -82,6 +92,34 @@ def predicate_for_field(field_info: FieldInfo) -> str | None:
         if isinstance(meta, Predicate):
             return meta.uri
 
+    return None
+
+
+def inverse_for_field(field_info: FieldInfo) -> str | None:
+    """Resolve inverse predicate URI for a field, if configured."""
+    extra = field_info.json_schema_extra
+    if isinstance(extra, dict):
+        inv = cast(JsonSchemaExtra, extra).get("rdf_inverse")
+        if inv is not None:
+            return str(inv)
+    for meta in field_info.metadata:
+        if isinstance(meta, InverseOf):
+            return meta.uri
+    ann = field_annotation(field_info)
+    if get_origin(ann) is Annotated:
+        for meta in get_args(ann)[1:]:
+            if isinstance(meta, InverseOf):
+                return meta.uri
+    return None
+
+
+def inverse_from_annotation(annotation: AnnotationExpr) -> str | None:
+    """Read :class:`InverseOf` from ``Annotated[..., InverseOf(...)]``."""
+    if get_origin(annotation) is not Annotated:
+        return None
+    for meta in get_args(annotation)[1:]:
+        if isinstance(meta, InverseOf):
+            return meta.uri
     return None
 
 
