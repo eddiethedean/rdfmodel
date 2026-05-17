@@ -25,7 +25,7 @@ The following should be satisfied on `main` before tagging:
 ### GitHub Actions (default)
 
 1. In the repo **Settings → Secrets and variables → Actions**, add **`PYPI_API_TOKEN`**: a PyPI [API token](https://pypi.org/manage/account/token/) scoped to the `triplemodel` project (or the whole account for first release).
-2. Push an annotated tag `v*` (e.g. `v0.2.0`). The [Release workflow](.github/workflows/release.yml) runs `pytest`, `python -m build`, `twine check`, uploads `dist/` as an artifact, then publishes with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
+2. Push an annotated tag `v*` (e.g. `v0.2.0`). The [Release workflow](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/release.yml) runs `pytest`, `python -m build`, `twine check`, uploads `dist/` as an artifact, then publishes with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
 
 ### Manual fallback
 
