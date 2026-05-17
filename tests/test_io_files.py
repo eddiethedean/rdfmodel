@@ -114,11 +114,11 @@ def test_jsonld_round_trip_if_supported(person: Person, fmt: str) -> None:
     try:
         serialized = person.serialize(format=fmt)
     except Exception:
-        pytest.skip(f"rdflib does not support serialize format {fmt!r}")
+        pytest.skip(f"rdflib does not support serialize format {fmt!r}")  # ty: ignore
     try:
         loaded = Person.parse(data=serialized, format=fmt)
     except Exception:
-        pytest.skip(f"rdflib does not support parse format {fmt!r}")
+        pytest.skip(f"rdflib does not support parse format {fmt!r}")  # ty: ignore
     assert loaded[0].name == person.name
 
 

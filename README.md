@@ -73,6 +73,9 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **Graph writes** | `to_graph` / `sync_to_graph` with `add`, `replace`, or `patch` |
 | **Namespaces** | `Rdf.prefixes`, CURIE predicates (`"foaf:name"`), `bind_namespaces` |
 | **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_models` / `dump_model` (rdflib formats) |
+| **Dispatch** | `parse(..., dispatch=True)`, `graph_to_model_dispatch`, `all_from_graph_dispatch` by `rdf:type` |
+| **Inverse predicates** | `rdf_field(..., inverse=...)` for import; forward predicate on export |
+| **Validation** | Optional SHACL via `triplemodel[shacl]` and `shacl_shapes=` on export |
 | **Typing** | PEP 561 `py.typed` |
 
 **Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): named graphs / Dataset (0.5), SPARQL helpers (0.6).
@@ -155,6 +158,8 @@ Runnable version: [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py)
 | `graph_mode` | Default `to_graph` mode when `mode=` is omitted |
 | `blank_node_policy` | `"fresh"` or `"stable"` nested bnodes |
 | `skolemize_export` / `skolemize_import` | Blank-node skolemization defaults |
+| `base_uri` | Default `publicID` for resolving relative IRIs on parse |
+| `jsonld_context` | Default JSON-LD `@context` when `format` is json-ld |
 
 Override the subject per call with `uri=` when the IRI still lives under `namespace`:
 
@@ -214,6 +219,8 @@ sync_to_graph(person, graph, mode="patch")    # per-predicate replace; lighter t
 | `sync_to_graph(graph, uri=None, mode="replace", skolemize=None)` | Sync owned triples in-place |
 | `from_graph(graph, uri, ...)` | Load one resource |
 | `all_from_graph(graph, type_uri=None, ...)` | Load all resources of this type |
+| `parse` / `parse_file` / `parse_url` | Parse RDF into a `Graph` (class methods) |
+| `serialize` | Write instance triples to a file or string |
 | `rdf_config()` | Resolved `RdfConfig` |
 
 ### Common imports
@@ -278,7 +285,9 @@ http://example.org/people/bob%20jones
 
 - **Named graphs** — use rdflib `Dataset` directly until 0.5 (`to_dataset` on the roadmap).
 - **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
-- **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` is not supported.
+- **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` and `set[TripleModel]` are not supported.
+- **Inverse predicates** — import uses forward or inverse triples (forward wins on conflict); `replace` / `patch` sync clears stale inverse links, including when nested IRI children are removed.
+- **Skolemize** — `skolemize` / `de_skolemize` on import or export mutate the **entire** shared `Graph`, not only the resource being loaded or synced.
 - **BNode subjects** are skipped by `all_from_graph()` and by `parse(..., dispatch=True)` / `all_from_graph_dispatch()`.
 - **Subclass dispatch** — only loads subjects whose `rdf:type` is registered on a model class; other types are omitted without error.
 - **Default add mode** does not remove stale triples — use `sync_to_graph` or `mode="replace"`.

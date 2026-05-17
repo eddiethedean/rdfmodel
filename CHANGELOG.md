@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Stale nested IRI + inverse** — `replace` / `patch` remove incoming inverse triples when a nested IRI child is dropped from the parent
+- **Inverse import** — multiple inverse subjects are sorted by IRI string for deterministic import (lexicographically first wins with `on_duplicate="warn"`)
+- **Dispatch** — `graph_to_model_dispatch` / `all_from_graph_dispatch` accept `resolver=`; bulk dispatch returns instances in stable subject-URI order
+
+### Changed
+
+- **Nested collection error** — versionless message for unsupported `list[TripleModel]` / `set[TripleModel]`
+- **Dev tooling** — pin `pytest>=8.3,<9` for reproducible CI
+- **Docs** — README limitations (inverse, skolemize graph-wide, `set[TripleModel]`); features/API tables; skolemize note in graphs guide
+
 ## [0.4.0] - 2026-05-17
 
 ### Fixed
@@ -17,11 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`from_graph` list duplicates** — honor `on_duplicate` for `list`/`set` fields (including multiple `rdf:List` heads)
 - **Malformed RDF lists** — clear `ValueError` when a list head lacks `rdf:first`
 - **Stale error message** — nested collection rejection now references 0.4
-
-### Changed
-
-- **`parse_url` User-Agent** — uses `triplemodel/{version}` from package metadata
-- **Release docs** — `RELEASING.md` updated for 0.4.0; README limitations cover dispatch and sync defaults
 
 ### Added
 
@@ -36,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`parse_url` User-Agent** — uses `triplemodel/{version}` from package metadata
+- **Release docs** — `RELEASING.md` updated for 0.4.0; README limitations cover dispatch and sync defaults
 - PyPI trove classifier **Development Status :: 4 - Beta** (0.1.x–0.3.x were released as alpha)
 
 ## [0.3.0] - 2026-05-17

@@ -10,7 +10,10 @@ from rdflib.term import Node
 
 from triplemodel.config import RDF_TYPE
 from triplemodel.io.import_ import OnDuplicate, graph_to_model
-from triplemodel.protocols import resolve_model_class
+from triplemodel.protocols import (
+    PredicateResolver as PredicateResolverProtocol,
+    resolve_model_class,
+)
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 T = TypeVar("T", bound=BaseModel)
@@ -22,6 +25,7 @@ def graph_to_model_dispatch(
     *,
     validate_type: bool = True,
     on_duplicate: OnDuplicate = "warn",
+    resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
     de_skolemize: bool | None = None,
 ) -> BaseModel:
@@ -34,6 +38,7 @@ def graph_to_model_dispatch(
         subject,
         validate_type=validate_type,
         on_duplicate=on_duplicate,
+        resolver=resolver,
         registry=registry,
         de_skolemize=de_skolemize,
     )
@@ -44,6 +49,7 @@ def all_from_graph_dispatch(
     *,
     validate_type: bool = True,
     on_duplicate: OnDuplicate = "warn",
+    resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
     de_skolemize: bool | None = None,
 ) -> list[BaseModel]:
@@ -52,8 +58,11 @@ def all_from_graph_dispatch(
 
     seen: set[str] = set()
     instances: list[BaseModel] = []
-    for type_uri in iter_registered_type_uris():
-        for subject in graph.subjects(URIRef(RDF_TYPE), URIRef(type_uri)):
+    for type_uri in sorted(iter_registered_type_uris()):
+        for subject in sorted(
+            graph.subjects(URIRef(RDF_TYPE), URIRef(type_uri)),
+            key=str,
+        ):
             if isinstance(subject, Literal) or not isinstance(subject, URIRef):
                 continue
             key = str(subject)
@@ -66,8 +75,10 @@ def all_from_graph_dispatch(
                     subject,
                     validate_type=validate_type,
                     on_duplicate=on_duplicate,
+                    resolver=resolver,
                     registry=registry,
                     de_skolemize=de_skolemize,
                 )
             )
+    instances.sort(key=lambda m: m.subject_uri())
     return instances

@@ -51,7 +51,7 @@ def _safe_issubclass(subclass: type, parent: type) -> bool:
 
 
 _NESTED_COLLECTION_MSG = (
-    "list[TripleModel] and set[TripleModel] are not supported in 0.4; "
+    "list[TripleModel] and set[TripleModel] are not supported; "
     "use a single nested field or multiple scalar objects per predicate."
 )
 

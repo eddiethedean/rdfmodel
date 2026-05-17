@@ -9,6 +9,7 @@ from rdflib import BNode, Graph, URIRef
 
 from triplemodel.config import RdfConfig, get_rdf_config
 from triplemodel.fields.resolver import default_resolver
+from triplemodel.io.sync.inverse_ops import clear_inverse_links_to_subject
 from triplemodel.io.sync.predicate_ops import remove_owned_triples
 from triplemodel.metadata.cardinality import field_cardinality, nested_model_type
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
@@ -56,6 +57,13 @@ def clear_stale_nested_iri_children(
         value = getattr(model, name)
         keep = {nested_cfg.subject_uri(value)} if value is not None else set()
         for stale_uri in in_graph - keep:
+            clear_inverse_links_to_subject(
+                graph,
+                stale_uri,
+                cast(type[BaseModel], nested_cls),
+                config=nested_cfg,
+                resolver=r,
+            )
             remove_owned_triples(
                 graph,
                 stale_uri,

@@ -62,6 +62,30 @@ def _walk_embed_instances(
                 )
 
 
+def clear_inverse_links_to_subject(
+    graph: Graph,
+    subject: str | Node,
+    model_cls: type[BaseModel],
+    *,
+    config: RdfConfig | None = None,
+    resolver: PredicateResolverProtocol | None = None,
+) -> None:
+    """Remove all ``(?, inverse_predicate, subject)`` for inverse fields on ``model_cls``."""
+    cfg = config or get_rdf_config(model_cls)
+    subj_node = subject if isinstance(subject, Node) else subject_ref(subject)
+    prefixes = cfg.prefixes_dict
+    id_field = cfg.id_field
+    for name, field_info in model_cls.model_fields.items():
+        if id_field and name == id_field:
+            continue
+        inv_raw = inverse_for_field(field_info)
+        if inv_raw is None:
+            continue
+        inv_pred = URIRef(resolve_predicate(inv_raw, prefixes))
+        for remote in list(graph.subjects(inv_pred, subj_node)):
+            graph.remove((remote, inv_pred, subj_node))
+
+
 def clear_inverse_links(
     graph: Graph,
     model: BaseModel,

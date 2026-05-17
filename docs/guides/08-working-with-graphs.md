@@ -92,6 +92,10 @@ Use when building pipelines that are not method-oriented.
 print(person.to_graph().serialize(format="turtle"))
 ```
 
+## Skolemize and shared graphs
+
+When `Rdf.skolemize_export` / `Rdf.skolemize_import` is enabled (or you pass `skolemize=` / `de_skolemize=` on `to_graph`, `from_graph`, or `sync_to_graph`), rdflib’s `skolemize()` / `de_skolemize()` runs on the **entire** `Graph` you pass in—not only triples owned by the resource you are loading or syncing. If multiple resources share one graph, blank-node handling for one operation can affect unrelated triples. Use a dedicated graph per resource, or disable skolemization, when you need isolation.
+
 ## Related guides
 
 - [Updating graphs](04-updating-graphs.md) — sync after batch load

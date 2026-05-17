@@ -245,7 +245,13 @@ def graph_to_model(
         inv_predicate: str | None = None
         if inv_raw is not None:
             inv_predicate = resolve_predicate(inv_raw, prefixes)
-            inverse_objects = list(graph.subjects(URIRef(inv_predicate), subject))
+            inverse_objects = cast(
+                list[Node],
+                sorted(
+                    graph.subjects(URIRef(inv_predicate), subject),
+                    key=str,
+                ),
+            )
         if forward_objects and inverse_objects and inv_predicate is not None:
             if on_duplicate != "ignore":
                 _handle_forward_inverse_conflict(

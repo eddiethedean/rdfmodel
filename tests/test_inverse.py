@@ -77,6 +77,55 @@ def test_sync_patch_clears_inverse_links() -> None:
     assert (bob, URIRef(f"{EX}manages"), alice) not in g
 
 
+class Team(TripleModel):
+    class Rdf:
+        namespace = f"{EX}team/"
+        type_uri = f"{EX}Team"
+        id_field = "slug"
+
+    slug: str
+    lead: str | None = rdf_field(
+        f"{EX}hasLead",
+        inverse=f"{EX}leadsTeam",
+        default=None,
+    )
+
+
+class Department(TripleModel):
+    class Rdf:
+        namespace = f"{EX}dept/"
+        type_uri = f"{EX}Department"
+        id_field = "slug"
+        embed = "iri"
+
+    slug: str
+    team: Team | None = rdf_field(f"{EX}hasTeam", default=None)
+
+
+def test_sync_replace_clears_inverse_on_stale_nested_iri() -> None:
+    team = Team(slug="eng")
+    dept = Department(slug="d1", team=team)
+    g = dept.to_graph()
+    team_uri = URIRef(team.subject_uri())
+    lead = URIRef(f"{EX}emp/lead")
+    g.add((lead, URIRef(f"{EX}leadsTeam"), team_uri))
+
+    sync_to_graph(Department(slug="d1", team=None), g, mode="replace")
+    assert (lead, URIRef(f"{EX}leadsTeam"), team_uri) not in g
+
+
+def test_sync_patch_clears_inverse_on_stale_nested_iri() -> None:
+    team = Team(slug="eng")
+    dept = Department(slug="d1", team=team)
+    g = dept.to_graph()
+    team_uri = URIRef(team.subject_uri())
+    lead = URIRef(f"{EX}emp/lead")
+    g.add((lead, URIRef(f"{EX}leadsTeam"), team_uri))
+
+    sync_to_graph(Department(slug="d1", team=None), g, mode="patch")
+    assert (lead, URIRef(f"{EX}leadsTeam"), team_uri) not in g
+
+
 def test_import_forward_and_inverse_conflict_warns() -> None:
     g = Graph()
     alice = URIRef(f"{EX}emp/alice")
@@ -268,4 +317,4 @@ def test_import_multiple_inverse_subjects_warns() -> None:
         warnings.simplefilter("always")
         model = Employee.from_graph(g, str(alice))
     assert any("Multiple objects" in str(x.message) for x in w)
-    assert model.manager in {str(bob), str(carol)}
+    assert model.manager == str(bob)

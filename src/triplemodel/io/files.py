@@ -106,10 +106,7 @@ def parse_into_graph(
     parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
     graph = Graph()
     if data is not None:
-        if isinstance(data, str):
-            graph.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
-        else:
-            graph.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
+        graph.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
     else:
         graph.parse(source=str(source), format=fmt, publicID=base, **parse_kwargs)
     if bind_prefixes:

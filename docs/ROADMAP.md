@@ -103,7 +103,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.1.0 — Foundation
 
-**Status:** Released (alpha) — on PyPI as `triplemodel==0.1.0`
+**Status:** Released (historical alpha classifier) — on PyPI as `triplemodel==0.1.0`
 
 | Area | Delivered |
 |------|-----------|
@@ -123,7 +123,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.2.0 — Terms, fields, and namespaces
 
-**Status:** Released (alpha) — on PyPI as `triplemodel==0.2.0`
+**Status:** Released (historical alpha classifier) — on PyPI as `triplemodel==0.2.0`
 
 **Theme:** Everything needed for ordinary RDF-shaped Pydantic models on a single default graph.
 
@@ -148,7 +148,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.3.0 — Literals, blanks, lists, and identity
 
-**Status:** Released (alpha) — on PyPI as `triplemodel==0.3.0`
+**Status:** Released (historical alpha classifier) — on PyPI as `triplemodel==0.3.0`
 
 **Theme:** Full rdflib **term** expressiveness for model fields.
 
