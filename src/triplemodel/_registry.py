@@ -2,34 +2,45 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Any, Callable
+from enum import Enum
+from typing import cast
 from uuid import UUID
 
 from rdflib import Literal, XSD
 
-_ToLiteral = Callable[[Any], Literal]
-_FromLiteral = Callable[[Literal], Any]
+from triplemodel._typing import PyT, RdfScalar
 
-_REGISTRY: dict[type[Any], tuple[_ToLiteral, _FromLiteral]] = {}
+RegistryValue = RdfScalar | Decimal | UUID
+
+_REGISTRY: dict[
+    type,
+    tuple[Callable[..., Literal], Callable[[Literal], RegistryValue]],
+] = {}
 
 
 def register_literal_type(
-    py_type: type[Any],
-    to_literal: _ToLiteral,
-    from_literal: _FromLiteral,
+    py_type: type[PyT],
+    to_literal: Callable[[PyT], Literal],
+    from_literal: Callable[[Literal], PyT],
     *,
     datatype: str | None = None,
 ) -> None:
     """Register converters for a Python type."""
-    _REGISTRY[py_type] = (to_literal, from_literal)
+    _REGISTRY[py_type] = (
+        cast(Callable[..., Literal], to_literal),
+        cast(Callable[[Literal], RegistryValue], from_literal),
+    )
     if datatype is not None:
         from rdflib.term import bind
 
         bind(datatype, py_type)
 
 
-def converter_for_type(py_type: type[Any]) -> tuple[_ToLiteral, _FromLiteral] | None:
+def converter_for_type(
+    py_type: type,
+) -> tuple[Callable[..., Literal], Callable[[Literal], RegistryValue]] | None:
     for registered, converters in _REGISTRY.items():
         if registered is py_type or (
             isinstance(py_type, type) and issubclass(py_type, registered)
@@ -38,7 +49,10 @@ def converter_for_type(py_type: type[Any]) -> tuple[_ToLiteral, _FromLiteral] | 
     return None
 
 
-def python_to_literal(value: Any, py_type: type[Any] | None = None) -> Literal | None:
+def python_to_literal(
+    value: PyT | RdfScalar | Decimal | UUID | Enum,
+    py_type: type[PyT] | type | None = None,
+) -> Literal | None:
     """Use registry for ``value`` when a converter is registered."""
     target = py_type if py_type is not None else type(value)
     conv = converter_for_type(target)
@@ -48,7 +62,9 @@ def python_to_literal(value: Any, py_type: type[Any] | None = None) -> Literal |
     return to_literal(value)
 
 
-def literal_to_python(term: Literal, py_type: type[Any] | None) -> Any | None:
+def literal_to_python(
+    term: Literal, py_type: type[PyT] | type | None
+) -> RegistryValue | PyT | None:
     if py_type is None:
         return None
     conv = converter_for_type(py_type)

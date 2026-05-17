@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Literal, Mapping
+from typing import Literal, Protocol
+
 from urllib.parse import quote, unquote
 
 EmbedMode = Literal["iri", "bnode"]
 GraphMode = Literal["add", "replace", "patch"]
+
+
+class SubjectUriInstance(Protocol):
+    """Instance providing attribute values for :meth:`RdfConfig.subject_uri`."""
 
 
 def subject_base(namespace: str) -> str:
@@ -29,12 +35,14 @@ def _empty_prefixes() -> Mapping[str, str]:
     return MappingProxyType({})
 
 
-def _freeze_prefixes(raw: object) -> Mapping[str, str]:
+def _freeze_prefixes(
+    raw: Mapping[str, str] | list[tuple[str, str]] | None,
+) -> Mapping[str, str]:
     if not raw:
         return MappingProxyType({})
-    if isinstance(raw, Mapping):
-        return MappingProxyType({str(k): str(v) for k, v in raw.items()})
-    return MappingProxyType({})
+    if not isinstance(raw, Mapping):
+        return MappingProxyType({})
+    return MappingProxyType({str(k): str(v) for k, v in raw.items()})
 
 
 @dataclass(frozen=True)
@@ -53,7 +61,7 @@ class RdfConfig:
     def prefixes_dict(self) -> dict[str, str]:
         return dict(self.prefixes)
 
-    def subject_uri(self, instance: Any) -> str:
+    def subject_uri(self, instance: SubjectUriInstance) -> str:
         if not self.namespace:
             raise ValueError(
                 "Rdf.namespace is required to derive a subject IRI; "
@@ -116,11 +124,12 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                     stacklevel=2,
                 )
                 mode = "add"
+            prefixes = _freeze_prefixes(getattr(rdf, "prefixes", None))
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
                 id_field=getattr(rdf, "id_field", None),
-                prefixes=_freeze_prefixes(getattr(rdf, "prefixes", None)),
+                prefixes=prefixes,
                 embed=embed,
                 graph_mode=mode,
             )

@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any, TypeVar
+from typing import TypeVar, cast
 
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
 from rdflib.term import Node
 
-from triplemodel._cardinality import scalar_python_type
+from triplemodel._cardinality import _field_annotation, scalar_python_type
 from triplemodel._fields import predicate_for_field, predicate_from_annotation
 from triplemodel._types import python_to_term, term_to_python
+from triplemodel._typing import ModelFieldScalar, PythonToTermInput
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -34,21 +35,21 @@ def graph_value(
     predicate: str,
     model_cls: type[T],
     field_name: str,
-) -> Any:
+) -> ModelFieldScalar | None:
     """Return a single object for a functional-property field, if present."""
     field_info = model_cls.model_fields[field_name]
     py_type = scalar_python_type(field_info)
     objects = list(graph.objects(URIRef(subject), URIRef(predicate)))
     if not objects:
         return None
-    return term_to_python(objects[0], py_type)
+    return cast(ModelFieldScalar, term_to_python(objects[0], py_type))
 
 
 def graph_set(
     graph: Graph,
     subject: str,
     predicate: str,
-    value: object | None,
+    value: PythonToTermInput | None,
 ) -> None:
     """Set objects for ``(subject, predicate)`` using remove-then-add semantics."""
     subj = URIRef(subject)
@@ -63,7 +64,7 @@ def graph_set_many(
     graph: Graph,
     subject: Node,
     predicate: str,
-    values: list[object],
+    values: list[PythonToTermInput],
 ) -> None:
     """Set multiple objects for ``(subject, predicate)`` (remove-then-add)."""
     pred = URIRef(predicate)
@@ -78,15 +79,16 @@ def objects_for_field(
     uri: str,
     model_cls: type[BaseModel],
     field_name: str,
-) -> list[Any]:
+) -> list[ModelFieldScalar]:
     """Return all RDF objects for a model field's predicate."""
     field_info = model_cls.model_fields[field_name]
     pred = predicate_for_field(field_info) or predicate_from_annotation(
-        field_info.annotation
+        _field_annotation(field_info)
     )
     if pred is None:
         raise ValueError(f"Field {field_name!r} has no RDF predicate mapping.")
     py_type = scalar_python_type(field_info)
     return [
-        term_to_python(o, py_type) for o in graph.objects(URIRef(uri), URIRef(pred))
+        cast(ModelFieldScalar, term_to_python(o, py_type))
+        for o in graph.objects(URIRef(uri), URIRef(pred))
     ]

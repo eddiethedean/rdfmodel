@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Sequence
-from typing import Any, Literal, TypeVar
-
-from typing import cast
+from typing import Literal, TypeVar, cast
 
 from pydantic import BaseModel, ValidationError
+from pydantic.fields import FieldInfo
 from rdflib import BNode, Graph, URIRef
 from rdflib.term import Node
 
@@ -21,6 +20,7 @@ from triplemodel._cardinality import (
 )
 from triplemodel._config import (
     RDF_TYPE,
+    EmbedMode,
     GraphMode,
     RdfConfig,
     effective_graph_mode,
@@ -35,6 +35,13 @@ from triplemodel._fields import (
 )
 from triplemodel._namespaces import bind_namespaces
 from triplemodel._types import python_to_term, term_to_python
+from triplemodel._typing import (
+    AnnotationExpr,
+    ModelFieldScalar,
+    ModelFieldValue,
+    ModelInitData,
+    TripleRow,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -53,16 +60,22 @@ def _looks_like_iri(value: str) -> bool:
     return looks(value)
 
 
-def _field_values_for_export(name: str, value: Any, field_info: Any) -> list[Any]:
+def _field_values_for_export(
+    name: str,
+    value: ModelFieldValue,
+    field_info: FieldInfo,
+) -> list[ModelFieldScalar]:
     """Normalize a field value to a list of objects to emit as triples."""
     card = field_cardinality(field_info)
     if value is None:
         return []
     if card == "list":
-        return [v for v in value if v is not None]
+        items = cast(list[ModelFieldScalar], value)
+        return [v for v in items if v is not None]
     if card == "set":
-        return [v for v in value if v is not None]
-    return [value]
+        items = cast(set[ModelFieldScalar], value)
+        return [v for v in items if v is not None]
+    return [cast(ModelFieldScalar, value)]
 
 
 def model_to_triples(
@@ -70,13 +83,13 @@ def model_to_triples(
     *,
     uri: str | None = None,
     config: RdfConfig | None = None,
-) -> list[tuple[str | Node, str, Any]]:
+) -> list[TripleRow]:
     """Return (subject, predicate, object) tuples for a model instance."""
     cls = type(model)
     cfg = config or get_rdf_config(cls)
     prefixes = cfg.prefixes_dict
     subject = uri or cfg.subject_uri(model)
-    triples: list[tuple[str | Node, str, Any]] = []
+    triples: list[TripleRow] = []
 
     if cfg.type_uri:
         triples.append((subject, RDF_TYPE, cfg.type_uri))
@@ -165,17 +178,15 @@ def models_to_graph(
 
 def _import_field_value(
     graph: Graph,
-    objects: list[Any],
-    field_info: Any,
+    objects: list[Node],
+    field_info: FieldInfo,
     field_name: str,
     predicate: str,
     uri: str,
     *,
-    embed: str,
+    embed: EmbedMode,
     on_duplicate: OnDuplicate,
-) -> Any:
-    from rdflib.term import Node
-
+) -> ModelFieldValue:
     card = field_cardinality(field_info)
     nested_cls = nested_model_type(field_info)
 
@@ -226,14 +237,14 @@ def _handle_duplicate(
 
 
 def _term_to_field(
-    term: Any,
+    term: Node,
     py_type: type | None,
     field_name: str,
     predicate: str,
     uri: str,
-) -> Any:
+) -> ModelFieldScalar:
     try:
-        return term_to_python(term, py_type)
+        return cast(ModelFieldScalar, term_to_python(term, py_type))
     except (ValueError, TypeError) as exc:
         raise ValueError(
             f"Cannot convert object for field {field_name!r} "
@@ -264,7 +275,7 @@ def graph_to_model(
                 f"{model_cls.__name__}."
             )
 
-    data: dict[str, Any] = {}
+    data: ModelInitData = {}
 
     if cfg.id_field:
         extracted = (
@@ -372,5 +383,5 @@ def graph_to_models(
 
 
 # Backward-compatible alias used by tests
-def _unwrap_optional(annotation: Any) -> Any:
+def _unwrap_optional(annotation: AnnotationExpr) -> AnnotationExpr:
     return unwrap_annotation(annotation)

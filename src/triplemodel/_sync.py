@@ -195,7 +195,9 @@ def sync_to_graph(
     _clear_stale_nested_iri_children(model, g, subject, config=cfg)
     remove_triples_for_predicates(g, subject_ref, to_clear)
 
-    by_sp: dict[tuple[Node, str], list[object]] = defaultdict(list)
+    from triplemodel._typing import TripleObject
+
+    by_sp: dict[tuple[Node, str], list[TripleObject]] = defaultdict(list)
     for subj, pred, obj in model_to_triples(model, uri=subject, config=cfg):
         subj_ref = subj if isinstance(subj, Node) else _subject_node(subj)
         by_sp[(subj_ref, pred)].append(obj)

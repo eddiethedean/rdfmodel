@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import BaseModel
 from rdflib import BNode, Graph, URIRef
 from rdflib.term import Node
 
-from triplemodel._config import RdfConfig, get_rdf_config
+from triplemodel._config import EmbedMode, RdfConfig, get_rdf_config
 from triplemodel._types import python_to_term
+from triplemodel._typing import TripleRow
 
 
 def export_nested_triples(
@@ -17,16 +16,16 @@ def export_nested_triples(
     predicate: str,
     nested: BaseModel,
     *,
-    embed: str = "iri",
+    embed: EmbedMode = "iri",
     config: RdfConfig | None = None,
-) -> list[tuple[str | Node, str, Any]]:
+) -> list[TripleRow]:
     """Export nested model triples and the link triple from parent."""
     from triplemodel._graph import model_to_triples
 
     nested_cls = type(nested)
     nested_cfg = get_rdf_config(nested_cls)
     _ = config  # parent config; nested always uses nested class Rdf
-    triples: list[tuple[str | Node, str, Any]] = []
+    triples: list[TripleRow] = []
 
     if embed == "bnode":
         node = BNode()
@@ -49,7 +48,7 @@ def import_nested_value(
     term: Node,
     nested_cls: type[BaseModel],
     *,
-    embed: str = "iri",
+    embed: EmbedMode = "iri",
 ) -> BaseModel:
     """Hydrate a nested model from an RDF object term."""
     from triplemodel._graph import graph_to_model
@@ -72,7 +71,7 @@ def add_nested_to_graph(
     predicate: str,
     nested: BaseModel,
     *,
-    embed: str = "iri",
+    embed: EmbedMode = "iri",
     config: RdfConfig | None = None,
 ) -> None:
     """Add nested export triples directly to ``graph``."""

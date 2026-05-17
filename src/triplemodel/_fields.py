@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Annotated, Any, cast, get_args, get_origin
+from types import EllipsisType
+from typing import Annotated, Any, TypeVar, cast, get_args, get_origin, overload
+
+from typing_extensions import Unpack
 
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 
+from triplemodel._cardinality import _field_annotation
 from triplemodel._config import RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel._namespaces import resolve_predicate
+from triplemodel._typing import AnnotationExpr, JsonSchemaExtra, RdfFieldKwargs
+
+_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
@@ -24,12 +31,30 @@ class IriId:
     """Mark ``id_field`` as a full IRI string (not appended to ``namespace``)."""
 
 
+@overload
 def rdf_field(
     predicate: str,
     *,
-    default: Any = ...,
-    **field_kwargs: Any,
-) -> Any:
+    default: EllipsisType = ...,
+    **field_kwargs: Unpack[RdfFieldKwargs],
+) -> Any: ...
+
+
+@overload
+def rdf_field(
+    predicate: str,
+    *,
+    default: _T,
+    **field_kwargs: Unpack[RdfFieldKwargs],
+) -> _T: ...
+
+
+def rdf_field(
+    predicate: str,
+    *,
+    default: _T | EllipsisType = ...,
+    **field_kwargs: Unpack[RdfFieldKwargs],
+) -> _T:
     """Create a Pydantic field bound to an RDF predicate.
 
     Example::
@@ -39,15 +64,24 @@ def rdf_field(
     extra = field_kwargs.pop("json_schema_extra", None) or {}
     if not isinstance(extra, dict):
         extra = {}
-    extra = {**extra, "rdf_predicate": predicate}
-    return Field(default=default, json_schema_extra=extra, **field_kwargs)
+    merged_extra: JsonSchemaExtra = {
+        **cast(JsonSchemaExtra, extra),
+        "rdf_predicate": predicate,
+    }
+    # Pydantic ``Field`` types ``**extra`` as an empty TypedDict; widen for forwarded kwargs.
+    return cast(
+        _T,
+        Field(
+            default=default, json_schema_extra=merged_extra, **cast(Any, field_kwargs)
+        ),
+    )
 
 
 def predicate_for_field(field_info: FieldInfo) -> str | None:
     """Resolve the RDF predicate URI for a Pydantic field, if any."""
     extra = field_info.json_schema_extra
     if isinstance(extra, dict):
-        predicate = cast(dict[str, Any], extra).get("rdf_predicate")
+        predicate = cast(JsonSchemaExtra, extra).get("rdf_predicate")
         if predicate is not None:
             return str(predicate)
 
@@ -58,7 +92,7 @@ def predicate_for_field(field_info: FieldInfo) -> str | None:
     return None
 
 
-def predicate_from_annotation(annotation: Any) -> str | None:
+def predicate_from_annotation(annotation: AnnotationExpr) -> str | None:
     """Read :class:`Predicate` from ``Annotated[..., Predicate(...)]``."""
     if get_origin(annotation) is not Annotated:
         return None
@@ -68,7 +102,7 @@ def predicate_from_annotation(annotation: Any) -> str | None:
     return None
 
 
-def annotation_has_iri_id(annotation: Any) -> bool:
+def annotation_has_iri_id(annotation: AnnotationExpr) -> bool:
     """True when ``annotation`` includes :class:`IriId` metadata."""
     if get_origin(annotation) is not Annotated:
         return False
@@ -80,7 +114,7 @@ def id_field_is_iri_id(model_cls: type[BaseModel], id_field: str) -> bool:
     field_info = model_cls.model_fields.get(id_field)
     if field_info is None:
         return False
-    return annotation_has_iri_id(field_info.annotation) or any(
+    return annotation_has_iri_id(_field_annotation(field_info)) or any(
         isinstance(meta, IriId) for meta in field_info.metadata
     )
 
@@ -91,7 +125,7 @@ def resolve_field_predicate(
 ) -> str | None:
     """Resolved full predicate IRI for a field."""
     raw = predicate_for_field(field_info) or predicate_from_annotation(
-        field_info.annotation
+        _field_annotation(field_info)
     )
     if raw is None:
         return None

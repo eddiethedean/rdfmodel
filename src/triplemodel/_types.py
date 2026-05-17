@@ -5,15 +5,16 @@ from __future__ import annotations
 import re
 from datetime import date, datetime
 from enum import Enum
-from typing import Any
+from typing import overload
 
 from rdflib import BNode, Literal, URIRef, XSD
 from rdflib.term import Node
 
 from triplemodel import _registry as registry
+from triplemodel._typing import PythonToTermInput, RdfValue
 
 
-def python_to_term(value: Any) -> Node:
+def python_to_term(value: PythonToTermInput) -> Node:
     """Serialize a Python scalar to an RDF term."""
     if isinstance(value, Node):
         return value
@@ -42,7 +43,43 @@ def python_to_term(value: Any) -> Node:
     return Literal(value)
 
 
-def term_to_python(term: Node, target_type: type | None = None) -> Any:
+@overload
+def term_to_python(term: Node, target_type: type[str]) -> str: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type[int]) -> int: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type[float]) -> float: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type[bool]) -> bool: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type[date]) -> date: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type[datetime]) -> datetime: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type[Enum]) -> Enum: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: None = None) -> RdfValue: ...
+
+
+@overload
+def term_to_python(term: Node, target_type: type) -> RdfValue: ...
+
+
+def term_to_python(term: Node, target_type: type | None = None) -> RdfValue:
     """Deserialize an RDF term to a Python value."""
     if isinstance(term, URIRef):
         return str(term)

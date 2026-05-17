@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import Graph
-from rdflib.term import Node
 
 from triplemodel._config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel._graph import (
@@ -19,6 +16,7 @@ from triplemodel._graph import (
     model_to_triples,
 )
 from triplemodel._sync import sync_to_graph
+from triplemodel._typing import TripleRow
 
 
 class TripleModel(BaseModel):
@@ -53,9 +51,7 @@ class TripleModel(BaseModel):
             return uri
         return get_rdf_config(type(self)).subject_uri(self)
 
-    def to_triples(
-        self, *, uri: str | None = None
-    ) -> list[tuple[str | Node, str, Any]]:
+    def to_triples(self, *, uri: str | None = None) -> list[TripleRow]:
         """Export instance data as (subject, predicate, object) tuples."""
         return model_to_triples(self, uri=uri)
 

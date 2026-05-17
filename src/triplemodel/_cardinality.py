@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 import types
-from typing import Annotated, Any, Literal, Union, get_args, get_origin
+from typing import Annotated, Literal, Union, cast, get_args, get_origin
 
 from pydantic.fields import FieldInfo
+
+from triplemodel._typing import AnnotationExpr
+
+
+def _field_annotation(field_info: FieldInfo) -> AnnotationExpr:
+    return cast(AnnotationExpr, field_info.annotation)
+
 
 FieldCardinality = Literal["scalar", "list", "set", "nested"]
 
 
-def unwrap_annotation(annotation: Any) -> Any:
+def unwrap_annotation(annotation: AnnotationExpr) -> AnnotationExpr:
     """Strip ``Annotated`` and single-member optional unions."""
     origin = get_origin(annotation)
     if origin is Annotated:
@@ -22,7 +29,7 @@ def unwrap_annotation(annotation: Any) -> Any:
     return annotation
 
 
-def element_type(annotation: Any) -> Any:
+def element_type(annotation: AnnotationExpr) -> AnnotationExpr:
     """Inner type for ``list[T]`` / ``set[T]`` after unwrapping."""
     ann = unwrap_annotation(annotation)
     origin = get_origin(ann)
@@ -48,16 +55,16 @@ _NESTED_COLLECTION_MSG = (
 
 def raise_if_nested_collection(field_info: FieldInfo) -> None:
     """Reject ``list[TripleModel]`` / ``set[TripleModel]`` field annotations."""
-    ann = unwrap_annotation(field_info.annotation)
+    ann = unwrap_annotation(_field_annotation(field_info))
     origin = get_origin(ann)
     if origin not in (list, set):
         return
-    inner = element_type(field_info.annotation)
+    inner = element_type(_field_annotation(field_info))
     if isinstance(inner, type) and is_triple_model_type(inner):
         raise ValueError(_NESTED_COLLECTION_MSG)
 
 
-def is_triple_model_type(tp: Any) -> bool:
+def is_triple_model_type(tp: AnnotationExpr) -> bool:
     if not isinstance(tp, type):
         return False
     from triplemodel.model import TripleModel
@@ -67,7 +74,7 @@ def is_triple_model_type(tp: Any) -> bool:
 
 def field_cardinality(field_info: FieldInfo) -> FieldCardinality:
     """Classify how a mapped field maps to RDF objects."""
-    ann = unwrap_annotation(field_info.annotation)
+    ann = unwrap_annotation(_field_annotation(field_info))
     origin = get_origin(ann)
     if origin is list:
         return "list"
@@ -80,10 +87,10 @@ def field_cardinality(field_info: FieldInfo) -> FieldCardinality:
 
 def scalar_python_type(field_info: FieldInfo) -> type | None:
     """Resolved scalar type for term conversion, if a single type."""
-    ann = unwrap_annotation(field_info.annotation)
+    ann = unwrap_annotation(_field_annotation(field_info))
     card = field_cardinality(field_info)
     if card in ("list", "set"):
-        inner = element_type(field_info.annotation)
+        inner = element_type(_field_annotation(field_info))
         return inner if isinstance(inner, type) else None
     if card == "nested":
         return None
@@ -92,7 +99,7 @@ def scalar_python_type(field_info: FieldInfo) -> type | None:
 
 def nested_model_type(field_info: FieldInfo) -> type | None:
     """Return nested :class:`TripleModel` subclass for a field, if any."""
-    ann = unwrap_annotation(field_info.annotation)
+    ann = unwrap_annotation(_field_annotation(field_info))
     if isinstance(ann, type) and is_triple_model_type(ann):
         return ann
     return None
