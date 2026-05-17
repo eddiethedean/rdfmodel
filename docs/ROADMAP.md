@@ -109,13 +109,13 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 |------|-----------|
 | Core | `TripleModel` base, `Rdf` config class, `rdf_field()` / `Predicate` |
 | Graph I/O | `to_graph()`, `from_graph()`, `all_from_graph()`, `models_to_graph()` |
-| Terms | XSD scalars; IRI-like `str` → `URIRef` |
+| Terms | XSD scalars; IRI-like `str` → `URIRef` (RFC 3986 schemes) |
 | Identity | Subject IRI from `Rdf.namespace` + `Rdf.id_field`; `subject_base` / `id_from_subject_uri`; explicit `uri=` override |
 | Store | In-memory `Graph` only |
 
 **rdflib parity:** minimal `Graph.add` path via serialization; most of the matrix still open.
 
-**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `TripleModel`; CI + `py.typed` + 100% coverage; MRO-inherited `Rdf` config; `validate_type` on import; duplicate-predicate warning (`on_duplicate`); unified validation error messages.
+**0.1.x hardening (done):** Safe subject-id extraction (`subject_base` / `id_from_subject_uri`); percent-encoding on export; `BNode` rejected for `str` fields; contextual import errors; `xsd:string` for plain literals; `str_strip_whitespace=False` on `TripleModel`; CI + `py.typed` + 100% coverage; MRO-inherited `Rdf` config; `validate_type` on import; duplicate-predicate warning (`on_duplicate`); unified validation error messages; `Annotated` import coercion; RFC 3986 IRI schemes on export; `OnDuplicate` public export.
 
 **SparqlModel (SM-0):** Optional local/dev pin on `triplemodel==0.1.*` for experiments; **no** required `triplemodel` dependency in `sparqlmodel` until **0.2** (SM-1).
 

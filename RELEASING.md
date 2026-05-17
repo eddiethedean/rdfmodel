@@ -1,5 +1,15 @@
 # Releasing TripleModel
 
+## 0.1.0 release readiness (repo)
+
+The following are satisfied on `main` before tagging:
+
+- Version `0.1.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md` (no open `[Unreleased]` entries)
+- `src/triplemodel/py.typed` present; wheel includes `triplemodel/py.typed` (`twine check` passes)
+- CI green: `pytest` (100% coverage), `python -m build`, `ruff format --check`, `ruff check`, `ty check` (Python 3.10–3.13)
+
+**Remaining manual steps:** tag `v0.1.0`, `twine upload`, GitHub release, then set ROADMAP **0.1.0** status to **Released (alpha)**.
+
 ## Pre-release checklist
 
 - [x] `version` `0.1.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`

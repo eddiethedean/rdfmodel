@@ -7,23 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Add missing `py.typed` PEP 561 marker; verify wheel includes it in tests and CI build
-- `_unwrap_optional` peels `Annotated[...]` so `Annotated[int, Predicate(...)]` imports with correct XSD coercion
-- IRI-like `str` values use any RFC 3986 scheme (`mailto:`, `file:`, etc.) on export, not only `http`/`https`/`urn`
-
-### Added
-
-- Export `OnDuplicate` from the package root for type checkers
-- Regression tests: `False`/`0` round-trip, empty string fields, missing required fields, `str | int` string branch, off-namespace `uri=` import, empty child `Rdf` footgun
-
-### Documentation
-
-- README limitations: `uri=` namespace alignment, empty child `Rdf`, falsy `type_uri`, `id_from_subject_uri`, BNode subjects, loose bool coercion
-- `TripleModel` docstring: subclass `Rdf` replaces parent config
-- RELEASING test count; ROADMAP/PLAN wording for 0.1 in-memory scope; CI Python 3.11 and `ruff format --check`
-
 ## [0.1.0] - 2026-05-17
 
 ### Added
@@ -35,8 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Public subject-IRI helpers: `subject_base()`, `id_from_subject_uri()`
 - XSD scalar round-trip (`str`, `int`, `float`, `bool`, `date`, `datetime`)
 - Package constants: `RDF`, `RDFS`, `XSD`, `RDF_TYPE`
-- `py.typed` PEP 561 marker for type checkers
+- `py.typed` PEP 561 marker for type checkers (verified in wheel via CI build)
 - `from_graph` / `all_from_graph` / `graph_to_model` options: `validate_type` (default `True`), `on_duplicate` (`"warn"` | `"ignore"` | `"error"`)
+- Export `OnDuplicate` from the package root for type checkers
 
 ### Fixed
 
@@ -50,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XSD booleans via `Literal.toPython()` when datatype is `xsd:boolean`
 - `BNode` values rejected when importing into `str` fields
 - Import errors include field, predicate, and subject context
+- `_unwrap_optional` peels `Annotated[...]` so `Annotated[int, Predicate(...)]` imports with correct XSD coercion
+- IRI-like `str` values use any RFC 3986 scheme (`mailto:`, `file:`, etc.) on export, not only `http`/`https`/`urn`
 
 ### Changed
 
@@ -60,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README with API overview, runnable examples, and development instructions
 - Planning docs: `docs/PLAN.md`, `docs/ROADMAP.md`, `docs/ECOSYSTEM.md`
 - `examples/readme_examples.py` and CI tests for README snippets
+- README limitations: `uri=` namespace alignment, empty child `Rdf`, falsy `type_uri`, `id_from_subject_uri`, BNode subjects, loose bool coercion
+- `TripleModel` docstring: subclass `Rdf` replaces parent config (do not use empty child `class Rdf:`)
+- CI: Python 3.11, `ruff format --check`, `python -m build`, release workflow runs `pytest` before build
 
 ### Notes
 
