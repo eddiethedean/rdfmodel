@@ -3,6 +3,7 @@
 [![CI](https://github.com/eddiethedean/triplemodel/actions/workflows/ci.yml/badge.svg)](https://github.com/eddiethedean/triplemodel/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://github.com/eddiethedean/triplemodel)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/eddiethedean/triplemodel/blob/main/LICENSE)
+[![Documentation](https://readthedocs.org/projects/triplemodel/badge/?version=latest)](https://triplemodel.readthedocs.io/en/latest/?badge=latest)
 
 **Pydantic models for RDF graphs.** Map typed Python classes to [rdflib](https://github.com/RDFLib/rdflib) triples and back — without hand-writing `graph.add` for every field.
 
@@ -227,7 +228,7 @@ Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/do
 - **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred until 0.3.
 - **RDF lists** — use `list[T]` for multiple objects per predicate, not `rdf:List` syntax ([0.3.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)).
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
-- **No sync/remove** — re-export does not drop triples for cleared fields until [0.2.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+- **Stale triples on re-export** — use [`sync_to_graph`](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/04-updating-graphs.md) or `to_graph(..., mode="replace")` to remove cleared fields; default `mode="add"` only appends.
 - **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.
 - **`uri=` override** — `from_graph` can only derive `id_field` when the subject URI is under `Rdf.namespace`; off-namespace URIs fail validation unless you add triples another way.
 - **Empty child `class Rdf:`** — shadows the parent and clears `namespace` / `type_uri` / `id_field`; omit `Rdf` on the child to inherit.
@@ -249,6 +250,7 @@ pip install -e ".[dev]"
 pytest
 ruff format src tests && ruff check src tests
 ty check src tests
+sphinx-build -b html docs docs/_build/html -W
 PYTHONPATH=src python examples/readme_examples.py
 ```
 
@@ -256,8 +258,13 @@ CI runs on Python 3.10, 3.11, 3.12, and 3.13. Release steps: [RELEASING.md](http
 
 ## Documentation
 
+**Read the Docs:** [triplemodel.readthedocs.io](https://triplemodel.readthedocs.io/)
+
 | Doc | Description |
 |-----|-------------|
+| [User guides](https://triplemodel.readthedocs.io/en/latest/guides/index.html) | Step-by-step topics (mapping, sync, nested models, …) |
+| [API reference](https://triplemodel.readthedocs.io/en/latest/api/index.html) | Generated from docstrings |
+| [Docs sources](https://github.com/eddiethedean/triplemodel/tree/main/docs) | Sphinx / MyST source on GitHub |
 | [CHANGELOG](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) | Release notes |
 | [Roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md) | Versions and rdflib parity |
 | [Plan](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md) | Strategy and priorities |

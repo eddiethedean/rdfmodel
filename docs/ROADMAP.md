@@ -8,11 +8,11 @@ Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**)
 
 | Document | Purpose |
 |----------|---------|
-| [CHANGELOG.md](../CHANGELOG.md) | Release history |
-| [RELEASING.md](../RELEASING.md) | PyPI publish checklist |
-| [PLAN.md](PLAN.md) | Strategy, principles, priorities |
-| [ECOSYSTEM.md](ECOSYSTEM.md) | Boundary contract (both packages) |
-| [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | SparqlModel maintainer guide (copy to SparqlModel repo) |
+| {doc}`changelog` | Release history |
+| {doc}`releasing` | PyPI publish checklist |
+| {doc}`PLAN` | Strategy, principles, priorities |
+| {doc}`ECOSYSTEM` | Boundary contract (both packages) |
+| {doc}`ECOSYSTEM_SPARQLMODEL` | SparqlModel maintainer guide (copy to SparqlModel repo) |
 
 **Pre-1.0 commitment:** Every **0.x** release adds capability until TripleModel exposes all [rdflib](https://github.com/RDFLib/rdflib) features that sensibly map to typed Pydantic models. We wrap and orchestrate rdflib; we do not reimplement parsers, stores, or SPARQL engines. We do **not** build sessions, query compilers, or cascade `put` semantics — that stays in SparqlModel. **1.0.0** is API stability and production hardening — not a catch-up release for rdflib parity.
 

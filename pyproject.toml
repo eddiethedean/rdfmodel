@@ -37,6 +37,13 @@ dev = [
     "ruff>=0.8",
     "ty>=0.0.1",
 ]
+docs = [
+    "sphinx>=7.4,<9",
+    "myst-parser>=3.0,<5",
+    "sphinx-rtd-theme>=2.0,<4",
+    "sphinx-autodoc-typehints>=2.0,<4",
+    "linkify-it-py>=2.0,<3",
+]
 
 [tool.ruff]
 target-version = "py310"
@@ -44,7 +51,7 @@ src = ["src", "tests"]
 
 [project.urls]
 Homepage = "https://github.com/eddiethedean/triplemodel"
-Documentation = "https://github.com/eddiethedean/triplemodel#readme"
+Documentation = "https://triplemodel.readthedocs.io/"
 Repository = "https://github.com/eddiethedean/triplemodel"
 Changelog = "https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md"
 
@@ -60,10 +67,16 @@ include = [
     "RELEASING.md",
     "examples/readme_examples.py",
     "examples/foaf_person_02.py",
+    "docs/README.md",
     "docs/PLAN.md",
     "docs/ROADMAP.md",
     "docs/ECOSYSTEM.md",
     "docs/ECOSYSTEM_SPARQLMODEL.md",
+    "docs/guides",
+    "docs/conf.py",
+    "docs/api",
+    "docs/requirements.txt",
+    ".readthedocs.yaml",
     "LICENSE",
 ]
 

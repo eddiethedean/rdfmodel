@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.2.0)
 
-**Released (alpha) on PyPI:** Multi-value `list`/`set` fields, nested `TripleModel` embed (`iri`/`bnode`), `sync_to_graph` with `add`/`replace`/`patch`, `Rdf.prefixes` + CURIE expansion, `triplemodel.vocab`, literal registry, and graph helpers. SparqlModel may pin `triplemodel>=0.2,<0.3` for SM-1 experiments. See [CHANGELOG.md](../CHANGELOG.md).
+**Released (alpha) on PyPI:** Multi-value `list`/`set` fields, nested `TripleModel` embed (`iri`/`bnode`), `sync_to_graph` with `add`/`replace`/`patch`, `Rdf.prefixes` + CURIE expansion, `triplemodel.vocab`, literal registry, and graph helpers. SparqlModel may pin `triplemodel>=0.2,<0.3` for SM-1 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
 
 **Not yet shipped:** File parse/serialize (**0.4**), RDF lists and full blank-node strategy (**0.3**), Dataset/named graphs (**0.5**).
 
@@ -157,7 +157,7 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 
 | Document | Audience |
 |----------|----------|
-| [README.md](../README.md) | Library users |
+| [README on GitHub](https://github.com/eddiethedean/triplemodel/blob/main/README.md) | Library users |
 | [ROADMAP.md](ROADMAP.md) | Releases, rdflib matrix |
 | [PLAN.md](PLAN.md) | Strategy (this file) |
 | [ECOSYSTEM.md](ECOSYSTEM.md) | triplemodel ↔ SparqlModel boundaries |

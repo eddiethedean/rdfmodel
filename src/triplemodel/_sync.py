@@ -6,11 +6,7 @@ from pydantic import BaseModel
 from rdflib import Graph, URIRef
 
 from triplemodel._config import GraphMode, RdfConfig, get_rdf_config
-from triplemodel._fields import (
-    owned_predicates,
-    predicate_for_field,
-    predicate_from_annotation,
-)
+from triplemodel._fields import owned_predicates, resolve_field_predicate
 from triplemodel._namespaces import bind_namespaces
 
 
@@ -56,12 +52,11 @@ def predicates_to_patch(
     clear: set[str] = set()
     from triplemodel._cardinality import field_cardinality
 
+    prefixes = cfg.prefixes_dict
     for name, field_info in cls.model_fields.items():
         if cfg.id_field and name == cfg.id_field:
             continue
-        pred = predicate_for_field(field_info) or predicate_from_annotation(
-            field_info.annotation
-        )
+        pred = resolve_field_predicate(field_info, prefixes)
         if pred is None:
             continue
         value = getattr(model, name)

@@ -68,6 +68,23 @@ def predicate_from_annotation(annotation: Any) -> str | None:
     return None
 
 
+def annotation_has_iri_id(annotation: Any) -> bool:
+    """True when ``annotation`` includes :class:`IriId` metadata."""
+    if get_origin(annotation) is not Annotated:
+        return False
+    return any(isinstance(meta, IriId) for meta in get_args(annotation)[1:])
+
+
+def id_field_is_iri_id(model_cls: type[BaseModel], id_field: str) -> bool:
+    """True when the configured ``id_field`` is marked with :class:`IriId`."""
+    field_info = model_cls.model_fields.get(id_field)
+    if field_info is None:
+        return False
+    return annotation_has_iri_id(field_info.annotation) or any(
+        isinstance(meta, IriId) for meta in field_info.metadata
+    )
+
+
 def resolve_field_predicate(
     field_info: FieldInfo,
     prefixes: dict[str, str],

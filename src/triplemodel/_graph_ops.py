@@ -17,7 +17,7 @@ T = TypeVar("T", bound=BaseModel)
 def merge_graphs(*graphs: Graph) -> Graph:
     """Return a new graph containing the union of ``graphs``.
 
-      Blank node identity is preserved only when graphs share term objects;
+    Blank node identity is preserved only when graphs share term objects;
     re-parsed files may produce distinct BNodes with the same label.
     """
     merged = Graph()

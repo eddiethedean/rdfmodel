@@ -26,7 +26,7 @@ from triplemodel._config import (
     id_from_subject_uri,
 )
 from triplemodel._embed import export_nested_triples, import_nested_value
-from triplemodel._fields import resolve_field_predicate
+from triplemodel._fields import id_field_is_iri_id, resolve_field_predicate
 from triplemodel._namespaces import bind_namespaces
 from triplemodel._types import python_to_term, term_to_python
 
@@ -255,10 +255,14 @@ def graph_to_model(
 
     data: dict[str, Any] = {}
 
-    if cfg.id_field and cfg.namespace and isinstance(uri, str):
-        extracted = id_from_subject_uri(cfg.namespace, uri_str)
+    if cfg.id_field and isinstance(uri, str):
+        extracted = (
+            id_from_subject_uri(cfg.namespace, uri_str) if cfg.namespace else None
+        )
         if extracted is not None:
             data[cfg.id_field] = extracted
+        elif id_field_is_iri_id(model_cls, cfg.id_field):
+            data[cfg.id_field] = uri_str
 
     for name, field_info in model_cls.model_fields.items():
         if cfg.id_field and name == cfg.id_field:

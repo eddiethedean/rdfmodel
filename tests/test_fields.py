@@ -8,7 +8,10 @@ from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 
 from triplemodel import Predicate, rdf_field
+from triplemodel import IriId, TripleModel
 from triplemodel._fields import (
+    annotation_has_iri_id,
+    id_field_is_iri_id,
     predicate_for_field,
     predicate_from_annotation,
 )
@@ -50,3 +53,33 @@ def test_predicate_from_annotation_without_predicate():
 def test_predicate_from_annotation_with_predicate():
     ann = Annotated[str, Predicate("http://example.org/pred")]
     assert predicate_from_annotation(ann) == "http://example.org/pred"
+
+
+def test_iri_id_annotation_detection():
+    ann = Annotated[str, IriId()]
+    assert annotation_has_iri_id(ann) is True
+    assert annotation_has_iri_id(str) is False
+
+
+def test_id_field_is_iri_id_on_model():
+    class Resource(TripleModel):
+        class Rdf:
+            namespace = "http://example.org/"
+            id_field = "uri"
+
+        uri: Annotated[str, IriId()]
+        label: str = rdf_field("http://example.org/label")
+
+    assert id_field_is_iri_id(Resource, "uri") is True
+    assert id_field_is_iri_id(Resource, "label") is False
+    assert id_field_is_iri_id(Resource, "missing") is False
+
+
+def test_id_field_is_iri_id_from_field_metadata_only():
+    class M(BaseModel):
+        uri: str
+
+    field_info = M.model_fields["uri"]
+    object.__setattr__(field_info, "annotation", str)
+    object.__setattr__(field_info, "metadata", [IriId()])
+    assert id_field_is_iri_id(M, "uri") is True

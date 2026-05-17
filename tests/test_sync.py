@@ -55,3 +55,21 @@ def test_instance_sync_to_graph():
     g = Graph()
     p.sync_to_graph(g, mode="replace")
     assert len(g) >= 2
+
+
+def test_patch_clears_curie_predicate_empty_list():
+    class CuriePerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+            prefixes = {"foaf": FOAF}
+
+        slug: str
+        nick: list[str] = rdf_field("foaf:nick", default_factory=list)
+
+    p = CuriePerson(slug="a", nick=["x"])
+    g = p.to_graph()
+    sync_to_graph(CuriePerson(slug="a", nick=[]), g, mode="patch")
+    subj = URIRef(EX + "a")
+    assert list(g.objects(subj, URIRef(f"{FOAF}nick"))) == []

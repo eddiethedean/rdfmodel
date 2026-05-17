@@ -32,6 +32,17 @@ twine check dist/*
 twine upload dist/*   # uses ~/.pypirc or PyPI token
 ```
 
+## Read the Docs
+
+After pushing to `main`:
+
+1. Import the project at [readthedocs.org](https://readthedocs.org/) (suggested slug: **triplemodel**).
+2. Point it at `eddiethedean/triplemodel`; config file `.readthedocs.yaml` is used automatically.
+3. Confirm the build is green; site URL: `https://triplemodel.readthedocs.io/`.
+4. Optional: add the docs badge to `README.md` and set PyPI **Project-URL: Documentation** (already `https://triplemodel.readthedocs.io/` in `pyproject.toml`).
+
+Local check: `pip install -e ".[docs]" && make -C docs html` (or `sphinx-build -b html docs docs/_build/html -W`).
+
 ## Git tag and GitHub release
 
 ```bash

@@ -1,0 +1,4 @@
+# Sphinx docs (also declared in pyproject.toml [project.optional-dependencies.docs])
+# Read the Docs installs via extra_requirements; this file is for local/CI parity.
+
+-e .[docs]
