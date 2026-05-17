@@ -7,7 +7,7 @@ These guides explain how to use TripleModel **0.3.x** in order of increasing com
 | 1 | {doc}`01-getting-started` | Install, `TripleModel`, `to_graph` / `from_graph` |
 | 2 | {doc}`02-mapping-fields-and-subjects` | `class Rdf`, `rdf_field`, subject IRIs |
 | 3 | {doc}`03-multi-valued-fields` | Sets (multi-object), `on_duplicate` |
-| 9 | {doc}`09-rdf-lists-and-lang` | RDF lists (`list[T]`), `LangString`, migration from 0.2 |
+| 9 | {doc}`09-rdf-lists-and-lang` | RDF lists (`list[T]`), `LangString`, language metadata |
 | 4 | {doc}`04-updating-graphs` | Sync modes, clearing fields |
 | 5 | {doc}`05-nested-models` | Child resources, `embed` |
 | 6 | {doc}`06-namespaces-and-curies` | Prefixes, compact predicates |

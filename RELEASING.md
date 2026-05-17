@@ -7,7 +7,7 @@ The following should be satisfied on `main` before tagging:
 - Version `0.3.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `docs/conf.py` (via `triplemodel.__version__`)
 - `CHANGELOG.md`: all 0.3.0 notes under `## [0.3.0]`; `[Unreleased]` is an empty stub
 - `examples/exit_criteria_03.py` in sdist include list; script runs clean; `tests/test_integration.py` covers it
-- README includes **0.2 → 0.3** migration (`list` vs `set` semantics)
+- README documents current `list` vs `set` semantics
 - `src/triplemodel/py.typed` present; wheel includes `triplemodel/py.typed`
 - CI green on `main`: `pytest` (100% coverage), `python -m build`, `ruff format --check`, `ruff check`, `ty check`, Docs (`sphinx-build` + linkcheck)
 

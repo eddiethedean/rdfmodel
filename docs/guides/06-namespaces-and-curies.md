@@ -19,7 +19,7 @@ class Person(TripleModel):
     nick: list[str] = rdf_field("foaf:nick", default_factory=list)
 ```
 
-On **0.3**, `list[str]` maps to an **`rdf:List`**, not multiple `foaf:nick` triples. Use `set[str]` for the latter — see {doc}`09-rdf-lists-and-lang`.
+`list[str]` maps to an **`rdf:List`**, not multiple `foaf:nick` triples. Use `set[str]` for several objects on one predicate — see {doc}`09-rdf-lists-and-lang`.
 
 On `to_graph()` / `sync_to_graph()` with a **new** graph, prefixes are bound automatically when `bind=True` (default for sync on empty graphs).
 

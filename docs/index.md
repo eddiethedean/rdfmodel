@@ -61,7 +61,7 @@ contributing
 releasing
 ```
 
-## Features (0.3.x)
+## Features
 
 - **Pydantic v2** with declarative RDF mapping (`class Rdf`, `rdf_field`, `Predicate`)
 - **Multi-valued fields** — `set[T]` for multiple objects per predicate; `list[T]` for ordered `rdf:List`
@@ -72,7 +72,7 @@ releasing
 - **Literal registry** — `Decimal`, `UUID`, `Enum`, and custom types
 - **Graph helpers** — `merge_graphs`, `graph_value`, `graph_set`, `objects_for_field`
 
-[SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session / ORM layer) builds on TripleModel from **0.2** — see {doc}`ECOSYSTEM`.
+[SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (session / ORM layer) is planned to build on TripleModel — see {doc}`ECOSYSTEM`.
 
 ## Indices
 

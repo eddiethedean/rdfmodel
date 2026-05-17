@@ -31,6 +31,4 @@ On import, duplicate objects in the graph collapse to one set member. Export ord
 
 When a field is cleared (`None`, empty `set()`, or empty `list`), `sync_to_graph(..., mode="replace"|"patch")` removes owned triples for that predicate. See {doc}`04-updating-graphs`.
 
-## Migration from 0.2.x
-
-In **0.2**, both `list[T]` and `set[T]` meant “multiple objects per predicate”. In **0.3**, only **`set[T]`** keeps that meaning; rename fields that were `list` only for multi-object semantics to `set`.
+For ordered **`rdf:List`** values, use **`list[T]`** instead — see {doc}`09-rdf-lists-and-lang`.

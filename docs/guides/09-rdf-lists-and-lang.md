@@ -1,6 +1,6 @@
 # RDF lists and language-tagged literals
 
-TripleModel **0.3.0** distinguishes ordered RDF lists from unordered multi-object predicates.
+TripleModel maps **`list[T]`** fields to ordered **`rdf:List`** structures and **`set[T]`** fields to multiple objects on one predicate.
 
 ## `list[T]` → `rdf:List`
 

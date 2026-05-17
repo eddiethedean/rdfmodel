@@ -71,6 +71,6 @@ Each child mailbox keeps a distinct subject IRI when `slug` differs on the child
 
 ## Full example
 
-See {doc}`../examples` (source: `examples/foaf_person_02.py` on GitHub) for nick (list), mbox (nested), prefixes, and clearing `age` with sync.
+See {doc}`../examples` (`examples/exit_criteria_03.py`) for language tags, nested address, RDF list `nick`, and sync with `replace`.
 
 **Next:** [Namespaces and CURIEs →](06-namespaces-and-curies.md)

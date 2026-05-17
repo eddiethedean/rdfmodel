@@ -60,7 +60,7 @@ http://example.org/people/alice
 
 Unmapped fields are ignored on export/import — useful for computed or application-only data.
 
-## What you get in 0.3
+## Features
 
 | Area | Capability |
 |------|------------|
@@ -76,18 +76,16 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 
 **Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): file `parse` / `serialize` (0.4), named graphs (0.5), SPARQL helpers (0.6).
 
-### `list` vs `set` (0.3 breaking change)
-
-In **0.2**, both `list[T]` and `set[T]` meant “several triples on the same predicate.” In **0.3**:
+### `list` vs `set`
 
 | Annotation | RDF shape |
 |------------|-----------|
 | `set[str]` | Multiple objects on one predicate (unordered) |
-| `list[str]` | One `rdf:List` (`rdf:first` / `rdf:rest`) |
+| `list[str]` | One ordered `rdf:List` (`rdf:first` / `rdf:rest`) |
 
-There is no compatibility shim — update annotations when upgrading from 0.2.
+Use **`set`** for tags or duplicate predicates; use **`list`** when the graph should contain a real RDF list.
 
-## A richer model (0.3)
+## Full example
 
 Language tags, RDF lists, and nested blank-node embeds:
 
@@ -264,7 +262,9 @@ print(bob.subject_uri())
 http://example.org/people/bob%20jones
 ```
 
-**0.2-style multi-object `nick`** (historical): [`examples/foaf_person_02.py`](examples/foaf_person_02.py). On 0.3 use `set[str]` for that pattern.
+**Multiple tags on one predicate** — use `set[str] = rdf_field("foaf:topic", default_factory=set)`.
+
+**Runnable scripts:** [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py), [`examples/readme_examples.py`](examples/readme_examples.py), and [`examples/doc/snippets/`](examples/doc/snippets/).
 
 ## TripleModel vs SparqlModel
 
