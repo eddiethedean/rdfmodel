@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Literal, Mapping
 from urllib.parse import quote, unquote
@@ -25,6 +25,10 @@ def id_from_subject_uri(namespace: str, uri: str) -> str | None:
     return unquote(uri[len(base) :])
 
 
+def _empty_prefixes() -> Mapping[str, str]:
+    return MappingProxyType({})
+
+
 def _freeze_prefixes(raw: object) -> Mapping[str, str]:
     if not raw:
         return MappingProxyType({})
@@ -41,7 +45,7 @@ class RdfConfig:
     type_uri: str | None = None
     id_field: str | None = None
     """Model field whose value is appended to ``namespace`` for the subject IRI."""
-    prefixes: Mapping[str, str] = MappingProxyType({})
+    prefixes: Mapping[str, str] = field(default_factory=_empty_prefixes)
     embed: EmbedMode = "iri"
     graph_mode: GraphMode = "add"
 
