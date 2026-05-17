@@ -5,12 +5,6 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Changed
-
-- Rename public base class `RdfModel` → `RDFModel`.
-
 ## [0.1.0] - 2026-05-17
 
 ### Added
@@ -39,8 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- README with API overview, limitations, and development instructions
+- README with API overview, runnable examples, and development instructions
 - Planning docs: `docs/PLAN.md`, `docs/ROADMAP.md`, `docs/ECOSYSTEM.md`
+- `examples/readme_examples.py` and CI tests for README snippets
 
 ### Notes
 

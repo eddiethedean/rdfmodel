@@ -58,6 +58,7 @@ include = [
     "README.md",
     "CHANGELOG.md",
     "RELEASING.md",
+    "examples/readme_examples.py",
     "docs/PLAN.md",
     "docs/ROADMAP.md",
     "docs/ECOSYSTEM.md",
