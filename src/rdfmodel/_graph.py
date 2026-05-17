@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, TypeVar, get_args, get_origin
 
 from pydantic import BaseModel
@@ -62,7 +63,7 @@ def model_to_graph(
 
 
 def models_to_graph(
-    models: list[BaseModel],
+    models: Sequence[BaseModel],
     graph: Graph | None = None,
 ) -> Graph:
     """Serialize multiple model instances into one graph."""

@@ -19,9 +19,15 @@ def test_string_literal():
 
 
 def test_typed_literals():
-    assert python_to_term(42).datatype == XSD.integer
-    assert python_to_term(3.14).datatype == XSD.double
-    assert python_to_term(True).datatype == XSD.boolean
+    int_lit = python_to_term(42)
+    assert isinstance(int_lit, Literal)
+    assert int_lit.datatype == XSD.integer
+    float_lit = python_to_term(3.14)
+    assert isinstance(float_lit, Literal)
+    assert float_lit.datatype == XSD.double
+    bool_lit = python_to_term(True)
+    assert isinstance(bool_lit, Literal)
+    assert bool_lit.datatype == XSD.boolean
 
 
 def test_iri_string_becomes_uri_ref():

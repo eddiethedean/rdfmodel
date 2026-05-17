@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Self
+from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import Graph

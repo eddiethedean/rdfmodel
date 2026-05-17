@@ -71,7 +71,13 @@ def test_models_to_graph_into_existing_graph():
 def test_graph_to_models_skips_bnode_subjects():
     g = Graph()
     bnode = BNode()
-    g.add((bnode, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), URIRef(f"{FOAF}Person")))
+    g.add(
+        (
+            bnode,
+            URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            URIRef(f"{FOAF}Person"),
+        )
+    )
     assert Person.all_from_graph(g) == []
 
 

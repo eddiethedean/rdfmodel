@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Annotated, Any, get_args, get_origin
+from typing import Annotated, Any, cast, get_args, get_origin
 
 from pydantic import Field
 from pydantic.fields import FieldInfo
@@ -38,8 +38,10 @@ def rdf_field(
 def predicate_for_field(field_info: FieldInfo) -> str | None:
     """Resolve the RDF predicate URI for a Pydantic field, if any."""
     extra = field_info.json_schema_extra
-    if isinstance(extra, dict) and "rdf_predicate" in extra:
-        return str(extra["rdf_predicate"])
+    if isinstance(extra, dict):
+        predicate = cast(dict[str, Any], extra).get("rdf_predicate")
+        if predicate is not None:
+            return str(predicate)
 
     for meta in field_info.metadata:
         if isinstance(meta, Predicate):

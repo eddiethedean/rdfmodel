@@ -203,7 +203,10 @@ def test_slug_whitespace_not_stripped():
 
 def test_subject_uri_override():
     person = Person(slug="alice", name="Alice")
-    assert person.subject_uri(uri="http://custom.example/alice") == "http://custom.example/alice"
+    assert (
+        person.subject_uri(uri="http://custom.example/alice")
+        == "http://custom.example/alice"
+    )
 
 
 def test_rdf_config_classmethod():
