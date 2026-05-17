@@ -39,6 +39,24 @@ def test_bind_namespaces_and_turtle_prefix():
     assert "foaf:" in ttl or "PREFIX foaf:" in ttl
 
 
+def test_to_graph_patch_on_new_graph_binds_prefixes():
+    class Person(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+            prefixes = {"foaf": FOAF}
+            graph_mode = "patch"
+
+        slug: str
+        name: str = rdf_field("foaf:name")
+
+    p = Person(slug="a", name="A")
+    g = p.to_graph()
+    ttl = g.serialize(format="turtle")
+    assert "foaf:" in ttl or "PREFIX foaf:" in ttl
+
+
 def test_bind_namespaces_strategies():
     g = Graph()
     bind_namespaces(g, {"ex": EX}, strategy="none")

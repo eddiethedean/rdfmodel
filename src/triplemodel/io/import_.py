@@ -99,7 +99,11 @@ def import_field_value(
         if not isinstance(term, Node):
             raise ValueError(f"Cannot import nested field {field_name!r} from {term!r}")
         return import_nested_value(
-            graph, term, cast(type[BaseModel], nested_cls), embed=embed
+            graph,
+            term,
+            cast(type[BaseModel], nested_cls),
+            embed=embed,
+            registry=registry,
         )
 
     if card == "list":

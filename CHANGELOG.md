@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`to_graph(..., mode="patch")` on a new graph** — `PatchGraphMode` now honors `bind` and binds `Rdf.prefixes` (same as `add` / `replace`); previously only `sync_to_graph` bound prefixes for patch writes
+- **Nested import with custom `registry`** — `graph_to_model(..., registry=...)` now passes the registry through `import_nested_value` and embed strategies so nested fields use the same literal converters as top-level fields
+
 ## [0.2.0] - 2026-05-17
 
 ### Added

@@ -28,6 +28,7 @@ from triplemodel.protocols import (
     GraphWriteMode,
     PredicateResolver as PredicateResolverProtocol,
 )
+from triplemodel.namespaces import bind_namespaces
 from triplemodel.terms.iri import subject_node, subject_ref
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -143,7 +144,8 @@ class PatchGraphMode:
         resolver: PredicateResolverProtocol | None = None,
         registry: LiteralRegistry | None = None,
     ) -> Graph:
-        _ = bind
+        if bind and config.prefixes:
+            bind_namespaces(graph, config.prefixes_dict)
         reg = registry or default_registry
         subject = uri or config.subject_uri(model)
         subject_ref_node = subject_ref(subject)

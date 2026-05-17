@@ -10,6 +10,7 @@ from rdflib.term import Node
 
 from triplemodel._typing import TripleRow
 from triplemodel.config import EmbedMode, RdfConfig, get_rdf_config
+from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,8 @@ class IriEmbedStrategy:
         graph: Graph,
         term: Node,
         nested_cls: type[BaseModel],
+        *,
+        registry: LiteralRegistry = default_registry,
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
 
@@ -48,7 +51,9 @@ class IriEmbedStrategy:
                 f"Cannot import nested {nested_cls.__name__} from term {term!r} "
                 f"with embed='iri'."
             )
-        return graph_to_model(graph, nested_cls, str(term))
+        return graph_to_model(
+            graph, nested_cls, str(term), registry=registry
+        )
 
 
 @dataclass(frozen=True)
@@ -81,6 +86,8 @@ class BnodeEmbedStrategy:
         graph: Graph,
         term: Node,
         nested_cls: type[BaseModel],
+        *,
+        registry: LiteralRegistry = default_registry,
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
 
@@ -89,7 +96,9 @@ class BnodeEmbedStrategy:
                 f"Cannot import nested {nested_cls.__name__} from term {term!r} "
                 f"with embed='bnode'."
             )
-        return graph_to_model(graph, nested_cls, term, validate_type=False)
+        return graph_to_model(
+            graph, nested_cls, term, validate_type=False, registry=registry
+        )
 
 
 EMBED_STRATEGIES: dict[EmbedMode, IriEmbedStrategy | BnodeEmbedStrategy] = {
@@ -124,9 +133,12 @@ def import_nested_value(
     nested_cls: type[BaseModel],
     *,
     embed: EmbedMode = "iri",
+    registry: LiteralRegistry = default_registry,
 ) -> BaseModel:
     """Hydrate a nested model from an RDF object term."""
-    return get_embed_strategy(embed).import_value(graph, term, nested_cls)
+    return get_embed_strategy(embed).import_value(
+        graph, term, nested_cls, registry=registry
+    )
 
 
 def add_nested_to_graph(
