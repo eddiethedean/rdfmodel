@@ -17,21 +17,34 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | **Terms** | `URIRef`, `Literal`, XSD datatypes | `python_to_term` / `term_to_python` | 0.1 |
 | | `BNode`, anonymous subjects/objects | `Rdf.blank_node` strategy, skolemize on export | 0.3 |
 | | Language tags (`Literal.lang`) | `LangString`, `Annotated[..., Lang("en")]` | 0.3 |
+| | `rdf:HTML` / `rdf:XMLLiteral` literals | optional field types or preserve via registry | 0.3 |
 | | Custom / unknown datatypes | pluggable `Literal` converters | 0.2 |
+| | `term.bind()` (Python ↔ datatype) | shared registry with rdflib `bind()` | 0.2 |
 | | `Variable` | SPARQL result binding only (not model fields) | 0.6 |
 | | RDF-star / quoted triples (`QuotedGraph`) | deferred unless rdflib 7 usage is stable | TBD |
-| **Graph API** | `add` / `remove` / `set` / triple iterators | `to_graph`, merge policies, graph helpers | 0.1–0.2 |
+| | RDF Containers (`Bag` / `Seq` / `Alt`) | **out of scope** (prefer `rdf:List` in 0.3) | — |
+| **Graph API** | `add` / triple iterators | `to_graph`, `model_to_triples` | 0.1 |
+| | `remove` / `set` | sync cleared fields; functional-property `set` | 0.2 |
+| | `value()` | read single object for 0..1 cardinality fields | 0.2 |
+| | `__contains__` | `Graph.has_triple` / membership in tests | 0.2 |
+| | set ops `+` `-` `&` `^` | `merge_graphs` + documented BNode policy | 0.2 |
+| | slice / `__getitem__` triple patterns | **out of scope** (rdflib convenience sugar) | — |
 | | `bind`, `namespaces`, `compute_qname`, `qname` | `Rdf.prefixes`, `Namespace` helpers on models | 0.2 |
+| | `bind_namespaces` strategies (`core` / `rdflib` / `none`) | passthrough when creating `Graph` / `Dataset` | 0.2 |
 | | `parse` / `serialize` (all registered formats) | `RdfModel.parse`, `.serialize`, `load_*` / `dump_*` | 0.4 |
+| | parse base URI (`publicID`, rdflib 7) | `Rdf.base_uri` / `parse(..., base=)` for relative IRIs | 0.4 |
 | | `query` (SELECT, ASK, CONSTRUCT, DESCRIBE) | `select_models`, `ask`, `construct_models` | 0.6 |
+| | SPARQL `SERVICE` (federated) | works via `Graph.query`; document patterns | 0.6 |
 | | SPARQL UPDATE | `graph.update` wrapper + model-aware patches | 0.6 |
+| | `prepareQuery`, `initNs`, `initBindings` | prepared model queries + variable pre-bind | 0.6 |
 | | `cbd` (concise bounded description) | `model.cbd(graph)` → nested sub-model | 0.7 |
 | | `skolemize` / `de_skolemize` | export/import options on `to_graph` / `from_graph` | 0.3 |
-| | `isomorphic` / graph comparison | `graphs_equal` for tests and migrations | 0.7 |
+| | `isomorphic` / graph comparison | `graphs_equal`, optional `model_diff` | 0.7 |
 | | `transitiveClosure`, `transitive_*` | optional helpers for hierarchy fields | 0.7 |
 | | `collection` (RDF lists) | `list[T]` ↔ `rdf:List` | 0.3 |
 | | `resource()` | lazy `ResourceRef` fields | 0.3 |
 | | `Dataset` / named graphs | `@graph` context on `Rdf`, `Dataset` I/O | 0.5 |
+| | `quads()`, `get_context()` | named-graph read/write in dataset helpers | 0.5 |
 | | `ConjunctiveGraph` | use `Dataset` only (rdflib deprecation) | 0.5 |
 | **Formats** | Turtle, Trig, N-Triples, N-Quads | `serialize(format=...)` | 0.4 |
 | | RDF/XML, N3 | same | 0.4 |
@@ -39,10 +52,14 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | | TriG, TriX, HexTuples, longTurtle | same where rdflib registers parser/serializer | 0.4 |
 | | Microdata, RDFa | **out of scope** (HTML scraping, not domain modeling) | — |
 | **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 |
-| | Remote SPARQL (`sparql` store) | `RdfModel.load_sparql(url, query)` | 0.6 |
+| | Remote SPARQL read (`SPARQLStore`) | `RdfModel.load_sparql(url, query)` | 0.6 |
+| | Remote SPARQL read-write (`SPARQLUpdateStore`) | persistent endpoint + `update()` passthrough | 0.6 |
 | | BerkeleyDB, SQLAlchemy | optional extras `rdfmodel[berkeleydb]`, `[sqlalchemy]` | 0.8 |
+| | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
+| | `open` / `close` / `destroy` on store | context manager / lifecycle helpers | 0.8 |
 | | Store transactions (`commit` / `rollback` / `open`) | passthrough when backing store supports | 0.8 |
 | **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from rdfmodel.vocab import FOAF, SKOS, ...` | 0.2 |
+| **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | 1.0 |
 | **Plugins** | Register custom Parser/Serializer/Store | `rdfmodel.plugins.register_*` passthrough | 0.9 |
 | **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `rdfmodel[shacl]` pre-export hook | 0.4 |
 | **contrib** | GraphDB, RDF4J clients | **out of scope** for core; link in cookbook only | — |
@@ -75,13 +92,18 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 - [ ] **Multi-valued fields** — `list[T]`, `set[T]` ↔ multiple objects per predicate
 - [ ] **Nested `RdfModel`** — blank node or named IRI embedding (configurable)
-- [ ] **Optional & null semantics** — omit vs explicit empty documented and tested
-- [ ] **Custom `Literal` datatypes** — register converters (`Decimal`, `UUID`, `Enum`, …)
+- [ ] **Optional & null semantics** — omit vs explicit empty; **remove** prior triples when a field is cleared on re-export
+- [ ] **Custom `Literal` datatypes** — register converters (`Decimal`, `UUID`, `Enum`, …); wire **rdflib `term.bind()`**
 - [ ] **Namespace helpers** — `Namespace`, CURIE expansion, `Rdf.prefixes` → `Graph.bind`
+- [ ] **`DefinedNamespace` vocabs** — re-export common rdflib namespaces from `rdfmodel.vocab`
+- [ ] **`bind_namespaces` strategies** — passthrough `core` / `rdflib` / `none` when constructing graphs
 - [ ] **Graph merge policies** — replace / patch / only-own-triples when writing into existing `Graph`
+- [ ] **Graph set operations** — document BNode behaviour for `g1 + g2`; optional `merge_graphs()` helper
+- [ ] **`Graph.set` / `Graph.value`** — align single-cardinality fields with functional-property semantics
 - [ ] **Graph iterator helpers** — thin wrappers over `subjects` / `objects` / `predicate_objects` scoped to a model URI
+- [ ] **Duplicate predicate warning** — optional `strict` / warn when import sees multiple objects (until multi-value lands)
 
-**Exit criteria:** FOAF `Person` with multiple `nick` values and embedded `mbox` round-trips; prefixes appear in serialized Turtle.
+**Exit criteria:** FOAF `Person` with multiple `nick` values and embedded `mbox` round-trips; prefixes appear in serialized Turtle; clearing `age=None` removes `foaf:age` triples on re-export.
 
 ---
 
@@ -90,6 +112,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 **Theme:** Full rdflib **term** expressiveness for model fields.
 
 - [ ] **`LangString` / per-language fields** — `Literal.lang` round-trip
+- [ ] **Typed XML/HTML literals** — `rdf:XMLLiteral`, `rdf:HTML` where needed (or preserve opaque)
 - [ ] **Arbitrary datatype literals** — preserve unknown datatype URIs via registry
 - [ ] **Blank nodes** — import/export; optional `skolemize` / `de_skolemize` on `to_graph` / `from_graph`
 - [ ] **RDF collections** — `list[T]` ↔ `rdf:List` via `Graph.collection`
@@ -106,8 +129,11 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 - [ ] **`RdfModel.parse` / `.serialize`** — delegate to `Graph.parse` / `Graph.serialize`
 - [ ] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (each format rdflib registers in CI)
+- [ ] **Format autodetection** — filename suffix and `format=` / media type passthrough
+- [ ] **Base URI on parse** — rdflib 7 `publicID` semantics: `Rdf.base_uri` for resolving relative IRIs (not named-graph id)
 - [ ] **`parse_file` / `parse_url`** — stream from path or URL into `list[RdfModel]`
-- [ ] **JSON-LD context** — optional `@context` on `Rdf` class for compaction
+- [ ] **`parse(data=...)`** — load from string (Turtle/JSON-LD snippets in apps and tests)
+- [ ] **JSON-LD context** — optional `@context` on `Rdf` class for compaction; passthrough compact/expand kwargs
 - [ ] **SHACL (optional extra)** — validate before `to_graph()` via pyshacl or equivalent
 - [ ] **Inverse predicates** — `owl:inverseOf` pairs for import/export symmetry
 - [ ] **Subclass dispatch** — multiple `type_uri`; import picks most specific registered model
@@ -122,9 +148,11 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 - [ ] **`Rdf.graph_iri` / `@graph`** — map model class or instance to a named graph IRI
 - [ ] **`to_dataset` / `from_dataset`** — serialize models into correct named graphs
+- [ ] **`Dataset.get_context()` / `quads()`** — read and write via named-graph helpers
 - [ ] **`all_from_dataset`** — load by `rdf:type` within a graph context
 - [ ] **Default graph vs union** — document query/import behavior (union default in rdflib)
 - [ ] **Trig / N-Quads round-trip** — named graph boundaries preserved
+- [ ] **Migrate from `ConjunctiveGraph`** — document rdflib 6→7 / `publicID` changes for dataset users
 
 **Exit criteria:** Two model types in different named graphs round-trip through Trig without collision.
 
@@ -138,8 +166,11 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **`construct_models`** — CONSTRUCT/DESCRIBE → target model class
 - [ ] **`ask`** — thin wrapper returning `bool`
 - [ ] **SPARQL UPDATE** — `apply_update(graph, query)` with documented interaction with models
-- [ ] **`load_sparql`** — construct store from endpoint URL + query into models
-- [ ] **Prepared queries** — cache `Graph.query` with namespace bindings from model vocab
+- [ ] **`load_sparql`** — `SPARQLStore` / read-only endpoint into models
+- [ ] **`SPARQLUpdateStore`** — read-write remote graph pattern (optional extra if needed)
+- [ ] **Federated `SERVICE`** — document querying remote endpoints inside SPARQL
+- [ ] **Prepared queries** — `prepareQuery()` + `initNs` from model `Rdf.prefixes`
+- [ ] **`initBindings`** — pre-bind subject URI or field values in prepared model queries
 - [ ] **Result types** — handle all rdflib result kinds (bindings, boolean, graph, JSON)
 
 **Exit criteria:** Load `Person` rows from a public SPARQL endpoint in ≤10 lines; UPDATE example in docs.
@@ -153,6 +184,8 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **`cbd` wrapper** — extract concise bounded description as nested `RdfModel`
 - [ ] **Transitive helpers** — optional field decorators using `transitiveClosure` / `transitive_subjects`
 - [ ] **`graphs_equal`** — `isomorphic` + term-normalized compare for tests
+- [ ] **`model_diff` / graph diff** — compare two instances or graphs for migration tests
+- [ ] **Safe graph merge** — guidance when combining graphs parsed separately (BNode identity)
 - [ ] **RDFS subclass import** — follow `rdfs:subClassOf` when choosing model class
 - [ ] **Vocabulary registry** — prefix ↔ model class ↔ `type_uri` registry
 - [ ] **Codegen (experimental)** — OWL/RDFS → stub `RdfModel` classes (CLI)
@@ -167,6 +200,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 - [ ] **SPARQL store adapter** — documented pattern for persistent remote graphs
 - [ ] **Optional extras** — `sqlalchemy`, `berkeleydb` store backends with examples
+- [ ] **Store lifecycle** — `Graph.open` / `close` / `destroy` context managers for on-disk stores
 - [ ] **Store transactions** — expose `commit` / `rollback` / `open` when store supports
 - [ ] **Batch import** — chunked `graph_to_models` for large type sets
 - [ ] **Caching** — memoize predicate maps per model class
@@ -218,9 +252,13 @@ These rdflib areas are intentionally **not** wrapped; use rdflib directly or a s
 | Item | Rationale |
 |------|-----------|
 | HTML Microdata / RDFa parsers | Scraping workflow, not domain model I/O |
+| RDF Containers (`Bag` / `Seq` / `Alt`) | Legacy container model; use `rdf:List` (0.3) instead |
+| Graph slice / `g[s:p:o]` syntax | rdflib REPL sugar; use explicit `triples()` / helpers |
+| `rdflib.paths` property-path operators | Graph traversal DSL, not Pydantic ORM |
 | `rdflib.contrib.graphdb` / RDF4J clients | Vendor-specific; belongs in integrations |
+| LevelDB / Kyoto Cabinet store plugins | Third-party rdflib extensions; cookbook only |
 | `rdflib.tools` CLI utilities | CLI is rdflib’s job |
-| Path algebra (`rdflib.paths`) | Graph traversal DSL, not Pydantic ORM |
+| Custom SPARQL algebra (`CUSTOM_EVALS`) | Expert extension point; use rdflib directly |
 | Full OWL reasoning | Use dedicated reasoners |
 | Replacing rdflib parsers, stores, or SPARQL engine | RDFModel orchestrates, never forks |
 
@@ -239,12 +277,12 @@ These rdflib areas are intentionally **not** wrapped; use rdflib directly or a s
 | Version | Focus | rdflib layers |
 |---------|--------|----------------|
 | **0.1.0** | Flat models, in-memory graph round-trip | `Graph.add`, basic terms |
-| 0.2.0 | Fields, namespaces, merge | `bind`, iterators |
+| 0.2.0 | Fields, namespaces, merge, remove/set | `bind`, `remove`, `value`, vocabs |
 | 0.3.0 | Literals, blanks, lists, skolemize | `term`, `collection`, `resource` |
-| 0.4.0 | All document formats, SHACL | `parse`, `serialize` |
-| 0.5.0 | Named graphs | `Dataset` |
-| 0.6.0 | SPARQL + remote store | `query`, UPDATE, SPARQL store |
-| 0.7.0 | CBD, isomorphism, RDFS | graph algorithms |
-| 0.8.0 | Persistent stores, scale | `Store` plugins |
+| 0.4.0 | All document formats, base URI, SHACL | `parse`, `serialize` |
+| 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` |
+| 0.6.0 | SPARQL + remote store | `query`, UPDATE, `SERVICE`, stores |
+| 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms |
+| 0.8.0 | Persistent stores, scale | `Store` open/close, plugins |
 | 0.9.0 | Matrix audit, API freeze | `plugin` passthrough |
 | **1.0.0** | Stable, documented, governed | parity frozen |
