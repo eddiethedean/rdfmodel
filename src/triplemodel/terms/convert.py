@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from datetime import date, datetime
 from enum import Enum
 from typing import overload
@@ -10,11 +9,18 @@ from typing import overload
 from rdflib import BNode, Literal, URIRef, XSD
 from rdflib.term import Node
 
-from triplemodel import _registry as registry
 from triplemodel._typing import PythonToTermInput, RdfValue
+from triplemodel.terms import iri
+from triplemodel.terms.registry import LiteralRegistry, default_registry
+
+RegistryLike = LiteralRegistry
 
 
-def python_to_term(value: PythonToTermInput) -> Node:
+def python_to_term(
+    value: PythonToTermInput,
+    *,
+    registry: RegistryLike = default_registry,
+) -> Node:
     """Serialize a Python scalar to an RDF term."""
     if isinstance(value, Node):
         return value
@@ -37,49 +43,72 @@ def python_to_term(value: PythonToTermInput) -> Node:
     if isinstance(value, date):
         return Literal(value.isoformat(), datatype=XSD.date)
     if isinstance(value, str):
-        if _looks_like_iri(value):
+        if iri.looks_like_iri(value):
             return URIRef(value)
         return Literal(value, datatype=XSD.string)
     return Literal(value)
 
 
 @overload
-def term_to_python(term: Node, target_type: type[str]) -> str: ...
+def term_to_python(
+    term: Node, target_type: type[str], *, registry: RegistryLike = ...
+) -> str: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type[int]) -> int: ...
+def term_to_python(
+    term: Node, target_type: type[int], *, registry: RegistryLike = ...
+) -> int: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type[float]) -> float: ...
+def term_to_python(
+    term: Node, target_type: type[float], *, registry: RegistryLike = ...
+) -> float: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type[bool]) -> bool: ...
+def term_to_python(
+    term: Node, target_type: type[bool], *, registry: RegistryLike = ...
+) -> bool: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type[date]) -> date: ...
+def term_to_python(
+    term: Node, target_type: type[date], *, registry: RegistryLike = ...
+) -> date: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type[datetime]) -> datetime: ...
+def term_to_python(
+    term: Node, target_type: type[datetime], *, registry: RegistryLike = ...
+) -> datetime: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type[Enum]) -> Enum: ...
+def term_to_python(
+    term: Node, target_type: type[Enum], *, registry: RegistryLike = ...
+) -> Enum: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: None = None) -> RdfValue: ...
+def term_to_python(
+    term: Node, target_type: None = None, *, registry: RegistryLike = ...
+) -> RdfValue: ...
 
 
 @overload
-def term_to_python(term: Node, target_type: type) -> RdfValue: ...
+def term_to_python(
+    term: Node, target_type: type, *, registry: RegistryLike = ...
+) -> RdfValue: ...
 
 
-def term_to_python(term: Node, target_type: type | None = None) -> RdfValue:
+def term_to_python(
+    term: Node,
+    target_type: type | None = None,
+    *,
+    registry: RegistryLike = default_registry,
+) -> RdfValue:
     """Deserialize an RDF term to a Python value."""
     if isinstance(term, URIRef):
         return str(term)
@@ -113,18 +142,3 @@ def term_to_python(term: Node, target_type: type | None = None) -> RdfValue:
         return date.fromisoformat(str(term))
 
     return term.toPython()
-
-
-_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
-
-
-def _looks_like_iri(value: str) -> bool:
-    """True when ``value`` is an absolute IRI (not a CURIE ``prefix:local``)."""
-    if not _SCHEME_RE.match(value):
-        return False
-    if "://" in value or value.startswith("urn:"):
-        return True
-    scheme, _, rest = value.partition(":")
-    if scheme in ("mailto", "file") and rest:
-        return True
-    return False

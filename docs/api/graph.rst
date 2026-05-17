@@ -1,6 +1,7 @@
-triplemodel._graph
-==================
+triplemodel.io
+==============
 
-.. automodule:: triplemodel._graph
+.. automodule:: triplemodel.io
    :members:
+   :imported-members:
    :show-inheritance:

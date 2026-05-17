@@ -3,7 +3,7 @@
 Install: ``pip install triplemodel``
 """
 
-from triplemodel._config import (
+from triplemodel.config import (
     RDF,
     RDFS,
     RDF_TYPE,
@@ -11,28 +11,25 @@ from triplemodel._config import (
     EmbedMode,
     GraphMode,
     RdfConfig,
+    freeze_prefixes,
     id_from_subject_uri,
     subject_base,
 )
-from triplemodel._fields import IriId, Predicate, rdf_field
-from triplemodel._graph import (
+from triplemodel.fields import IriId, Predicate, rdf_field
+from triplemodel.io import (
     OnDuplicate,
     graph_to_model,
     graph_to_models,
     model_to_graph,
     model_to_triples,
     models_to_graph,
+    sync_to_graph,
 )
-from triplemodel._graph_ops import (
-    graph_set,
-    graph_value,
-    merge_graphs,
-    objects_for_field,
-)
-from triplemodel._namespaces import bind_namespaces, expand_curie
-from triplemodel._registry import register_literal_type
-from triplemodel._sync import sync_to_graph
+from triplemodel.io.ops import graph_set, graph_value, merge_graphs, objects_for_field
 from triplemodel.model import TripleModel
+from triplemodel.namespaces import bind_namespaces, expand_curie
+from triplemodel.protocols import RdfResource, register_rdf_resource
+from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
 __version__ = "0.2.0"
 
@@ -40,16 +37,20 @@ __all__ = [
     "EmbedMode",
     "GraphMode",
     "IriId",
+    "LiteralRegistry",
     "OnDuplicate",
+    "Predicate",
     "RDF",
     "RDFS",
     "RDF_TYPE",
     "XSD",
-    "Predicate",
     "RdfConfig",
+    "RdfResource",
     "TripleModel",
     "bind_namespaces",
+    "default_registry",
     "expand_curie",
+    "freeze_prefixes",
     "graph_set",
     "graph_to_model",
     "graph_to_models",
@@ -62,6 +63,7 @@ __all__ = [
     "objects_for_field",
     "rdf_field",
     "register_literal_type",
+    "register_rdf_resource",
     "subject_base",
     "sync_to_graph",
     "__version__",

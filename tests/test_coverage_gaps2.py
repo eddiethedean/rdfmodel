@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 from rdflib import Graph, Literal, URIRef
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
-from triplemodel._cardinality import is_triple_model_type
-from triplemodel._graph import graph_to_model, model_to_triples
-from triplemodel._namespaces import expand_curie
-from triplemodel._sync import sync_to_graph as sync_fn
-from triplemodel._types import python_to_term
+from triplemodel.metadata.cardinality import is_triple_model_type
+from triplemodel.io import graph_to_model, model_to_triples
+from triplemodel.namespaces import expand_curie
+from triplemodel.io.sync import sync_to_graph as sync_fn
+from triplemodel.terms import python_to_term
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -98,7 +100,7 @@ def test_sync_add_mode_explicit():
 
 
 def test_export_nested_invalid_embed_raises():
-    from triplemodel._embed import export_nested_triples
+    from triplemodel.embed import export_nested_triples
 
     class Box(TripleModel):
         class Rdf:
@@ -109,7 +111,10 @@ def test_export_nested_invalid_embed_raises():
 
     with pytest.raises(ValueError, match="embed"):
         export_nested_triples(
-            EX + "p", "http://example.org/h", Box(slug="b"), embed="nope"
+            EX + "p",
+            "http://example.org/h",
+            Box(slug="b"),
+            embed=cast(Any, "nope"),
         )
 
 

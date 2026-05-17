@@ -90,20 +90,20 @@ def test_to_graph_replace_updates_nested_child_owned_triples():
 
 
 def test_clear_nested_iri_children_noop_for_bnode_embed():
-    from triplemodel._config import get_rdf_config
-    from triplemodel._sync import _clear_nested_iri_children
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.sync import clear_nested_iri_children
 
     mbox = Mailbox(slug="m1", address="bob@example.org")
     p = PersonBnode(slug="bob", mbox=mbox)
     g = p.to_graph()
     n_before = len(g)
-    _clear_nested_iri_children(p, g, config=get_rdf_config(PersonBnode))
+    clear_nested_iri_children(p, g, config=get_rdf_config(PersonBnode))
     assert len(g) == n_before
 
 
 def test_clear_stale_nested_skips_unmapped_predicate():
-    from triplemodel._config import get_rdf_config
-    from triplemodel._sync import _clear_stale_nested_iri_children
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.sync import clear_stale_nested_iri_children
 
     class PersonNoPred(TripleModel):
         class Rdf:
@@ -116,7 +116,7 @@ def test_clear_stale_nested_skips_unmapped_predicate():
 
     p = PersonNoPred(slug="a", mbox=Mailbox(slug="m1", address="a@example.org"))
     g = Graph()
-    _clear_stale_nested_iri_children(
+    clear_stale_nested_iri_children(
         p, g, p.subject_uri(), config=get_rdf_config(PersonNoPred)
     )
 
@@ -124,25 +124,25 @@ def test_clear_stale_nested_skips_unmapped_predicate():
 def test_clear_stale_nested_skips_unresolved_nested_cls():
     from unittest.mock import patch
 
-    from triplemodel._config import get_rdf_config
-    from triplemodel._sync import _clear_stale_nested_iri_children
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.sync import clear_stale_nested_iri_children
 
     mbox = Mailbox(slug="m1", address="a@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
     cfg = get_rdf_config(Person)
     with patch(
-        "triplemodel._cardinality.nested_model_type",
+        "triplemodel.io.sync.nested_cleanup.nested_model_type",
         return_value=None,
     ):
-        _clear_stale_nested_iri_children(p, g, p.subject_uri(), config=cfg)
+        clear_stale_nested_iri_children(p, g, p.subject_uri(), config=cfg)
 
 
 def test_clear_nested_iri_children_skips_unresolved_nested_cls():
     from unittest.mock import patch
 
-    from triplemodel._config import get_rdf_config
-    from triplemodel._sync import _clear_nested_iri_children
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.sync import clear_nested_iri_children
 
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
@@ -151,10 +151,10 @@ def test_clear_nested_iri_children_skips_unresolved_nested_cls():
     assert len(list(g.objects(child, URIRef(ADDRESS)))) == 1
     cfg = get_rdf_config(Person)
     with patch(
-        "triplemodel._cardinality.nested_model_type",
+        "triplemodel.io.sync.nested_cleanup.nested_model_type",
         return_value=None,
     ):
-        _clear_nested_iri_children(p, g, config=cfg)
+        clear_nested_iri_children(p, g, config=cfg)
     assert len(list(g.objects(child, URIRef(ADDRESS)))) == 1
 
 

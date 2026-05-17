@@ -8,7 +8,7 @@ import pytest
 from rdflib import BNode, Graph, Literal, URIRef
 
 from triplemodel import Predicate, TripleModel, models_to_graph, rdf_field
-from triplemodel._config import RDF_TYPE, id_from_subject_uri
+from triplemodel.config import RDF_TYPE, id_from_subject_uri
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"

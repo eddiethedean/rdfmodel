@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 
 from triplemodel import Predicate, rdf_field
 from triplemodel import IriId, TripleModel
-from triplemodel._fields import (
+from triplemodel.fields import (
     annotation_has_iri_id,
     id_field_is_iri_id,
     predicate_for_field,
@@ -18,7 +18,10 @@ from triplemodel._fields import (
 
 
 def test_rdf_field_non_dict_json_schema_extra():
-    field = rdf_field("http://example.org/name", json_schema_extra="ignored")
+    field = rdf_field(
+        "http://example.org/name",
+        json_schema_extra=cast(Any, "ignored"),
+    )
     info = field
     assert isinstance(info, FieldInfo)
     assert info.json_schema_extra == {"rdf_predicate": "http://example.org/name"}

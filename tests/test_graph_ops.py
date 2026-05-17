@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from rdflib import URIRef
 
 from triplemodel import (
@@ -12,7 +13,7 @@ from triplemodel import (
     objects_for_field,
     rdf_field,
 )
-from triplemodel._graph_ops import graph_set_many
+from triplemodel.io.ops import graph_set_many
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -52,6 +53,21 @@ def test_objects_for_field():
     g = p.to_graph()
     objs = objects_for_field(g, p.subject_uri(), Person, "nick")
     assert set(objs) == {"x", "y"}
+
+
+def test_graph_value_raises_without_predicate():
+    class Bare(TripleModel):
+        class Rdf:
+            namespace = EX
+            id_field = "slug"
+
+        slug: str
+        note: str = "x"
+
+    p = Bare(slug="a")
+    g = p.to_graph()
+    with pytest.raises(ValueError, match="no RDF predicate"):
+        graph_value(g, p.subject_uri(), "http://example.org/note", Bare, "note")
 
 
 def test_graph_set_many():

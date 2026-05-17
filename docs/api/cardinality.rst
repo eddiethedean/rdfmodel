@@ -1,6 +1,6 @@
-triplemodel._cardinality
-========================
+triplemodel.metadata.cardinality
+================================
 
-.. automodule:: triplemodel._cardinality
+.. automodule:: triplemodel.metadata.cardinality
    :members:
    :show-inheritance:

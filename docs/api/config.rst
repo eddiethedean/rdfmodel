@@ -1,6 +1,6 @@
-triplemodel._config
-===================
+triplemodel.config
+==================
 
-.. automodule:: triplemodel._config
+.. automodule:: triplemodel.config
    :members:
    :show-inheritance:

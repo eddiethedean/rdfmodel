@@ -225,8 +225,8 @@ Details: [project plan](https://github.com/eddiethedean/triplemodel/blob/main/do
 ## Limitations (0.2.x)
 
 - **Scalar duplicates** — multiple objects on a non-collection field still warn/error via `on_duplicate` (collections import all values).
-- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred until 0.3. `replace`/`patch` may leave orphan blank-node subgraphs.
-- **RDF lists** — use `list[T]` for multiple objects per predicate, not `rdf:List` syntax ([0.3.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)).
+- **BNode embed** — `Rdf.embed="bnode"` is experimental; named IRI embed (`"iri"`) is preferred. `replace`/`patch` may leave orphan blank-node subgraphs.
+- **RDF lists** — use `list[T]` for multiple objects per predicate, not `rdf:List` syntax ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)).
 - **In-memory graphs only** — no `parse` / `serialize` until [0.4.0](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 - **Stale triples on re-export** — use [`sync_to_graph`](https://github.com/eddiethedean/triplemodel/blob/main/docs/guides/04-updating-graphs.md) or `to_graph(..., mode="replace")` to remove cleared fields; default `mode="add"` only appends.
 - **`from_graph` type check** — when `Rdf.type_uri` is set, import requires that triple unless `validate_type=False`.

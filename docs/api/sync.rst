@@ -1,6 +1,6 @@
-triplemodel._sync
-=================
+triplemodel.io.sync
+===================
 
-.. automodule:: triplemodel._sync
+.. automodule:: triplemodel.io.sync
    :members:
    :show-inheritance:

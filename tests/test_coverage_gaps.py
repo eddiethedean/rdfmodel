@@ -9,20 +9,20 @@ import pytest
 from rdflib import Graph
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
-from triplemodel._cardinality import (
+from triplemodel.metadata.cardinality import (
     element_type,
     field_cardinality,
     nested_model_type,
     scalar_python_type,
     unwrap_annotation,
 )
-from triplemodel._config import RdfConfig, get_rdf_config
-from triplemodel._embed import add_nested_to_graph
-from triplemodel._graph_ops import objects_for_field
-from triplemodel._namespaces import expand_curie, resolve_predicate
-from triplemodel._registry import converter_for_type, python_to_literal
-from triplemodel._sync import predicates_to_patch, sync_to_graph
-from triplemodel._types import python_to_term, term_to_python
+from triplemodel.config import RdfConfig, get_rdf_config
+from triplemodel.embed import add_nested_to_graph
+from triplemodel.io.ops import objects_for_field
+from triplemodel.namespaces import expand_curie, resolve_predicate
+from triplemodel.terms import converter_for_type, python_to_literal
+from triplemodel.io.sync import predicates_to_patch, sync_to_graph
+from triplemodel.terms import python_to_term, term_to_python
 from rdflib import Literal, XSD
 
 FOAF = "http://xmlns.com/foaf/0.1/"
@@ -38,7 +38,7 @@ def test_element_type_non_generic():
 
 
 def test_is_triple_model_type_non_type():
-    from triplemodel._cardinality import is_triple_model_type
+    from triplemodel.metadata.cardinality import is_triple_model_type
 
     assert is_triple_model_type(Union[str, int]) is False
 
@@ -130,10 +130,10 @@ def test_rdf_graph_mode_patch_on_sync_to_graph():
 
 
 def test_freeze_prefixes_non_mapping():
-    from triplemodel._config import _freeze_prefixes
+    from triplemodel.config import freeze_prefixes
 
-    assert dict(_freeze_prefixes(None)) == {}
-    assert dict(_freeze_prefixes([("ex", EX)])) == {}
+    assert dict(freeze_prefixes(None)) == {}
+    assert dict(freeze_prefixes([("ex", EX)])) == {}
 
 
 def test_expand_curie_hash_namespace():
@@ -214,7 +214,7 @@ def test_add_nested_to_graph():
 
 
 def test_import_nested_invalid_term():
-    from triplemodel._embed import import_nested_value
+    from triplemodel.embed import import_nested_value
     from rdflib import Literal
 
     class Box(TripleModel):
@@ -257,7 +257,7 @@ def test_term_to_python_registry_path():
 
 
 def test_resolve_field_predicate_with_prefixes():
-    from triplemodel._fields import resolve_field_predicate as rfp
+    from triplemodel.fields import resolve_field_predicate as rfp
 
     class P(TripleModel):
         name: str = rdf_field("foaf:name")

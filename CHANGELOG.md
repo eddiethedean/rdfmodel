@@ -7,24 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **`patch` sync for multi-valued fields** — `sync_to_graph(..., mode="patch")` and `to_graph(..., mode="patch")` now replace all objects per predicate in one step, so `list`/`set` fields keep every value instead of only the last.
-- **Nested IRI embed + `replace` sync** — `sync_to_graph` / `to_graph(..., mode="replace")` now clears owned triples on embedded child subjects before re-export, so updating nested field values no longer leaves duplicate predicates on the child IRI.
-- **Stale nested IRI children** — `replace` and `patch` remove owned triples for nested child subjects that are no longer linked (identity change or `mbox=None`).
-- **`set` export** — `None` elements are skipped on export, matching `list` behaviour.
-- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` on export and import instead of emitting invalid literals.
-- **`graph_to_model` with `URIRef` subjects** — `id_field` is derived from the subject URI when the URI is passed as a `URIRef`.
-
 ### Added
 
+- **Subpackages** — `triplemodel.io`, `triplemodel.fields`, `triplemodel.config`, `triplemodel.terms`, `triplemodel.embed`, `triplemodel.metadata` with single-responsibility modules (export, import, discovery, writer, sync modes, embed strategies).
+- **`triplemodel.protocols`** — public extension points: `RdfResource`, `PredicateResolver`, `LiteralRegistry`, `EmbedStrategy`, `GraphWriteMode`, plus `register_rdf_resource` / `is_rdf_resource_class` for nested-type detection without importing `TripleModel` from cardinality helpers.
+- **`LiteralRegistry` class** — `register_literal_type` remains a thin wrapper over `default_registry`.
+- **Advanced kwargs** — `model_to_graph` / `sync_to_graph` accept optional `registry=` and `resolver=` for tests and custom converters (defaults unchanged).
 - **`Rdf.graph_mode`** — when `to_graph()` / `sync_to_graph()` / `model_to_graph()` omit `mode=`, they use the class `Rdf.graph_mode` (`sync_to_graph` still defaults to `"replace"` when `graph_mode` is `"add"`).
 - **`all_from_graph` without `type_uri`** — discovers subjects that have triples for mapped field predicates when no RDF type is configured.
-- **`graph_set_many`** — internal helper for multi-object predicate updates (used by patch sync).
+- **`graph_set_many`** — helper for multi-object predicate updates (used by patch sync).
+- Root exports: `LiteralRegistry`, `RdfResource`, `register_rdf_resource`, `freeze_prefixes`, `default_registry`.
 
 ### Changed
 
+- **Preferred imports** — graph I/O via `triplemodel.io`; field helpers via `triplemodel.fields`; configuration via `triplemodel.config`. The package root still re-exports the common developer surface.
+- **`objects_for_field`** — resolves field predicates with the same prefix/CURIE expansion as export/import (fixes inconsistency with `graph_value` / `graph_set`).
+- **`freeze_prefixes`** — public name (was `_freeze_prefixes`).
 - Invalid `Rdf.embed` / `Rdf.graph_mode` values emit a `UserWarning` and fall back to `"iri"` / `"add"`.
+- Internal layout: no import cycles between `io`, `embed`, `terms`, `fields`, and `config`; `model_to_graph` delegates non-`add` modes to sync mode handlers instead of cross-importing monolithic modules.
+
+### Fixed
+
+- **`patch` sync for multi-valued fields** — `sync_to_graph(..., mode="patch")` and `to_graph(..., mode="patch")` now replace all objects per predicate in one step, so `list`/`set` fields keep every value instead of only the last.
+- **Nested IRI embed + `replace` sync** — clears owned triples on embedded child subjects before re-export.
+- **Stale nested IRI children** — `replace` and `patch` remove owned triples for nested child subjects that are no longer linked.
+- **`set` export** — `None` elements are skipped on export, matching `list` behaviour.
+- **`list[TripleModel]` / `set[TripleModel]`** — rejected with a clear `ValueError` on export and import.
+- **`graph_to_model` with `URIRef` subjects** — `id_field` is derived from the subject URI when the URI is passed as a `URIRef`.
+
+### Removed
+
+- **Private modules** — `triplemodel._graph`, `_sync`, `_embed`, `_config`, `_fields`, `_cardinality`, `_types`, `_registry`, `_graph_ops`, `_namespaces` are no longer importable.
+- **`_unwrap_optional`** — use `triplemodel.metadata.cardinality.unwrap_annotation` (also exported from `triplemodel.metadata`).
+
+### Documentation
+
+- API reference updated for new module paths; README documents import path changes.
 
 ## [0.2.0] - 2026-05-17
 
@@ -77,27 +95,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XSD booleans via `Literal.toPython()` when datatype is `xsd:boolean`
 - `BNode` values rejected when importing into `str` fields
 - Import errors include field, predicate, and subject context
-- `_unwrap_optional` peels `Annotated[...]` so `Annotated[int, Predicate(...)]` imports with correct XSD coercion
-- IRI-like `str` values use any RFC 3986 scheme (`mailto:`, `file:`, etc.) on export, not only `http`/`https`/`urn`
-
-### Changed
-
-- `TripleModel` uses `str_strip_whitespace=False` so RDF string values are not altered on validation
-
-### Documentation
-
-- README with API overview, runnable examples, and development instructions
-- Planning docs: `docs/PLAN.md`, `docs/ROADMAP.md`, `docs/ECOSYSTEM.md`
-- `examples/readme_examples.py` and CI tests for README snippets
-- README limitations: `uri=` namespace alignment, empty child `Rdf`, falsy `type_uri`, `id_from_subject_uri`, BNode subjects, loose bool coercion
-- `TripleModel` docstring: subclass `Rdf` replaces parent config (do not use empty child `class Rdf:`)
-- CI: Python 3.11, `ruff format --check`, `python -m build`, release workflow runs `pytest` before build
-
-### Notes
-
-- **Prior names (pre-release):** `rdfmodel` / `tripletyped` on PyPI and GitHub; public name is **`triplemodel`** / **`TripleModel`**.
-- **Alpha:** API may change until 1.0. Multi-value fields, nested models, sync/remove, and file I/O are planned for **0.2+**.
-- **[SparqlModel](https://github.com/eddiethedean/sqarqlmodel)** integration (optional `triplemodel` dependency) is targeted from **0.2**; see `docs/ECOSYSTEM.md`.
-
-[0.2.0]: https://github.com/eddiethedean/triplemodel/releases/tag/v0.2.0
-[0.1.0]: https://github.com/eddiethedean/triplemodel/releases/tag/v0.1.0
+- `unwrap_annotation` peels `Annotated[...]` so `Annotated[int, Predicate(...)]` imports with correct XSD coercion

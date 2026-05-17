@@ -8,13 +8,13 @@ from uuid import UUID
 
 from rdflib import Literal, XSD
 
-from triplemodel._registry import (
+from triplemodel.terms import (
     converter_for_type,
     literal_to_python,
     python_to_literal,
     register_literal_type,
 )
-from triplemodel._types import python_to_term, term_to_python
+from triplemodel.terms import python_to_term, term_to_python
 
 
 class Color(Enum):
@@ -52,5 +52,5 @@ def test_register_custom_type():
     lit = python_to_literal(Custom("x"), Custom)
     assert lit is not None
     result = literal_to_python(lit, Custom)
-    assert result is not None
+    assert isinstance(result, Custom)
     assert result.v == "x"

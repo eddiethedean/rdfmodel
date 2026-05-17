@@ -8,8 +8,8 @@ import pytest
 from rdflib import Graph, URIRef
 
 from triplemodel import Predicate, TripleModel, rdf_field
-from triplemodel._config import RDF_TYPE
-from triplemodel._cardinality import (
+from triplemodel.config import RDF_TYPE
+from triplemodel.metadata.cardinality import (
     _safe_issubclass,
     element_type,
     field_cardinality,
@@ -19,7 +19,7 @@ from triplemodel._cardinality import (
     scalar_python_type,
     unwrap_annotation,
 )
-from triplemodel._fields import owned_predicates
+from triplemodel.fields import owned_predicates
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -115,7 +115,7 @@ def test_list_of_triple_model_raises_on_export():
 
 
 def test_list_of_triple_model_raises_on_import():
-    from triplemodel._graph import graph_to_model
+    from triplemodel.io import graph_to_model
 
     class Team(TripleModel):
         class Rdf:

@@ -2,21 +2,24 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import Graph
 
-from triplemodel._config import GraphMode, RdfConfig, get_rdf_config
-from triplemodel._graph import (
+from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
+from triplemodel.io import (
     OnDuplicate,
     graph_to_model,
     graph_to_models,
     model_to_graph,
     model_to_triples,
+    sync_to_graph,
 )
-from triplemodel._sync import sync_to_graph
 from triplemodel._typing import TripleRow
+from triplemodel.protocols import register_rdf_resource
 
 
 class TripleModel(BaseModel):
@@ -44,6 +47,10 @@ class TripleModel(BaseModel):
         validate_assignment=True,
         str_strip_whitespace=False,
     )
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        register_rdf_resource(cls)
 
     def subject_uri(self, *, uri: str | None = None) -> str:
         """Return the RDF subject IRI for this instance."""
@@ -123,5 +130,7 @@ class TripleModel(BaseModel):
         """Return resolved RDF configuration for this model class."""
         return get_rdf_config(cls)
 
+
+register_rdf_resource(TripleModel)
 
 __all__ = ["TripleModel"]

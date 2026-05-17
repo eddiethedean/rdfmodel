@@ -1,6 +1,6 @@
-triplemodel._fields
-===================
+triplemodel.fields
+==================
 
-.. automodule:: triplemodel._fields
+.. automodule:: triplemodel.fields
    :members:
    :show-inheritance:

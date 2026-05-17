@@ -8,7 +8,7 @@ from decimal import Decimal
 import pytest
 from rdflib import BNode, Literal, URIRef, XSD
 
-from triplemodel._types import python_to_term, term_to_python
+from triplemodel.terms import python_to_term, term_to_python
 
 
 def test_string_literal():

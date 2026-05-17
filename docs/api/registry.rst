@@ -1,6 +1,6 @@
-triplemodel._registry
-=====================
+triplemodel.terms.registry
+==========================
 
-.. automodule:: triplemodel._registry
+.. automodule:: triplemodel.terms.registry
    :members:
    :show-inheritance:

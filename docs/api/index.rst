@@ -22,4 +22,5 @@ Module reference
    graph_ops
    cardinality
    types
+   protocols
    vocab

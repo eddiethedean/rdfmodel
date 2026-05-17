@@ -1,6 +1,6 @@
-triplemodel._graph_ops
-======================
+triplemodel.io.ops
+==================
 
-.. automodule:: triplemodel._graph_ops
+.. automodule:: triplemodel.io.ops
    :members:
    :show-inheritance:

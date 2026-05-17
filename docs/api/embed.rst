@@ -1,6 +1,6 @@
-triplemodel._embed
-==================
+triplemodel.embed
+=================
 
-.. automodule:: triplemodel._embed
+.. automodule:: triplemodel.embed
    :members:
    :show-inheritance:

@@ -12,7 +12,7 @@ from triplemodel import (
     rdf_field,
     subject_base,
 )
-from triplemodel._config import RdfConfig, get_rdf_config
+from triplemodel.config import RdfConfig, get_rdf_config
 
 EX = "http://example.org/people/"
 

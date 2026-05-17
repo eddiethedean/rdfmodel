@@ -22,7 +22,7 @@ from triplemodel import (
     rdf_field,
     sync_to_graph,
 )
-from triplemodel._config import RDF_TYPE
+from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
 
 FOAF_NS = str(FOAF)

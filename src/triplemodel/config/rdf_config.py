@@ -7,7 +7,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Literal, Protocol
-
 from urllib.parse import quote, unquote
 
 EmbedMode = Literal["iri", "bnode"]
@@ -35,7 +34,7 @@ def _empty_prefixes() -> Mapping[str, str]:
     return MappingProxyType({})
 
 
-def _freeze_prefixes(
+def freeze_prefixes(
     raw: Mapping[str, str] | list[tuple[str, str]] | None,
 ) -> Mapping[str, str]:
     if not raw:
@@ -124,7 +123,7 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                     stacklevel=2,
                 )
                 mode = "add"
-            prefixes = _freeze_prefixes(getattr(rdf, "prefixes", None))
+            prefixes = freeze_prefixes(getattr(rdf, "prefixes", None))
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
@@ -134,11 +133,3 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                 graph_mode=mode,
             )
     return RdfConfig()
-
-
-# Namespace constants used by the package
-RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-RDFS = "http://www.w3.org/2000/01/rdf-schema#"
-XSD = "http://www.w3.org/2001/XMLSchema#"
-
-RDF_TYPE = f"{RDF}type"

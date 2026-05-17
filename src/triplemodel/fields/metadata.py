@@ -11,10 +11,8 @@ from typing_extensions import Unpack
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 
-from triplemodel._cardinality import _field_annotation
-from triplemodel._config import RDF_TYPE, RdfConfig, get_rdf_config
-from triplemodel._namespaces import resolve_predicate
 from triplemodel._typing import AnnotationExpr, JsonSchemaExtra, RdfFieldKwargs
+from triplemodel.metadata.cardinality import field_annotation
 
 _T = TypeVar("_T")
 
@@ -55,12 +53,7 @@ def rdf_field(
     default: _T | EllipsisType = ...,
     **field_kwargs: Unpack[RdfFieldKwargs],
 ) -> _T:
-    """Create a Pydantic field bound to an RDF predicate.
-
-    Example::
-
-        name: str = rdf_field("http://xmlns.com/foaf/0.1/name")
-    """
+    """Create a Pydantic field bound to an RDF predicate."""
     extra = field_kwargs.pop("json_schema_extra", None) or {}
     if not isinstance(extra, dict):
         extra = {}
@@ -68,7 +61,6 @@ def rdf_field(
         **cast(JsonSchemaExtra, extra),
         "rdf_predicate": predicate,
     }
-    # Pydantic ``Field`` types ``**extra`` as an empty TypedDict; widen for forwarded kwargs.
     return cast(
         _T,
         Field(
@@ -111,39 +103,10 @@ def annotation_has_iri_id(annotation: AnnotationExpr) -> bool:
 
 def id_field_is_iri_id(model_cls: type[BaseModel], id_field: str) -> bool:
     """True when the configured ``id_field`` is marked with :class:`IriId`."""
-    field_info = model_cls.model_fields.get(id_field)
+    model_fields = getattr(model_cls, "model_fields", {})
+    field_info = model_fields.get(id_field)
     if field_info is None:
         return False
-    return annotation_has_iri_id(_field_annotation(field_info)) or any(
+    return annotation_has_iri_id(field_annotation(field_info)) or any(
         isinstance(meta, IriId) for meta in field_info.metadata
     )
-
-
-def resolve_field_predicate(
-    field_info: FieldInfo,
-    prefixes: dict[str, str],
-) -> str | None:
-    """Resolved full predicate IRI for a field."""
-    raw = predicate_for_field(field_info) or predicate_from_annotation(
-        _field_annotation(field_info)
-    )
-    if raw is None:
-        return None
-    return resolve_predicate(raw, prefixes)
-
-
-def owned_predicates(
-    model_cls: type[BaseModel],
-    config: RdfConfig | None = None,
-) -> frozenset[str]:
-    """Predicates owned by ``model_cls`` (mapped fields and ``rdf:type``)."""
-    cfg = config or get_rdf_config(model_cls)
-    preds: set[str] = set()
-    if cfg.type_uri:
-        preds.add(RDF_TYPE)
-    prefixes = cfg.prefixes_dict
-    for field_info in model_cls.model_fields.values():
-        pred = resolve_field_predicate(field_info, prefixes)
-        if pred is not None:
-            preds.add(pred)
-    return frozenset(preds)

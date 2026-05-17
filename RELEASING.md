@@ -8,7 +8,7 @@ The following are satisfied on `main` before tagging:
 - `src/triplemodel/py.typed` present; wheel includes `triplemodel/py.typed` (`twine check` passes)
 - CI green: `pytest` (100% coverage), `python -m build`, `ruff format --check`, `ruff check`, `ty check` (Python 3.10–3.13)
 
-**Remaining manual steps:** tag `v0.1.0`, `twine upload`, GitHub release, then set ROADMAP **0.1.0** status to **Released (alpha)**.
+**Remaining manual steps:** tag `v0.1.0`, GitHub release, then set ROADMAP **0.1.0** status to **Released (alpha)**. PyPI upload runs automatically when the tag is pushed (see below).
 
 ## Pre-release checklist
 
@@ -18,12 +18,19 @@ The following are satisfied on `main` before tagging:
 - [x] `python -m build` and `twine check dist/*` pass
 - [x] PyPI name `triplemodel` available (not yet published)
 - [x] GitHub repo `eddiethedean/triplemodel` (renamed from `tripletyped`)
-- [ ] Create and push git tag `v0.1.0` (triggers Release workflow build)
-- [x] `twine upload dist/*` (published `triplemodel==0.1.0`)
+- [ ] Create and push git tag `v0.1.0` (triggers Release workflow: build + PyPI publish)
+- [x] `triplemodel==0.1.0` on PyPI (initial publish was manual; later tags use CI)
 - [ ] GitHub release from tag
 - [x] Set `docs/ROADMAP.md` **0.1.0** to **Released (alpha)**
 
 ## Publish to PyPI
+
+### GitHub Actions (default)
+
+1. In the repo **Settings → Secrets and variables → Actions**, add **`PYPI_API_TOKEN`**: a PyPI [API token](https://pypi.org/manage/account/token/) scoped to the `triplemodel` project (or the whole account for first release).
+2. Push an annotated tag `v*` (e.g. `v0.2.0`). The [Release workflow](.github/workflows/release.yml) runs `pytest`, `python -m build`, `twine check`, uploads `dist/` as an artifact, then publishes with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
+
+### Manual fallback
 
 ```bash
 python -m pip install build twine

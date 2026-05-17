@@ -1,6 +1,6 @@
-triplemodel._types
-==================
+triplemodel.fields.metadata
+===========================
 
-.. automodule:: triplemodel._types
+.. automodule:: triplemodel.fields.metadata
    :members:
    :show-inheritance:

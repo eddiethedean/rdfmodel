@@ -7,8 +7,9 @@ from typing import Annotated
 from rdflib import BNode, Graph, Literal, URIRef
 
 from triplemodel import Predicate, TripleModel, models_to_graph, rdf_field
-from triplemodel._config import RDF_TYPE
-from triplemodel._graph import _unwrap_optional, graph_to_model, model_to_triples
+from triplemodel.config import RDF_TYPE
+from triplemodel.io import graph_to_model, model_to_triples
+from triplemodel.metadata import unwrap_annotation
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -47,30 +48,30 @@ def test_null_field_omitted_from_triples():
     assert f"{FOAF}age" not in preds
 
 
-def test_unwrap_optional_multi_member_union():
-    assert _unwrap_optional(str | int) == (str | int)
+def test_unwrap_annotation_multi_member_union():
+    assert unwrap_annotation(str | int) == (str | int)
 
 
-def test_unwrap_optional_single_optional():
-    assert _unwrap_optional(int | None) is int
+def test_unwrap_annotation_single_optional():
+    assert unwrap_annotation(int | None) is int
 
 
-def test_unwrap_optional_plain_type():
-    assert _unwrap_optional(str) is str
+def test_unwrap_annotation_plain_type():
+    assert unwrap_annotation(str) is str
 
 
-def test_unwrap_optional_non_union_generic():
-    assert _unwrap_optional(list[str]) == list[str]
+def test_unwrap_annotation_non_union_generic():
+    assert unwrap_annotation(list[str]) == list[str]
 
 
-def test_unwrap_optional_annotated_int():
+def test_unwrap_annotation_annotated_int():
     ann = Annotated[int, Predicate("http://example.org/age")]
-    assert _unwrap_optional(ann) is int
+    assert unwrap_annotation(ann) is int
 
 
-def test_unwrap_optional_annotated_optional_int():
+def test_unwrap_annotation_annotated_optional_int():
     ann = Annotated[int | None, Predicate("http://example.org/age")]
-    assert _unwrap_optional(ann) is int
+    assert unwrap_annotation(ann) is int
 
 
 def test_models_to_graph_into_existing_graph():

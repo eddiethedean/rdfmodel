@@ -1,6 +1,6 @@
-triplemodel._namespaces
-=======================
+triplemodel.namespaces
+======================
 
-.. automodule:: triplemodel._namespaces
+.. automodule:: triplemodel.namespaces
    :members:
    :show-inheritance:

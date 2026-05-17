@@ -7,7 +7,7 @@ from typing import Literal
 
 from rdflib import Graph, Namespace
 
-from triplemodel._types import _looks_like_iri
+from triplemodel.terms.iri import looks_like_iri
 
 BindStrategy = Literal["core", "rdflib", "none"]
 
@@ -16,7 +16,7 @@ _CURIE_RE = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):([^:].*)$")
 
 def expand_curie(curie: str, prefixes: dict[str, str]) -> str:
     """Expand ``prefix:local`` to a full IRI; pass through absolute IRIs."""
-    if _looks_like_iri(curie):
+    if looks_like_iri(curie):
         return curie
     match = _CURIE_RE.match(curie)
     if not match:
@@ -32,7 +32,7 @@ def expand_curie(curie: str, prefixes: dict[str, str]) -> str:
 
 def resolve_predicate(predicate: str, prefixes: dict[str, str]) -> str:
     """Expand a predicate CURIE using ``prefixes`` when applicable."""
-    if _looks_like_iri(predicate):
+    if looks_like_iri(predicate):
         return predicate
     if ":" not in predicate:
         return predicate
