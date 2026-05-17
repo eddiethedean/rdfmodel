@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SHACL (optional)** — `triplemodel[shacl]` extra; `validate_graph` and `shacl_shapes=` on `to_graph` / `serialize`
 - **`examples/exit_criteria_04.py`** — Turtle / JSON-LD / graph round-trip exit criteria
 
+### Changed
+
+- PyPI trove classifier **Development Status :: 4 - Beta** (0.1.x–0.3.x were released as alpha)
+
 ## [0.3.0] - 2026-05-17
 
 ### Added

@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.4.0** alpha through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.4.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -168,7 +168,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.4.0 — Parsing, serialization, and validation
 
-**Status:** Released (alpha) — on PyPI as `triplemodel==0.4.0`
+**Status:** Released (beta) — on PyPI as `triplemodel==0.4.0`
 
 **Theme:** All rdflib **syntaxes** that make sense for documents (not HTML).
 

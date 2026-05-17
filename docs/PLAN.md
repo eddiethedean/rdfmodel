@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.4.0)
 
-**Released (alpha) on PyPI:** File `parse` / `serialize` (rdflib formats), `Rdf.base_uri`, JSON-LD context passthrough, subclass dispatch by `rdf:type`, inverse predicates on import, and optional SHACL via `triplemodel[shacl]`. Earlier releases add RDF lists, `LangString`, blank-node hardening, and graph sync. SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
+**Released (beta) on PyPI:** File `parse` / `serialize` (rdflib formats), `Rdf.base_uri`, JSON-LD context passthrough, subclass dispatch by `rdf:type`, inverse predicates on import, and optional SHACL via `triplemodel[shacl]`. Earlier releases add RDF lists, `LangString`, blank-node hardening, and graph sync. SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
 
 **Not yet shipped:** Dataset/named graphs (**0.5**).
 

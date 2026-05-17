@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "triplemodel"
 version = "0.4.0"
-description = "Pydantic TripleModel classes ↔ RDF triples via rdflib (alpha)."
+description = "Pydantic TripleModel classes ↔ RDF triples via rdflib (beta)."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -13,7 +13,7 @@ requires-python = ">=3.10"
 authors = [{ name = "TripleModel contributors" }]
 keywords = ["rdf", "rdflib", "pydantic", "semantic-web", "linked-data"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
