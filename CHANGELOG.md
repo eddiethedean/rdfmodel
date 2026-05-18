@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **`ref_field` import** — hydrate URI foreign keys correctly when the parent model uses `Rdf.embed = "bnode"` (ref links always use URI semantics, not blank-node embed)
-
 ## [0.4.1] - 2026-05-18
 
 ### Added
@@ -28,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`examples/realworld/`** — Nobel/DCAT use `load_models`; Wikidata uses `instance_of` + `ref_field`; Schema.org uses typed `gYear` for `foundingDate`
 - **`tests/test_realworld_examples.py`** — API coverage via `tests/test_041_features.py`
+
+### Fixed
+
+- **`ref_field` import** — hydrate URI foreign keys correctly when the parent model uses `Rdf.embed = "bnode"` (ref links always use URI semantics, not blank-node embed)
 
 ## [0.4.0] - 2026-05-17
 

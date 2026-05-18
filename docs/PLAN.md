@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.4.1)
 
-**Released (beta) on PyPI:** Everything in **0.4.0** (file `parse` / `serialize`, dispatch, inverse predicates, optional SHACL) plus **0.4.1** linked-data ergonomics: `load_graph` / `load_models` / `load_models_from_graph`, `Rdf.instance_of`, `ref_field`, XSD `gYear` / `gMonth` / `gMonthDay`, and predicate mapping validation at class definition. See {doc}`changelog` and {doc}`11-real-world-patterns`.
+**Released (beta) on PyPI:** Everything in **0.4.0** (file `parse` / `serialize`, dispatch, inverse predicates, optional SHACL) plus **0.4.1** linked-data ergonomics: `load_graph` / `load_models` / `load_models_from_graph`, `Rdf.instance_of`, `ref_field`, XSD `gYear` / `gMonth` / `gMonthDay`, and predicate mapping validation at class definition. See {doc}`changelog` and {doc}`guides/11-real-world-patterns`.
 
 **Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) — Nobel, DCAT, Wikidata capitals, Schema.org NGOs (offline TTL + CI). SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments.
 

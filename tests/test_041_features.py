@@ -249,7 +249,7 @@ def test_ref_field_import_ignores_parent_bnode_embed() -> None:
     g.parse(
         data=(
             f"@prefix ex: <{EX}> .\n"
-            f"<{EX}c/alice> a ex:Child ; ex:name \"Alice\" .\n"
+            f'<{EX}c/alice> a ex:Child ; ex:name "Alice" .\n'
             f"<{EX}p/p1> a ex:Parent ; ex:rel <{EX}c/alice> .\n"
         ),
         format="turtle",
