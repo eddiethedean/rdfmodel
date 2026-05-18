@@ -2,7 +2,7 @@
 
 ## 0.5.0 release readiness (repo)
 
-Verified on `main` before tagging `v0.5.0` (prior tag: **v0.4.1**).
+Verified on `main` at commit `160a0bc` before tagging `v0.5.0` (prior tag: **v0.4.1**).
 
 | Item | Status |
 |------|--------|

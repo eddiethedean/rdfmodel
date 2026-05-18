@@ -1,6 +1,6 @@
 # User guides
 
-These guides explain how to use TripleModel **0.4.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read [Getting started](01-getting-started.md).
+These guides explain how to use TripleModel **0.5.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read [Getting started](01-getting-started.md).
 
 | # | Guide | Topics |
 |---|--------|--------|
