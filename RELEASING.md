@@ -5,26 +5,40 @@
 | Item | Status |
 |------|--------|
 | Version `0.9.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `CHANGELOG.md` — single `## [0.9.0]` entry (sync fixes included) | Done |
 | Matrix audit; plugin `register_parser` / `register_serializer` / `register_store` | Done |
 | `docs/API_STABILITY.md`, `docs/cookbook/`, `docs/COMPATIBILITY.md` | Done |
 | CI `compat` job (min pydantic / rdflib pins) | Done |
 | Release workflow calls reusable CI + Docs workflows before publish | Done |
 | pytest filters upstream `PyparsingDeprecationWarning` noise | Done |
 | Exit criteria `examples/exit_criteria_09.py` | Done |
+| PyPI latest | **0.8.0** — `0.9.0` not published yet |
+| Git tag `v0.9.0` | Exists but must point at **current `main`** before publish (see below) |
 
 **Pre-release checklist (0.9.0)**
 
 - [x] `version` `0.9.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
 - [x] Local gate: `make ci` and `make release-check`
 - [x] `pytest` (100% cov), `ruff`, `ty`, `sphinx-build -W`
-- [x] `examples/exit_criteria_09.py` in Makefile, release workflow, sdist
-- [x] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (verified via `gh secret list`)
-- [x] Create and push git tag `v0.9.0` (triggers `.github/workflows/release.yml`)
+- [x] `examples/exit_criteria_03.py`–`09.py` in Makefile `examples` target, release workflow, sdist
+- [x] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
+- [ ] **Move `v0.9.0` tag to current `main`** (tag was created before final sync fixes; required so the release build matches this changelog)
+- [ ] Push tag to trigger `.github/workflows/release.yml` and publish `triplemodel==0.9.0` to PyPI
+
+**Publish (after checklist above)**
 
 ```bash
+# On latest main, with a clean working tree:
+make release-check
+
+# Recreate the tag on current HEAD (safe: 0.9.0 is not on PyPI yet)
+git tag -d v0.9.0
+git push origin :refs/tags/v0.9.0
 git tag -a v0.9.0 -m "Release 0.9.0"
 git push origin v0.9.0
 ```
+
+Watch the **Release** workflow on GitHub Actions; confirm [PyPI](https://pypi.org/project/triplemodel/) shows `0.9.0`.
 
 ---
 

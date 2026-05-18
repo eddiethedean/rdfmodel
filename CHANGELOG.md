@@ -7,16 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **`sync_to_graph(..., mode="patch")`** — skolemize runs after cleanup and export (not before stale nested cleanup), matching documented shared-graph behaviour with `replace` / `add`.
-- **`sync_to_graph(..., mode="add")`** — clears incoming inverse triples before appending forward predicates (same reconciliation as `replace` / `patch` for `inverse=` fields).
-- **`AddGraphMode`** — wired through `sync_to_graph` for `mode="add"` (was bypassing inverse cleanup).
-
-### Changed
-
-- **Docs** — README limitations and guides 04/05/11: inverse sync on `add`, discovery via forward predicates only, skolemize ordering, bnode `fresh` policy on sync.
-- **`make examples`** — runs `exit_criteria_03.py` and `exit_criteria_04.py`; `exit_criteria_09.py` plugin smoke parser strips Turtle-style `<...>` URIs (no rdflib URI warnings).
+Nothing yet.
 
 ## [0.9.0] - 2026-05-18
 
@@ -34,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ROADMAP** — 0.9.0 exit criteria complete; migration guide N/A (no production adopters)
 - **SparqlModel (SM-5)** — recommended pin `triplemodel>=0.9,<2` in `ECOSYSTEM_SPARQLMODEL.md`
 - **Guides** — user guide version 0.9.x; plugin registration documented in guide 15
+- **Docs** — README limitations and guides 04/05/11: inverse sync on `add`, discovery via forward predicates only, skolemize ordering, bnode `fresh` policy on sync
+- **`make examples`** — runs `exit_criteria_03.py` and `exit_criteria_04.py`; `exit_criteria_09.py` plugin smoke parser strips Turtle-style `<...>` URIs (no rdflib URI warnings)
+
+### Fixed
+
+- **`sync_to_graph(..., mode="patch")`** — skolemize runs after cleanup and export (not before stale nested cleanup), matching documented shared-graph behaviour with `replace` / `add`
+- **`sync_to_graph(..., mode="add")`** — clears incoming inverse triples before appending forward predicates (same reconciliation as `replace` / `patch` for `inverse=` fields)
+- **`AddGraphMode`** — wired through `sync_to_graph` for `mode="add"` (was bypassing inverse cleanup)
 
 ## [0.8.0] - 2026-05-18
 
