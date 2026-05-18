@@ -179,7 +179,9 @@ def get_graph_context(
         return container
     dataset = container
     if graph_iri is None:
-        return dataset.default_graph
+        from triplemodel._rdflib_compat import dataset_default_graph
+
+        return dataset_default_graph(dataset)
     normalized = _normalize_graph_iri(graph_iri)
     assert normalized is not None
     return dataset.graph(URIRef(normalized))

@@ -46,4 +46,4 @@ Tighten to `~=1.0` when TripleModel 1.0 ships. See [ECOSYSTEM_SPARQLMODEL.md](EC
 
 ## Historical versions
 
-There is no end-user migration guide for 0.1–0.8 (no production adopters). See [CHANGELOG.md](../CHANGELOG.md) for release history.
+There is no end-user migration guide for 0.1–0.8 (no production adopters). See {doc}`changelog` for release history.

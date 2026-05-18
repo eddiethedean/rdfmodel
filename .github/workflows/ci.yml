@@ -43,4 +43,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
-      - run: pytest
+      - run: pytest --no-cov

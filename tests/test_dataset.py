@@ -194,7 +194,9 @@ def test_all_from_dataset_scoped(tmp_path: Path) -> None:
     )
     ds = models_to_dataset([Person(slug="alice", name="Alice")])
     for t in other:
-        ds.default_graph.add(t)
+        from triplemodel._rdflib_compat import dataset_default_graph
+
+        dataset_default_graph(ds).add(t)
     people = Person.all_from_dataset(ds)
     assert len(people) == 1
     assert people[0].slug == "alice"

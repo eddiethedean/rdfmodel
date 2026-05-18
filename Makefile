@@ -37,7 +37,7 @@ stores:
 
 compat:
 	$(PIP) install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest --no-cov
 
 format:
 	$(PYTHON) -m ruff format src tests
@@ -79,9 +79,13 @@ ci: install
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest
 	$(PYTHON) -m pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
+	$(PIP) install "pydantic==2.5.0" "rdflib==7.0.0"
+	$(PYTHON) -m pytest --no-cov
+	$(PIP) install -e ".[dev,shacl,sqlalchemy,docs]"
 	$(PYTHON) -m ruff format --check src tests
 	$(PYTHON) -m ruff check src tests
 	$(PYTHON) -m ty check src tests
+	rm -rf docs/_build/html
 	sphinx-build -b html docs docs/_build/html -W
 
 clean:

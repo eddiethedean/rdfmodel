@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from rdflib import Graph, URIRef
 from rdflib.term import Node
 
+from triplemodel._rdflib_compat import graph_cbd
 from triplemodel.io.import_ import OnDuplicate, graph_to_model
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.registry import LiteralRegistry, default_registry
@@ -24,7 +25,8 @@ def cbd_graph(
 ) -> Graph:
     """Return the concise bounded description of ``subject`` in ``graph``."""
     subj = subject if isinstance(subject, Node) else URIRef(subject)
-    return graph.cbd(
+    return graph_cbd(
+        graph,
         subj,
         target_graph=target_graph,
         include_reifications=include_reifications,
