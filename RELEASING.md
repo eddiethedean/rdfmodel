@@ -19,7 +19,7 @@
 - [x] `pytest` (100% cov), `ruff`, `ty`, `sphinx-build -W`
 - [x] `examples/exit_criteria_09.py` in Makefile, release workflow, sdist
 - [x] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (verified via `gh secret list`)
-- [ ] Commit release-hardening changes on `main`, then create and push git tag `v0.9.0`
+- [x] Create and push git tag `v0.9.0` (triggers `.github/workflows/release.yml`)
 
 ```bash
 git tag -a v0.9.0 -m "Release 0.9.0"
