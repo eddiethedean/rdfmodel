@@ -129,6 +129,44 @@ def test_cleanup_ephemeral_store_destroy_failure(tmp_path: Path, monkeypatch) ->
     assert not db.exists()
 
 
+def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> None:
+    from rdflib import Graph, Literal, URIRef
+
+    from triplemodel.io import files as files_mod
+
+    path = tmp_path / "one.nt"
+    path.write_text(
+        f"<{EX}p0> <{RDF_TYPE}> <{EX}Person> .\n"
+        f'<{EX}p0> <{EX}name> "N" .\n',
+        encoding="utf-8",
+    )
+    g = Graph()
+    subj = URIRef(f"{EX}p0")
+    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
+    g.add((subj, URIRef(f"{EX}name"), Literal("N")))
+    cleaned: list[tuple[str, str, str | None]] = []
+
+    def fake_parse_into_store_graph(_path, **_kwargs):
+        return g
+
+    def fake_identifier(_path, _store, explicit):
+        if explicit:
+            return explicit, None
+        return "sqlite:///ephemeral", "/tmp/ephemeral.sqlite"
+
+    def fake_cleanup(ident, store, ephemeral):
+        cleaned.append((ident, store, ephemeral))
+
+    monkeypatch.setattr(files_mod, "parse_into_store_graph", fake_parse_into_store_graph)
+    monkeypatch.setattr(files_mod, "_streaming_store_identifier", fake_identifier)
+    monkeypatch.setattr(files_mod, "_cleanup_ephemeral_store", fake_cleanup)
+    people = load_models_streaming(path, StreamPerson, store="sqlalchemy")
+    assert len(people) == 1
+    assert cleaned == [
+        ("sqlite:////tmp/ephemeral.sqlite", "sqlalchemy", "/tmp/ephemeral.sqlite"),
+    ]
+
+
 def test_load_models_streaming_close_failure(tmp_path: Path, monkeypatch) -> None:
     from rdflib import Graph, Literal, URIRef
 

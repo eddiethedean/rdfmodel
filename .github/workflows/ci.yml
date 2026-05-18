@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev,shacl]" build
+      - run: pip install -e ".[dev,shacl,sqlalchemy]" build
       - run: python -m build
       - run: pytest
       - run: ruff format --check src tests
@@ -30,4 +30,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev,sqlalchemy]"
-      - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q
+      - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov

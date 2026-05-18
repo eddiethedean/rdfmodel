@@ -28,6 +28,29 @@ def test_destroy_store_no_destroy_method():
             destroy_store("id", store="sqlalchemy")
 
 
+def test_open_graph_sqlalchemy_calls_store_open():
+    backing = MagicMock()
+    backing.open = MagicMock()
+    graph = MagicMock()
+    graph.store = backing
+    with patch("triplemodel.io.stores.Graph", return_value=graph):
+        result = open_graph("sqlalchemy", "sqlite:///test.db")
+    backing.open.assert_called_once_with("sqlite:///test.db", create=True)
+    assert result is graph
+
+
+def test_destroy_store_open_and_destroy():
+    backing = MagicMock()
+    backing.open = MagicMock()
+    backing.destroy = MagicMock()
+    graph = MagicMock()
+    graph.store = backing
+    with patch("triplemodel.io.stores.Graph", return_value=graph):
+        destroy_store("sqlite:///test.db", store="sqlalchemy")
+    backing.open.assert_called_once_with("sqlite:///test.db", create=False)
+    backing.destroy.assert_called_once_with("sqlite:///test.db")
+
+
 def test_register_predicate_resolver_type_error():
     with pytest.raises(TypeError, match="FieldPredicateResolver"):
         register_predicate_resolver(object())  # ty: ignore[invalid-argument-type]
