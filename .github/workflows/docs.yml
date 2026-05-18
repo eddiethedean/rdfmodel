@@ -17,6 +17,7 @@ on:
     # External link crawl is slow; run weekly instead of on every push.
     - cron: "0 6 * * 1"
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: docs-${{ github.workflow }}-${{ github.ref }}

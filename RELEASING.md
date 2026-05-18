@@ -8,7 +8,7 @@
 | Matrix audit; plugin `register_parser` / `register_serializer` / `register_store` | Done |
 | `docs/API_STABILITY.md`, `docs/cookbook/`, `docs/COMPATIBILITY.md` | Done |
 | CI `compat` job (min pydantic / rdflib pins) | Done |
-| Release workflow `verify` mirrors CI (`stores` + `compat` legs) | Done |
+| Release workflow calls reusable CI + Docs workflows before publish | Done |
 | pytest filters upstream `PyparsingDeprecationWarning` noise | Done |
 | Exit criteria `examples/exit_criteria_09.py` | Done |
 
@@ -254,7 +254,7 @@ Verified on `main` before tagging `v0.4.0` (PyPI latest prior to this release: *
 ### GitHub Actions (default)
 
 1. In the repo **Settings → Secrets and variables → Actions**, add **`PYPI_API_TOKEN`**: a PyPI [API token](https://pypi.org/manage/account/token/) scoped to the `triplemodel` project (or the whole account for first release).
-2. Push an annotated tag `v*` (e.g. `v0.5.0`). The [Release workflow](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/release.yml) runs a **`verify`** job (`pytest`, `ruff`, `ty`, `sphinx-build -W`, exit-criteria examples, `python -m build`, `twine check`), uploads `dist/`, then a **`publish`** job (depends on `verify`) uploads to PyPI with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
+2. Push an annotated tag `v*` (e.g. `v0.5.0`). The [Release workflow](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/release.yml) runs the same [**CI**](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/ci.yml) and [**Docs**](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/docs.yml) workflows as PRs (`workflow_call`), then a **`package`** job (`make examples`, `make build`, `twine check`) uploads `dist/`, and **`publish`** uploads to PyPI with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
 
 ### Manual fallback
 

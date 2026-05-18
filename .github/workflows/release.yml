@@ -6,33 +6,26 @@ on:
       - "v*"
 
 jobs:
-  verify:
-    name: Verify before publish
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  docs:
+    name: Docs (HTML)
+    uses: ./.github/workflows/docs.yml
+
+  package:
+    name: Package for PyPI
+    needs: [ci, docs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e ".[dev,shacl,sqlalchemy,docs]" build twine
-      - run: pytest
-      - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
-      - name: Compat (min pydantic + rdflib)
-        run: |
-          pip install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
-          pytest
-      - run: pip install -e ".[dev,shacl,sqlalchemy,docs]" build twine
-      - run: ruff format --check src tests
-      - run: ruff check src tests
-      - run: ty check src tests
-      - run: sphinx-build -b html docs docs/_build/html -W
-      - run: PYTHONPATH=src python examples/exit_criteria_05.py
-      - run: PYTHONPATH=src python examples/exit_criteria_06.py
-      - run: PYTHONPATH=src python examples/exit_criteria_07.py
-      - run: TRIPLEMODEL_BENCH_COUNT=1000 PYTHONPATH=src python examples/exit_criteria_08.py
-      - run: PYTHONPATH=src python examples/exit_criteria_09.py
-      - run: PYTHONPATH=src python examples/readme_examples.py
-      - run: rm -rf dist && python -m build
+      - run: pip install -e ".[dev]" build twine
+      - run: make examples
+      - run: make build
       - run: twine check dist/*
       - uses: actions/upload-artifact@v4
         with:
@@ -41,7 +34,7 @@ jobs:
 
   publish:
     name: Publish to PyPI
-    needs: verify
+    needs: package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

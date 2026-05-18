@@ -83,7 +83,7 @@ examples:
 release-check: ci examples build
 	$(PYTHON) -m twine check dist/*
 
-# Matches GitHub Actions CI workflow (ci.yml + docs.yml html job).
+# Matches GitHub Actions CI (ci.yml + docs.yml html job); release.yml calls both via workflow_call.
 ci: install
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest

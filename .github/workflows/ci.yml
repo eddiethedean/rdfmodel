@@ -2,7 +2,11 @@ name: CI
 
 on:
   push:
+    # Tag pushes are validated by the Release workflow (workflow_call), not here.
+    branches:
+      - "**"
   pull_request:
+  workflow_call:
 
 jobs:
   test:
