@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-17
+
+### Added
+
+- **`Rdf.graph_iri`** (alias `Rdf.graph`) — map a model class to a named graph IRI in a `Dataset`
+- **Dataset I/O** — `parse_into_dataset`, `load_dataset`, `dump_dataset`, `model_to_dataset`, `models_to_dataset`, `load_models_from_dataset`
+- **Instance / class methods** — `to_dataset`, `from_dataset`, `all_from_dataset`, `sync_to_dataset`
+- **Config helpers** — `get_graph_context`, `resolve_graph_iri`, `is_quad_format`
+- **Quad helpers** — `iter_model_quads`, `quads_in_context`
+- **Dispatch** — `all_from_dataset_dispatch`, `graph_to_model_dispatch_from_dataset`
+- **Guide** — `docs/guides/12-datasets-and-named-graphs.md`
+- **Example** — `examples/exit_criteria_05.py` (two named graphs, TriG round-trip)
+
+### Changed
+
+- **`parse` / `parse_file` / `parse_url`** — use `Dataset` when format is TriG/N-Quads or `Rdf.graph_iri` is set
+- **`serialize`** — use `to_dataset` + `dump_dataset` when format is TriG/N-Quads or `Rdf.graph_iri` is set
+- **`load_models`** — single-parse multi-class load uses `Dataset` for quad formats or when any class has `graph_iri`
+
 ## [0.4.1] - 2026-05-18
 
 ### Added

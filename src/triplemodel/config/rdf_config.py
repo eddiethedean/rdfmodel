@@ -9,6 +9,9 @@ from types import MappingProxyType
 from typing import Any, Literal, Protocol
 from urllib.parse import quote, unquote
 
+from pydantic import BaseModel
+from rdflib import Dataset, Graph, URIRef
+
 EmbedMode = Literal["iri", "bnode"]
 GraphMode = Literal["add", "replace", "patch"]
 BlankNodePolicy = Literal["fresh", "stable"]
@@ -69,6 +72,8 @@ class RdfConfig:
     """Default base IRI for ``Graph.parse`` (rdflib ``publicID``)."""
     jsonld_context: dict[str, Any] | str | None = None
     """Default JSON-LD ``@context`` for parse/serialize when ``format`` is json-ld."""
+    graph_iri: str | None = None
+    """Named graph IRI for Dataset contexts; ``None`` uses the default graph."""
 
     @property
     def prefixes_dict(self) -> dict[str, str]:
@@ -133,6 +138,47 @@ def effective_graph_mode(
     return cfg.graph_mode
 
 
+def _normalize_graph_iri(value: object) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        raise ValueError("graph_iri must be a non-empty IRI when set.")
+    return text
+
+
+def resolve_graph_iri(
+    model: BaseModel,
+    cfg: RdfConfig | None = None,
+) -> str | None:
+    """Return the named graph IRI for ``model`` (class config, then instance override)."""
+    resolved = cfg or get_rdf_config(type(model))
+    graph_iri_method = getattr(model, "graph_iri", None)
+    if callable(graph_iri_method):
+        override = graph_iri_method()
+        if override is not None:
+            return _normalize_graph_iri(override)
+    instance_value = getattr(model, "_graph_iri", None)
+    if instance_value is not None:
+        return _normalize_graph_iri(instance_value)
+    return resolved.graph_iri
+
+
+def get_graph_context(
+    container: Graph | Dataset,
+    graph_iri: str | None = None,
+) -> Graph:
+    """Return the rdflib ``Graph`` context for triple I/O within ``container``."""
+    if not isinstance(container, Dataset):
+        return container
+    dataset = container
+    if graph_iri is None:
+        return dataset.default_graph
+    normalized = _normalize_graph_iri(graph_iri)
+    assert normalized is not None
+    return dataset.graph(URIRef(normalized))
+
+
 def get_rdf_config(model_cls: type) -> RdfConfig:
     for cls in model_cls.__mro__:
         if cls is object:
@@ -167,6 +213,10 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
             prefixes = freeze_prefixes(getattr(rdf, "prefixes", None))
             base_uri = getattr(rdf, "base_uri", None)
             jsonld_context = getattr(rdf, "jsonld_context", None)
+            graph_iri_raw = getattr(rdf, "graph_iri", None)
+            if graph_iri_raw is None:
+                graph_iri_raw = getattr(rdf, "graph", None)
+            graph_iri = (str(graph_iri_raw).strip() if graph_iri_raw else None) or None
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
@@ -181,5 +231,6 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                 skolemize_import=bool(getattr(rdf, "skolemize_import", False)),
                 base_uri=str(base_uri) if base_uri else None,
                 jsonld_context=jsonld_context,
+                graph_iri=graph_iri,
             )
     return RdfConfig()

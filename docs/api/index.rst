@@ -14,6 +14,7 @@ Module reference
 
    config
    graph
+   dataset
    sync
    fields
    namespaces

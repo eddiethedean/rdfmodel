@@ -37,6 +37,20 @@ def iter_registered_type_uris() -> frozenset[str]:
     return frozenset(_type_uri_index)
 
 
+def iter_registered_model_classes() -> frozenset[type[BaseModel]]:
+    """Return all registered :class:`~triplemodel.TripleModel` subclasses."""
+    return frozenset(_type_uri_index.values())
+
+
+def iter_model_resource_classes() -> frozenset[type[BaseModel]]:
+    """Return every :class:`~triplemodel.TripleModel` subclass that was registered."""
+    return frozenset(
+        cast(type[BaseModel], cls)
+        for cls in _rdf_resource_classes
+        if isinstance(cls, type)
+    )
+
+
 def _mro_depth(model_cls: type) -> int:
     return len(model_cls.__mro__)
 

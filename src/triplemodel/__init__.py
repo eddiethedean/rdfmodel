@@ -12,7 +12,9 @@ from triplemodel.config import (
     GraphMode,
     RdfConfig,
     freeze_prefixes,
+    get_graph_context,
     id_from_subject_uri,
+    resolve_graph_iri,
     subject_base,
 )
 from triplemodel.fields import IriId, InverseOf, Predicate, rdf_field, ref_field
@@ -21,21 +23,32 @@ from triplemodel.terms.lang import Lang, LangString
 from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.io import (
     OnDuplicate,
+    all_from_dataset_dispatch,
     all_from_graph_dispatch,
+    dump_dataset,
     dump_graph,
     dump_model,
     graph_to_model,
     graph_to_model_dispatch,
+    graph_to_model_dispatch_from_dataset,
     graph_to_models,
     infer_format,
+    is_quad_format,
+    load_dataset,
     load_graph,
     load_models,
+    load_models_from_dataset,
     load_models_from_graph,
+    model_to_dataset,
     model_to_graph,
     model_to_triples,
+    models_to_dataset,
     models_to_graph,
+    parse_into_dataset,
     parse_into_graph,
+    parse_url_into_dataset,
     parse_url_into_graph,
+    sync_to_dataset,
     sync_to_graph,
 )
 from triplemodel.io.ops import graph_set, graph_value, merge_graphs, objects_for_field
@@ -49,7 +62,7 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 __all__ = [
     "EmbedMode",
@@ -57,17 +70,29 @@ __all__ = [
     "IriId",
     "InverseOf",
     "Lang",
+    "all_from_dataset_dispatch",
     "all_from_graph_dispatch",
+    "dump_dataset",
     "dump_graph",
     "dump_model",
+    "get_graph_context",
     "graph_to_model_dispatch",
+    "graph_to_model_dispatch_from_dataset",
     "infer_format",
+    "is_quad_format",
+    "load_dataset",
     "load_graph",
     "load_models",
+    "load_models_from_dataset",
     "load_models_from_graph",
+    "model_to_dataset",
+    "models_to_dataset",
+    "parse_into_dataset",
     "parse_into_graph",
     "ref_field",
+    "parse_url_into_dataset",
     "parse_url_into_graph",
+    "resolve_graph_iri",
     "resolve_model_class",
     "validate_graph",
     "LangString",
@@ -101,6 +126,7 @@ __all__ = [
     "register_literal_type",
     "register_rdf_resource",
     "subject_base",
+    "sync_to_dataset",
     "sync_to_graph",
     "__version__",
 ]

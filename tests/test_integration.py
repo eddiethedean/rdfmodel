@@ -140,6 +140,17 @@ def test_exit_criteria_04_example_script():
     )
 
 
+def test_exit_criteria_05_example_script():
+    root = Path(__file__).resolve().parents[1]
+    env = {**__import__("os").environ, "PYTHONPATH": str(root / "src")}
+    subprocess.run(
+        [sys.executable, str(root / "examples" / "exit_criteria_05.py")],
+        cwd=root,
+        env=env,
+        check=True,
+    )
+
+
 def test_foaf_person_02_example_script():
     root = Path(__file__).resolve().parents[1]
     env = {**__import__("os").environ, "PYTHONPATH": str(root / "src")}

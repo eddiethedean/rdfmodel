@@ -8,7 +8,7 @@ from typing import Any, cast
 from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
-from rdflib import Graph
+from rdflib import Dataset, Graph
 
 from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel.io import (
@@ -19,9 +19,16 @@ from triplemodel.io import (
     model_to_triples,
     sync_to_graph,
 )
+from triplemodel.io.dataset import (
+    all_from_dataset,
+    graph_to_model_from_dataset,
+    model_to_dataset,
+    sync_to_dataset,
+)
 from triplemodel.io.files import (
     dump_graph,
     infer_format,
+    is_quad_format,
     parse_into_graph,
     parse_url_into_graph,
 )
@@ -118,6 +125,41 @@ class TripleModel(BaseModel):
             validate_graph(result, shacl_shapes)
         return result
 
+    def to_dataset(
+        self,
+        dataset: Dataset | None = None,
+        *,
+        uri: str | None = None,
+        graph_iri: str | None = None,
+        mode: GraphMode | None = None,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        skolemize: bool | None = None,
+        shacl_shapes: Graph | str | Path | None = None,
+    ) -> Dataset:
+        """Serialize this instance into an rdflib ``Dataset`` named graph."""
+        result = model_to_dataset(
+            self,
+            dataset,
+            uri=uri,
+            graph_iri=graph_iri,
+            mode=mode,
+            resolver=resolver,
+            registry=registry,
+            skolemize=skolemize,
+        )
+        if shacl_shapes is not None:
+            from triplemodel.validation.shacl import validate_graph
+
+            cfg = get_rdf_config(type(self))
+            from triplemodel.config import get_graph_context, resolve_graph_iri
+
+            context = get_graph_context(
+                result, graph_iri or resolve_graph_iri(self, cfg)
+            )
+            validate_graph(context, shacl_shapes)
+        return result
+
     def serialize(
         self,
         *,
@@ -133,6 +175,25 @@ class TripleModel(BaseModel):
     ) -> str | bytes | None:
         """Serialize this instance to an RDF document string or file."""
         cfg = get_rdf_config(type(self))
+        if is_quad_format(format) or cfg.graph_iri:
+            from triplemodel.io.dataset import dump_dataset
+
+            ds = self.to_dataset(
+                None,
+                uri=uri,
+                mode=mode,
+                resolver=resolver,
+                registry=registry,
+                skolemize=skolemize,
+                shacl_shapes=shacl_shapes,
+            )
+            return dump_dataset(
+                ds,
+                destination,
+                format=format,
+                jsonld_context=cfg.jsonld_context,
+                **rdflib_kwargs,
+            )
         graph = model_to_graph(
             self,
             None,
@@ -174,6 +235,29 @@ class TripleModel(BaseModel):
             self,
             graph,
             uri=uri,
+            mode=mode,
+            resolver=resolver,
+            registry=registry,
+            skolemize=skolemize,
+        )
+
+    def sync_to_dataset(
+        self,
+        dataset: Dataset,
+        *,
+        uri: str | None = None,
+        graph_iri: str | None = None,
+        mode: GraphMode | None = None,
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        skolemize: bool | None = None,
+    ) -> Dataset:
+        """Update the named graph for this instance within ``dataset``."""
+        return sync_to_dataset(
+            self,
+            dataset,
+            uri=uri,
+            graph_iri=graph_iri,
             mode=mode,
             resolver=resolver,
             registry=registry,
@@ -229,6 +313,58 @@ class TripleModel(BaseModel):
         )
 
     @classmethod
+    def from_dataset(
+        cls,
+        dataset: Dataset,
+        uri: str,
+        *,
+        graph_iri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+    ) -> Self:
+        """Construct an instance from triples in this model's named graph context."""
+        return graph_to_model_from_dataset(
+            dataset,
+            cls,
+            uri,
+            graph_iri=graph_iri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+        )
+
+    @classmethod
+    def all_from_dataset(
+        cls,
+        dataset: Dataset,
+        *,
+        graph_iri: str | None = None,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+    ) -> list[Self]:
+        """Load every resource of this model's RDF type from its named graph context."""
+        return all_from_dataset(
+            dataset,
+            cls,
+            graph_iri=graph_iri,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+        )
+
+    @classmethod
     def rdf_config(cls) -> RdfConfig:
         """Return resolved RDF configuration for this model class."""
         return get_rdf_config(cls)
@@ -271,6 +407,48 @@ class TripleModel(BaseModel):
         )
 
     @classmethod
+    def _instances_from_parsed_dataset(
+        cls,
+        dataset: Dataset,
+        *,
+        dispatch: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+    ) -> list[Self]:
+        if dispatch:
+            from triplemodel.io.dispatch import all_from_dataset_dispatch
+
+            return cast(
+                list[Self],
+                all_from_dataset_dispatch(
+                    dataset,
+                    validate_type=validate_type,
+                    on_duplicate=on_duplicate,
+                    resolver=resolver,
+                    registry=registry,
+                    de_skolemize=de_skolemize,
+                ),
+            )
+        return cls.all_from_dataset(
+            dataset,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+        )
+
+    @classmethod
+    def _should_parse_dataset(cls, fmt: str) -> bool:
+        cfg = get_rdf_config(cls)
+        return is_quad_format(fmt) or cfg.graph_iri is not None
+
+    @classmethod
     def parse(
         cls,
         source: str | Path | None = None,
@@ -291,6 +469,28 @@ class TripleModel(BaseModel):
         cfg = get_rdf_config(cls)
         resolved_base = base if base is not None else cfg.base_uri
         resolved_format = infer_format(source if data is None else None, format)
+        if cls._should_parse_dataset(resolved_format):
+            from triplemodel.io.dataset import parse_into_dataset
+
+            dataset = parse_into_dataset(
+                source=source,
+                data=data,
+                format=resolved_format,
+                base=resolved_base,
+                bind_prefixes=cfg.prefixes_dict,
+                jsonld_context=cfg.jsonld_context,
+                **rdflib_kwargs,
+            )
+            return cls._instances_from_parsed_dataset(
+                dataset,
+                dispatch=dispatch,
+                type_uri=type_uri,
+                validate_type=validate_type,
+                on_duplicate=on_duplicate,
+                resolver=resolver,
+                registry=registry,
+                de_skolemize=de_skolemize,
+            )
         graph = parse_into_graph(
             source=source,
             data=data,
@@ -364,6 +564,29 @@ class TripleModel(BaseModel):
         """Parse RDF from a URL."""
         cfg = get_rdf_config(cls)
         resolved_base = base if base is not None else cfg.base_uri
+        resolved_format = infer_format(url, format)
+        if cls._should_parse_dataset(resolved_format):
+            from triplemodel.io.dataset import parse_url_into_dataset
+
+            dataset = parse_url_into_dataset(
+                url,
+                format=resolved_format,
+                base=resolved_base,
+                timeout=timeout,
+                bind_prefixes=cfg.prefixes_dict,
+                jsonld_context=cfg.jsonld_context,
+                **rdflib_kwargs,
+            )
+            return cls._instances_from_parsed_dataset(
+                dataset,
+                dispatch=dispatch,
+                type_uri=type_uri,
+                validate_type=validate_type,
+                on_duplicate=on_duplicate,
+                resolver=resolver,
+                registry=registry,
+                de_skolemize=de_skolemize,
+            )
         graph = parse_url_into_graph(
             url,
             format=format,

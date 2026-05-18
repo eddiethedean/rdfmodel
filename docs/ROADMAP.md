@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.4.1** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.5.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -79,9 +79,9 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | | Multi-class document load (one parse) | `load_models(graph, *classes)` / `ParseBundle` | 0.4.1 |
 | | Mapping validation (predicate vs prefix) | model `__pydantic_init_subclass__` checks | 0.4.1 |
 | | URI foreign-key hydration | `ResourceRef` → nested model, `ref_field` | 0.4.1 |
-| | `Dataset` / named graphs | `@graph` context on `Rdf`, `Dataset` I/O | 0.5 |
-| | `quads()`, `get_context()` | named-graph read/write in dataset helpers | 0.5 |
-| | `ConjunctiveGraph` | use `Dataset` only (rdflib deprecation) | 0.5 |
+| | `Dataset` / named graphs | `@graph` context on `Rdf`, `Dataset` I/O | 0.5 **done** |
+| | `quads()`, `get_context()` | named-graph read/write in dataset helpers | 0.5 **done** |
+| | `ConjunctiveGraph` | use `Dataset` only (rdflib deprecation) | 0.5 **done** |
 | **Formats** | Turtle, Trig, N-Triples, N-Quads | `serialize(format=...)` | 0.4 |
 | | RDF/XML, N3 | same | 0.4 |
 | | JSON-LD | same; optional `jsonld` extra if needed | 0.4 |
@@ -239,13 +239,13 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 **Theme:** rdflib **Dataset** (replacing deprecated `ConjunctiveGraph`).
 
-- [ ] **`Rdf.graph_iri` / `@graph`** — map model class or instance to a named graph IRI
-- [ ] **`to_dataset` / `from_dataset`** — serialize models into correct named graphs
-- [ ] **`Dataset.get_context()` / `quads()`** — read and write via named-graph helpers
-- [ ] **`all_from_dataset`** — load by `rdf:type` within a graph context
-- [ ] **Default graph vs union** — document query/import behavior (union default in rdflib)
-- [ ] **Trig / N-Quads round-trip** — named graph boundaries preserved
-- [ ] **Migrate from `ConjunctiveGraph`** — document rdflib 6→7 / `publicID` changes for dataset users
+- [x] **`Rdf.graph_iri` / `@graph`** — map model class or instance to a named graph IRI
+- [x] **`to_dataset` / `from_dataset`** — serialize models into correct named graphs
+- [x] **`Dataset.get_context()` / `quads()`** — read and write via named-graph helpers
+- [x] **`all_from_dataset`** — load by `rdf:type` within a graph context
+- [x] **Default graph vs union** — document query/import behavior (union default in rdflib)
+- [x] **Trig / N-Quads round-trip** — named graph boundaries preserved
+- [x] **Migrate from `ConjunctiveGraph`** — document rdflib 6→7 / `publicID` changes for dataset users
 
 **Exit criteria:** Two model types in different named graphs round-trip through Trig without collision.
 

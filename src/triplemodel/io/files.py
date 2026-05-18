@@ -75,6 +75,12 @@ def _is_jsonld_format(fmt: str | None) -> bool:
     return fmt is not None and fmt.lower().replace("_", "-") in ("json-ld", "jsonld")
 
 
+def is_quad_format(fmt: str) -> bool:
+    """Return True when ``fmt`` is a quad-aware rdflib format (TriG, N-Quads)."""
+    normalized = fmt.lower().replace("_", "-")
+    return normalized in ("trig", "nquads", "n-quads")
+
+
 def merge_jsonld_kwargs(
     fmt: str | None,
     jsonld_context: dict[str, Any] | str | None,
@@ -239,6 +245,21 @@ def load_models(
     resolved_base = (
         kwargs.get("base") if kwargs.get("base") is not None else cfg.base_uri
     )
+    use_dataset = is_quad_format(fmt) or any(
+        get_rdf_config(mc).graph_iri for mc in model_classes
+    )
+    if use_dataset:
+        from triplemodel.io.dataset import load_models_from_dataset, parse_into_dataset
+
+        dataset = parse_into_dataset(
+            source=path,
+            format=fmt,
+            base=resolved_base,
+            bind_prefixes=cfg.prefixes_dict,
+            jsonld_context=cfg.jsonld_context,
+            **kwargs,
+        )
+        return load_models_from_dataset(dataset, *model_classes, **kwargs)
     graph = parse_into_graph(
         source=path,
         format=fmt,

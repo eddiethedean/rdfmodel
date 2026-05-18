@@ -12,7 +12,8 @@ from triplemodel import (
     rdf_field,
     subject_base,
 )
-from triplemodel.config import RdfConfig, get_rdf_config
+from triplemodel.config import RdfConfig, get_rdf_config, resolve_graph_iri
+from triplemodel.config.rdf_config import _normalize_graph_iri
 
 EX = "http://example.org/people/"
 
@@ -123,6 +124,60 @@ def test_falsy_type_uri_omits_rdf_type_on_export():
         list(g.objects(subj, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
         == []
     )
+
+
+def test_iter_model_resource_classes() -> None:
+    from triplemodel.protocols import iter_model_resource_classes
+
+    classes = iter_model_resource_classes()
+    assert TripleModel in classes or any(issubclass(c, TripleModel) for c in classes)
+
+
+def test_normalize_graph_iri_none() -> None:
+    assert _normalize_graph_iri(None) is None
+
+
+def test_get_rdf_config_empty_graph_iri_becomes_none() -> None:
+    class EmptyGraph(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = "http://xmlns.com/foaf/0.1/Person"
+            id_field = "slug"
+            graph_iri = ""
+
+        slug: str
+
+    assert get_rdf_config(EmptyGraph).graph_iri is None
+
+
+def test_resolve_graph_iri_method_returns_none_falls_back() -> None:
+    class WithHook(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = "http://xmlns.com/foaf/0.1/Person"
+            id_field = "slug"
+            graph_iri = "http://example.org/graph/g1"
+
+        slug: str
+
+        def graph_iri(self) -> None:
+            return None
+
+    assert resolve_graph_iri(WithHook(slug="a")) == "http://example.org/graph/g1"
+
+
+def test_get_rdf_config_reads_graph_iri() -> None:
+    class InGraph(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = "http://xmlns.com/foaf/0.1/Person"
+            id_field = "slug"
+            graph_iri = "http://example.org/graph/g1"
+
+        slug: str
+
+    cfg = get_rdf_config(InGraph)
+    assert cfg.graph_iri == "http://example.org/graph/g1"
 
 
 def test_id_from_subject_uri_returns_multi_segment_suffix():

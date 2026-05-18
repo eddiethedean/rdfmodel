@@ -8,8 +8,10 @@ from triplemodel.config.rdf_config import (
     SubjectUriInstance,
     effective_graph_mode,
     freeze_prefixes,
+    get_graph_context,
     get_rdf_config,
     id_from_subject_uri,
+    resolve_graph_iri,
     subject_base,
 )
 
@@ -24,7 +26,9 @@ __all__ = [
     "XSD",
     "effective_graph_mode",
     "freeze_prefixes",
+    "get_graph_context",
     "get_rdf_config",
     "id_from_subject_uri",
+    "resolve_graph_iri",
     "subject_base",
 ]
