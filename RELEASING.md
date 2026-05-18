@@ -16,7 +16,7 @@ Verified on `main` at commit `160a0bc` before tagging `v0.5.0` (prior tag: **v0.
 | README / PLAN / ROADMAP reflect **0.5.0** beta | Done |
 | CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
 | Docs workflow: `sphinx-build -W` | Done (run locally before tag) |
-| Release workflow on tag: `pytest`, `build`, `twine check`, `ruff`, `ty`, `sphinx-build -W`, PyPI publish | Configured |
+| Release workflow on tag: `verify` job then `publish` (see `.github/workflows/release.yml`) | Configured |
 
 **Pre-release checklist (0.5.0)**
 
@@ -116,7 +116,7 @@ Verified on `main` before tagging `v0.4.0` (PyPI latest prior to this release: *
 ### GitHub Actions (default)
 
 1. In the repo **Settings → Secrets and variables → Actions**, add **`PYPI_API_TOKEN`**: a PyPI [API token](https://pypi.org/manage/account/token/) scoped to the `triplemodel` project (or the whole account for first release).
-2. Push an annotated tag `v*` (e.g. `v0.4.0`). The [Release workflow](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/release.yml) runs `pytest`, `ruff`, `ty`, `sphinx-build`, `python -m build`, `twine check`, uploads `dist/` as an artifact, then publishes with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
+2. Push an annotated tag `v*` (e.g. `v0.5.0`). The [Release workflow](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/release.yml) runs a **`verify`** job (`pytest`, `ruff`, `ty`, `sphinx-build -W`, exit-criteria examples, `python -m build`, `twine check`), uploads `dist/`, then a **`publish`** job (depends on `verify`) uploads to PyPI with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
 
 ### Manual fallback
 
