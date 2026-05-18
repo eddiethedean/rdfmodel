@@ -54,6 +54,23 @@ from triplemodel.io.dispatch import (
     graph_to_model_dispatch,
     graph_to_model_dispatch_from_dataset,
 )
+from triplemodel.io.sparql import (
+    PreparedModelQuery,
+    SparqlQueryForm,
+    SparqlResultKind,
+    apply_update,
+    ask,
+    construct_models,
+    detect_query_form,
+    graph_from_construct_result,
+    init_bindings_from_model,
+    init_ns_from_model,
+    load_sparql,
+    open_sparql_graph,
+    prepare_model_query,
+    run_sparql,
+    select_models,
+)
 
 __all__ = [
     "OnDuplicate",
@@ -100,4 +117,19 @@ __all__ = [
     "objects_for_field",
     "sync_to_graph",
     "write_model_add",
+    "PreparedModelQuery",
+    "SparqlQueryForm",
+    "SparqlResultKind",
+    "apply_update",
+    "ask",
+    "construct_models",
+    "detect_query_form",
+    "graph_from_construct_result",
+    "init_bindings_from_model",
+    "init_ns_from_model",
+    "load_sparql",
+    "open_sparql_graph",
+    "prepare_model_query",
+    "run_sparql",
+    "select_models",
 ]

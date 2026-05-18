@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "triplemodel"
-version = "0.5.0"
+version = "0.6.0"
 description = "Pydantic TripleModel classes ↔ RDF triples via rdflib (beta)."
 readme = "README.md"
 license = "MIT"
@@ -73,6 +73,7 @@ include = [
     "examples/exit_criteria_03.py",
     "examples/exit_criteria_04.py",
     "examples/exit_criteria_05.py",
+    "examples/exit_criteria_06.py",
     "examples/realworld",
     "examples/doc",
     "docs/README.md",

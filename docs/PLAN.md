@@ -4,15 +4,13 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.5.0)
+## Current status (0.6.0)
 
-**Released (beta) on PyPI:** Everything through **0.4.1** plus **0.5.0** named graphs: `Rdf.graph_iri`, `Dataset` parse/serialize (`parse_into_dataset`, `load_dataset`, `to_dataset` / `from_dataset`, `load_models_from_dataset`), TriG / N-Quads round-trip, and {doc}`guides/12-datasets-and-named-graphs`.
+**Released (beta) on PyPI:** Everything through **0.5.0** plus **0.6.0** SPARQL passthrough: `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query`, and {doc}`guides/13-sparql-and-endpoints`.
 
-**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) — Nobel, DCAT, Wikidata capitals, Schema.org NGOs; [examples/exit_criteria_05.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_05.py) for named-graph TriG. SparqlModel may pin `triplemodel>=0.5,<0.6` for SM-4 experiments.
+**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_06.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_06.py) for CONSTRUCT → models.
 
-**Not yet shipped:** SPARQL helpers (**0.6**).
-
-**Next focus:** **0.6.0** — thin SPARQL passthrough (`select_models`, etc.).
+**Next focus:** **0.7.0** — graph algorithms and RDFS helpers (`cbd`, `graphs_equal`, etc.).
 
 ---
 

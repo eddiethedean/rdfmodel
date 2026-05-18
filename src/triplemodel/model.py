@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any, cast
 
 from typing_extensions import Self
@@ -606,6 +607,124 @@ class TripleModel(BaseModel):
             registry=registry,
             de_skolemize=de_skolemize,
         )
+
+    @classmethod
+    def construct_from_sparql(
+        cls,
+        graph: Graph,
+        query: str,
+        *,
+        dispatch: bool = False,
+        graph_out: Graph | None = None,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+        **kwargs: Any,
+    ) -> list[Self]:
+        """Run CONSTRUCT/DESCRIBE and load instances of this class."""
+        from triplemodel.io.sparql import construct_models
+
+        return construct_models(
+            cls,
+            graph,
+            query,
+            dispatch=dispatch,
+            graph_out=graph_out,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+            **kwargs,
+        )
+
+    @classmethod
+    def select_from_sparql(
+        cls,
+        graph: Graph,
+        query: str,
+        *,
+        field_map: Mapping[str, str] | None = None,
+        subject_var: str | None = None,
+        hydrate: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+        **kwargs: Any,
+    ) -> list[Self]:
+        """Run SELECT and build instances from bindings or hydration."""
+        from triplemodel.io.sparql import select_models
+
+        return select_models(
+            cls,
+            graph,
+            query,
+            field_map=field_map,
+            subject_var=subject_var,
+            hydrate=hydrate,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+            **kwargs,
+        )
+
+    @classmethod
+    def load_sparql(
+        cls,
+        endpoint: str,
+        query: str,
+        *,
+        query_form: str | None = None,
+        read_only: bool = True,
+        dispatch: bool = False,
+        type_uri: str | None = None,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+        **kwargs: Any,
+    ) -> list[Self]:
+        """Query a remote SPARQL endpoint and return instances."""
+        from triplemodel.io.sparql import SparqlQueryForm, load_sparql
+
+        return load_sparql(
+            cls,
+            endpoint,
+            query,
+            query_form=cast("SparqlQueryForm | None", query_form),
+            read_only=read_only,
+            dispatch=dispatch,
+            type_uri=type_uri,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+            **kwargs,
+        )
+
+    @classmethod
+    def ask_sparql(
+        cls,
+        graph: Graph,
+        query: str,
+        **kwargs: Any,
+    ) -> bool:
+        """Execute an ASK query on ``graph``."""
+        from triplemodel.io.sparql import ask
+
+        return ask(graph, query, model_cls=cls, **kwargs)
 
 
 register_rdf_resource(TripleModel)

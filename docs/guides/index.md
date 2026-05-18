@@ -1,6 +1,6 @@
 # User guides
 
-These guides explain how to use TripleModel **0.5.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read {doc}`01-getting-started`.
+These guides explain how to use TripleModel **0.6.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read {doc}`01-getting-started`.
 
 | # | Guide | Topics |
 |---|--------|--------|
@@ -16,5 +16,6 @@ These guides explain how to use TripleModel **0.5.x** in order of increasing com
 | 10 | {doc}`10-file-io` | Parse/serialize files, base URI, SHACL |
 | 11 | {doc}`11-real-world-patterns` | Multi-class load, Wikidata typing, `ref_field`, `gYear` |
 | 12 | {doc}`12-datasets-and-named-graphs` | `Rdf.graph_iri`, `Dataset`, TriG / N-Quads |
+| 13 | {doc}`13-sparql-and-endpoints` | SPARQL SELECT/CONSTRUCT/ASK/UPDATE, remote endpoints |
 
 **Next:** {doc}`01-getting-started`

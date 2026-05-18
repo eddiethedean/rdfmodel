@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.5.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.6.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -257,18 +257,20 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ## 0.6.0 — SPARQL and remote graphs
 
+**Status:** Released (beta) — `triplemodel==0.6.0`
+
 **Theme:** rdflib **query** and **SPARQL store** integration (TripleModel **passthrough** — not a Python query DSL).
 
-- [ ] **`select_models`** — SPARQL SELECT → `list[TripleModel]` with variable→field mapping
-- [ ] **`construct_models`** — CONSTRUCT/DESCRIBE → target model class
-- [ ] **`ask`** — thin wrapper returning `bool`
-- [ ] **SPARQL UPDATE** — `apply_update(graph, query)` with documented interaction with models
-- [ ] **`load_sparql`** — `SPARQLStore` / read-only endpoint into models
-- [ ] **`SPARQLUpdateStore`** — read-write remote graph pattern (optional extra if needed)
-- [ ] **Federated `SERVICE`** — document querying remote endpoints inside SPARQL
-- [ ] **Prepared queries** — `prepareQuery()` + `initNs` from model `Rdf.prefixes`
-- [ ] **`initBindings`** — pre-bind subject URI or field values in prepared model queries
-- [ ] **Result types** — handle all rdflib result kinds (bindings, boolean, graph, JSON)
+- [x] **`select_models`** — SPARQL SELECT → `list[TripleModel]` with variable→field mapping
+- [x] **`construct_models`** — CONSTRUCT/DESCRIBE → target model class
+- [x] **`ask`** — thin wrapper returning `bool`
+- [x] **SPARQL UPDATE** — `apply_update(graph, query)` with documented interaction with models
+- [x] **`load_sparql`** — `SPARQLStore` / read-only endpoint into models
+- [x] **`SPARQLUpdateStore`** — read-write remote graph pattern (optional extra if needed)
+- [x] **Federated `SERVICE`** — document querying remote endpoints inside SPARQL
+- [x] **Prepared queries** — `prepareQuery()` + `initNs` from model `Rdf.prefixes`
+- [x] **`initBindings`** — pre-bind subject URI or field values in prepared model queries
+- [x] **Result types** — handle all rdflib result kinds (bindings, boolean, graph, JSON)
 
 **Exit criteria:** Load `Person` rows from a public SPARQL endpoint in ≤10 lines; UPDATE example in docs.
 

@@ -58,6 +58,23 @@ def main() -> None:
     graph = load_graph(source=path, bind_prefixes=WIKIDATA_PREFIXES)
     cities = CapitalCity.all_from_graph(graph, validate_type=False)
 
+    assert CapitalCity.ask_sparql(
+        graph,
+        "ASK { wd:Q90 wdt:P1082 ?pop . FILTER(?pop > 2000000) }",
+    )
+    paris_rows = CapitalCity.select_from_sparql(
+        graph,
+        """
+        SELECT ?city WHERE {
+          ?city wdt:P31 wd:Q174844 .
+          FILTER(?city = wd:Q90)
+        }
+        """,
+        subject_var="city",
+        hydrate=True,
+    )
+    assert len(paris_rows) == 1 and paris_rows[0].qid.endswith("Q90")
+
     print("European capitals (Wikidata excerpt):")
     for city in sorted(cities, key=lambda c: c.population, reverse=True):
         country_qid = city.country.qid

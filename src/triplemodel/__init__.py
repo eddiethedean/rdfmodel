@@ -23,6 +23,8 @@ from triplemodel.terms.lang import Lang, LangString
 from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.io import (
     OnDuplicate,
+    PreparedModelQuery,
+    SparqlQueryForm,
     all_from_dataset,
     all_from_dataset_dispatch,
     all_from_graph_dispatch,
@@ -55,6 +57,15 @@ from triplemodel.io import (
     quads_in_context,
     sync_to_dataset,
     sync_to_graph,
+    apply_update,
+    ask,
+    construct_models,
+    detect_query_form,
+    init_bindings_from_model,
+    load_sparql,
+    open_sparql_graph,
+    prepare_model_query,
+    select_models,
 )
 from triplemodel.io.ops import graph_set, graph_value, merge_graphs, objects_for_field
 from triplemodel.model import TripleModel
@@ -67,7 +78,7 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 __all__ = [
     "EmbedMode",
@@ -138,5 +149,16 @@ __all__ = [
     "subject_base",
     "sync_to_dataset",
     "sync_to_graph",
+    "PreparedModelQuery",
+    "SparqlQueryForm",
+    "apply_update",
+    "ask",
+    "construct_models",
+    "detect_query_form",
+    "init_bindings_from_model",
+    "load_sparql",
+    "open_sparql_graph",
+    "prepare_model_query",
+    "select_models",
     "__version__",
 ]

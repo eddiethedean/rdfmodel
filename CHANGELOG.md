@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.6.0] - 2026-05-18
+
+### Added
+
+- **SPARQL passthrough** — `ask`, `construct_models`, `select_models`, `apply_update`, `run_sparql`, `prepare_model_query`, `PreparedModelQuery`
+- **Remote endpoints** — `load_sparql`, `open_sparql_graph` (`SPARQLStore` / `SPARQLUpdateStore`)
+- **Helpers** — `init_ns_from_model`, `init_bindings_from_model`, `detect_query_form`, `graph_from_construct_result`
+- **Class methods** — `construct_from_sparql`, `select_from_sparql`, `load_sparql`, `ask_sparql` on `TripleModel`
+- **Guide** — `docs/guides/13-sparql-and-endpoints.md`
+- **Example** — `examples/exit_criteria_06.py`
+
 ## [0.5.0] - 2026-05-17
 
 ### Added

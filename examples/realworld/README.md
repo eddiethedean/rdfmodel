@@ -39,4 +39,11 @@ These examples use **bundled files** so CI and tutorials work without network ac
 - Wikidata Query Service: `https://query.wikidata.org/`
 - EU / national portals publishing **DCAT-AP** catalogs (see [data.europa.eu](https://data.europa.eu/))
 
-Use `TripleModel.parse_url(...)` when you want TripleModel to fetch remote RDF directly.
+| Goal | TripleModel API |
+|------|-----------------|
+| Fetch RDF documents (Turtle, JSON-LD, …) | `TripleModel.parse_url(...)` |
+| **CONSTRUCT** / **DESCRIBE** → models | `Model.load_sparql(endpoint, query)` or `construct_from_sparql` |
+| **SELECT** → flat fields | `select_from_sparql` (projection) or **CONSTRUCT** for full graphs |
+| Refresh bundled TTL from Wikidata | [`refresh_wikidata_capitals.py`](refresh_wikidata_capitals.py) (CONSTRUCT + `dump_graph`) |
+
+[`wikidata_capitals.py`](wikidata_capitals.py) also demonstrates **`ask_sparql`** and **`select_from_sparql(..., hydrate=True)`** on the local graph.

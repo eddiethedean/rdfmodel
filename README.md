@@ -20,7 +20,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.5.0 is beta.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.6.0 is beta.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 
@@ -80,7 +80,7 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **Validation** | Optional SHACL via `triplemodel[shacl]` and `shacl_shapes=` on export |
 | **Package typing** | PEP 561 `py.typed` |
 
-**Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): SPARQL helpers (0.6).
+| **SPARQL** | `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query` |
 
 ### `list` vs `set`
 
@@ -248,6 +248,14 @@ from triplemodel import (
     get_graph_context,
     graph_to_model_dispatch,
     all_from_graph_dispatch,
+    ask,
+    apply_update,
+    construct_models,
+    select_models,
+    load_sparql,
+    open_sparql_graph,
+    prepare_model_query,
+    init_bindings_from_model,
     merge_graphs,
     expand_curie,
     bind_namespaces,
@@ -321,6 +329,7 @@ pytest
 ruff format src tests && ruff check src tests
 ty check src tests
 PYTHONPATH=src python examples/exit_criteria_03.py
+PYTHONPATH=src python examples/exit_criteria_06.py
 PYTHONPATH=src:. python examples/doc/regenerate_outputs.py  # refresh doc output files
 ```
 
