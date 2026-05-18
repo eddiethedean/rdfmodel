@@ -30,7 +30,7 @@ pydantic==2.5.0
 rdflib==7.0.0
 ```
 
-and runs the full test suite with `--no-cov` (coverage is enforced on the main `test` job with current dependency releases).
+and runs the full test suite with 100% coverage required (same as the main `test` job).
 
 ## Type checking
 
