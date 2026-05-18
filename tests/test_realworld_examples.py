@@ -45,6 +45,54 @@ def test_nobel_load_models_api(realworld_path: None) -> None:
     )
     assert len(bundles[Laureate]) >= 1
     assert len(bundles[NobelPrize]) >= 1
+    roentgen = next(p for p in bundles[Laureate] if "Röntgen" in p.name)
+    physics = next(p for p in bundles[NobelPrize] if p.slug == "Physics/1901")
+    assert physics.year == "1901"
+    assert roentgen.gender is not None
+
+
+def test_dcat_load_models_api(realworld_path: None) -> None:
+    sys.path.insert(0, str(REALWORLD))
+    from dcat_data_catalog import (  # noqa: E402  # ty: ignore[unresolved-import]
+        DataCatalog,
+        Dataset,
+        Distribution,
+    )
+    from triplemodel import load_models  # noqa: E402
+
+    bundles = load_models(
+        REALWORLD / "data" / "dcat_nobel_catalog.ttl",
+        DataCatalog,
+        Dataset,
+        Distribution,
+    )
+    assert len(bundles[DataCatalog]) >= 1
+    assert len(bundles[Dataset]) >= 1
+    assert len(bundles[Distribution]) >= 1
+    assert any("nobelprize.org/sparql" in d.access_url for d in bundles[Distribution])
+
+
+def test_wikidata_instance_of_and_ref_field(realworld_path: None) -> None:
+    sys.path.insert(0, str(REALWORLD))
+    from wikidata_capitals import CapitalCity, load_graph  # noqa: E402  # ty: ignore[unresolved-import]
+
+    graph = load_graph(
+        source=REALWORLD / "data" / "wikidata_capitals.ttl",
+        bind_prefixes=CapitalCity.Rdf.prefixes,
+    )
+    cities = CapitalCity.all_from_graph(graph, validate_type=False)
+    assert len(cities) == 2
+    paris = next(c for c in cities if c.qid.endswith("Q90"))
+    assert paris.country.label_en == "France"
+
+
+def test_schema_org_gyear_from_bundled_ttl(realworld_path: None) -> None:
+    sys.path.insert(0, str(REALWORLD))
+    from schema_org_ngos import NgoOrganization  # noqa: E402  # ty: ignore[unresolved-import]
+
+    ngos = NgoOrganization.parse_file(REALWORLD / "data" / "schema_org_ngos.ttl")
+    wwf = next(o for o in ngos if o.slug == "wwf")
+    assert wwf.founding_year == 1961
 
 
 def test_bundled_data_files_exist() -> None:

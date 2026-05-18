@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import RDF as RDF_NS
 
 from triplemodel import (
@@ -221,6 +221,81 @@ def test_ref_field_hydrates_nested() -> None:
     )
     city = City.from_graph(g, f"{WD}Q90", validate_type=False)
     assert city.country.label_en == "France"
+
+
+def test_ref_field_import_ignores_parent_bnode_embed() -> None:
+    EX = "http://ex/"
+
+    class Child(TripleModel):
+        class Rdf:
+            namespace = f"{EX}c/"
+            type_uri = f"{EX}Child"
+            id_field = "slug"
+
+        slug: str
+        name: str = rdf_field(f"{EX}name")
+
+    class Parent(TripleModel):
+        class Rdf:
+            namespace = f"{EX}p/"
+            type_uri = f"{EX}Parent"
+            id_field = "slug"
+            embed = "bnode"
+
+        slug: str
+        kid: Child = ref_field(f"{EX}rel", model=Child)
+
+    g = Graph()
+    g.parse(
+        data=(
+            f"@prefix ex: <{EX}> .\n"
+            f"<{EX}c/alice> a ex:Child ; ex:name \"Alice\" .\n"
+            f"<{EX}p/p1> a ex:Parent ; ex:rel <{EX}c/alice> .\n"
+        ),
+        format="turtle",
+    )
+    parent = Parent.from_graph(g, f"{EX}p/p1")
+    assert parent.kid.name == "Alice"
+
+
+def test_ref_field_rejects_bnode_object() -> None:
+    from triplemodel.io.import_ import import_field_value
+    from triplemodel.metadata.cardinality import field_cardinality
+
+    EX = "http://ex/"
+
+    class Child(TripleModel):
+        class Rdf:
+            namespace = f"{EX}c/"
+            type_uri = f"{EX}Child"
+            id_field = "slug"
+
+        slug: str
+
+    class Parent(TripleModel):
+        class Rdf:
+            namespace = f"{EX}p/"
+            type_uri = f"{EX}Parent"
+            id_field = "slug"
+
+        slug: str
+        kid: Child = ref_field(f"{EX}rel", model=Child)
+
+    fi = Parent.model_fields["kid"]
+    assert field_cardinality(fi) == "ref"
+    g = Graph()
+    bnode = BNode()
+    with pytest.raises(ValueError, match="expected a URI resource"):
+        import_field_value(
+            g,
+            [bnode],
+            fi,
+            "kid",
+            f"{EX}rel",
+            f"{EX}p/p1",
+            embed="iri",
+            on_duplicate="warn",
+        )
 
 
 def test_ref_field_rejects_inverse() -> None:

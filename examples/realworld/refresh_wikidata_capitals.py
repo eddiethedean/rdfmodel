@@ -14,7 +14,7 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?city ?cityLabel ?pop ?country ?countryLabel WHERE {
-  VALUES ?city { wd:Q90 wd:Q84 wd:Q64 }
+  VALUES ?city { wd:Q90 wd:Q84 }
   ?city wdt:P31 wd:Q174844 .
   OPTIONAL { ?city wdt:P1082 ?pop }
   OPTIONAL {
@@ -34,7 +34,7 @@ def fetch_rows() -> list[dict[str, str]]:
     req = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "triplemodel-examples/0.4.0 (refresh_wikidata_capitals)"
+            "User-Agent": "triplemodel-examples/0.4.1 (refresh_wikidata_capitals)"
         },
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
@@ -56,7 +56,7 @@ def fetch_rows() -> list[dict[str, str]]:
 def build_turtle(rows: list[dict[str, str]]) -> str:
     lines = [
         "# Wikidata excerpt: capital cities (English label, population, country)",
-        "# Entities: Q90 Paris, Q84 London, Q64 Berlin — CC0 1.0",
+        "# Entities: Q90 Paris, Q84 London — CC0 1.0",
         "# Generated from Wikidata Query Service; see refresh_wikidata_capitals.py",
         "",
         "@prefix wd: <http://www.wikidata.org/entity/> .",

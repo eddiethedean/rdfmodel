@@ -5,7 +5,7 @@ Problem: knowledge-graph pipelines (Wikidata, DBpedia) ship billions of triples;
 applications need typed slices (population, country) without hand-rolling parsers.
 
 Data: examples/realworld/data/wikidata_capitals.ttl
-Source: Wikidata Q90, Q84, Q64 (+ country labels) — CC0 1.0
+Source: Wikidata Q90, Q84 (+ country labels) — CC0 1.0
 """
 
 from __future__ import annotations

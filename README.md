@@ -20,7 +20,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.4.0 is beta.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.4.1 is beta.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 
@@ -64,19 +64,20 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 
 | Area | Capability |
 |------|------------|
-| **Mapping** | Nested `class Rdf` + `rdf_field()` or `Annotated[..., Predicate(...)]` |
-| **Identity** | Subject IRIs from `namespace` + `id_field` (percent-encoded ids) |
-| **Scalars** | `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like `str` → `URIRef` |
+| **Mapping** | Nested `class Rdf` + `rdf_field()` or `Annotated[..., Predicate(...)]`; predicate validation at class definition |
+| **Identity** | Subject IRIs from `namespace` + `id_field` (percent-encoded ids); `IriId` for full-IRI ids |
+| **Scalars** | `str`, `int`, `float`, `bool`, `date`, `datetime`; IRI-like `str` → `URIRef`; `literal_datatype` (e.g. `xsd:gYear`) |
 | **Collections** | `set[T]` → multiple objects per predicate; `list[T]` → ordered `rdf:List` |
 | **Literals** | `LangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef` |
-| **Nesting** | Child `TripleModel` with `Rdf.embed` `"iri"` or `"bnode"` |
+| **Nesting** | Child `TripleModel` with `Rdf.embed` `"iri"` or `"bnode"`; `ref_field` for URI foreign keys |
+| **Typing** | `Rdf.instance_of` for Wikidata-style property classification (`wdt:P31`, etc.) |
 | **Graph writes** | `to_graph` / `sync_to_graph` with `add`, `replace`, or `patch` |
 | **Namespaces** | `Rdf.prefixes`, CURIE predicates (`"foaf:name"`), `bind_namespaces` |
-| **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_models` / `dump_model` (rdflib formats) |
+| **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_graph`, `load_models`, `load_models_from_graph`, `dump_model` (rdflib formats) |
 | **Dispatch** | `parse(..., dispatch=True)`, `graph_to_model_dispatch`, `all_from_graph_dispatch` by `rdf:type` |
 | **Inverse predicates** | `rdf_field(..., inverse=...)` for import; forward predicate on export |
 | **Validation** | Optional SHACL via `triplemodel[shacl]` and `shacl_shapes=` on export |
-| **Typing** | PEP 561 `py.typed` |
+| **Package typing** | PEP 561 `py.typed` |
 
 **Coming later** ([roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md)): named graphs / Dataset (0.5), SPARQL helpers (0.6).
 
@@ -229,10 +230,15 @@ sync_to_graph(person, graph, mode="patch")    # per-predicate replace; lighter t
 from triplemodel import (
     TripleModel,
     rdf_field,
+    ref_field,
     Predicate,
+    IriId,
     GraphMode,
     sync_to_graph,
     models_to_graph,
+    load_graph,
+    load_models,
+    load_models_from_graph,
     graph_to_model_dispatch,
     all_from_graph_dispatch,
     merge_graphs,

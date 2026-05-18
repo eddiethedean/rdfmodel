@@ -15,6 +15,8 @@ bundles = load_models("data.ttl", Laureate, NobelPrize)
 laureates = bundles[Laureate]
 ```
 
+When loading multiple classes from a path, `load_models` parses once using the **first** model class’s `Rdf.prefixes` and `Rdf.base_uri`. Pass a shared prefix map on all involved models, or use `load_graph` + `load_models_from_graph` when vocabs differ.
+
 Use `parse(..., dispatch=True)` when you want one heterogeneous list keyed by `rdf:type` registration, not separate buckets per class.
 
 ## Wikidata-style typing (`instance_of`)
@@ -45,6 +47,8 @@ class CapitalCity(TripleModel):
 
 Import hydrates the linked resource from the same graph. Export writes the URI link only (not the full country description).
 
+`ref_field` always follows **URI** semantics on import (the object must be a `URIRef`), regardless of the parent model’s `Rdf.embed` setting. Parent `embed` applies only to full nested embeds, not foreign-key links.
+
 ## XSD partial dates (`gYear`)
 
 ```python
@@ -53,7 +57,7 @@ founding_year: int | None = rdf_field(
 )
 ```
 
-Register `xsd` in `Rdf.prefixes` when using CURIE datatypes. `xsd:gYear` literals import as `int`.
+Register `xsd` in `Rdf.prefixes` when using CURIE datatypes. `xsd:gYear` literals import as `int`; export emits `xsd:gYear` when the field value is an `int` with `literal_datatype="xsd:gYear"`.
 
 ## Mapping validation
 

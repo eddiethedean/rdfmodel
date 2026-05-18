@@ -1,5 +1,5 @@
 # Wikidata excerpt: capital cities (English label, population, country)
-# Entities: Q90 Paris, Q84 London, Q64 Berlin — CC0 1.0
+# Entities: Q90 Paris, Q84 London — CC0 1.0
 # Generated from Wikidata Query Service; see refresh_wikidata_capitals.py
 
 @prefix wd: <http://www.wikidata.org/entity/> .

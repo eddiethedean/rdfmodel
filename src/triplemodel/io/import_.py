@@ -150,10 +150,24 @@ def import_field_value(
         term = objects[0]
         if not isinstance(term, Node):
             raise ValueError(f"Cannot import nested field {field_name!r} from {term!r}")
+        nested_type = cast(type[BaseModel], nested_cls)
+        if card == "ref":
+            if not isinstance(term, URIRef):
+                raise ValueError(
+                    f"Cannot import ref field {field_name!r} from term {term!r}; "
+                    "expected a URI resource."
+                )
+            return graph_to_model(
+                graph,
+                nested_type,
+                term,
+                on_duplicate=on_duplicate,
+                registry=registry,
+            )
         return import_nested_value(
             graph,
             term,
-            cast(type[BaseModel], nested_cls),
+            nested_type,
             embed=embed,
             on_duplicate=on_duplicate,
             registry=registry,

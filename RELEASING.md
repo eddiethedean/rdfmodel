@@ -1,5 +1,30 @@
 # Releasing TripleModel
 
+## 0.4.1 release readiness (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.4.1` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `CHANGELOG.md` — `## [0.4.1]` complete | Done |
+| `examples/realworld/*` use `load_models`, `instance_of`, `ref_field`, `gYear` | Done |
+| `tests/test_041_features.py`, `tests/test_realworld_examples.py` | Done |
+| README / PLAN / ROADMAP reflect **0.4.1** beta | Done |
+
+**Pre-release checklist (0.4.1)**
+
+- [x] `version` `0.4.1` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] `pytest`, `ruff format --check`, `ruff check`, `ty check`
+- [x] `PYTHONPATH=src python examples/realworld/*.py` (or CI `test_realworld_examples`)
+- [ ] Create and push git tag `v0.4.1` (triggers Release workflow)
+- [ ] GitHub release from tag; paste `## [0.4.1]` from `CHANGELOG.md`
+
+```bash
+git tag -a v0.4.1 -m "Release 0.4.1"
+git push origin v0.4.1
+```
+
+---
+
 ## 0.4.0 release readiness (repo)
 
 Verified on `main` before tagging `v0.4.0` (PyPI latest prior to this release: **0.3.0**).

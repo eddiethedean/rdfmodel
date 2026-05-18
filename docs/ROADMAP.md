@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.4.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.4.1** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -198,17 +198,19 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 ## 0.4.1 — Real-world ergonomics
 
-**Theme:** Close the gap between **typed records** and **linked-data workflows**—without waiting for Dataset (0.5) or full SPARQL helpers (0.6). Informed by [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) and integration friction (manual QID lists, triple `parse_file` per class, predicate URI footguns, flat foreign-key URIs).
+**Status:** Released (beta) — on PyPI as `triplemodel==0.4.1`
 
-| Priority | Feature | Problem it solves | Planned API (sketch) |
-|----------|---------|-------------------|----------------------|
-| P0 | **Single-pass multi-class load** | One Turtle file, many `rdf:type`s (Nobel laureates + prizes; DCAT catalog + dataset + distribution) today requires `parse_file` per class on the same bytes | `load_graph(path) -> Graph` + `load_models(graph, Laureate, NobelPrize, ...)` or `ParseBundle.parse_file(path)` returning `dict[type[TripleModel], list]`; document `parse(..., dispatch=True)` when types are registered |
-| P0 | **Mapping validation** | Accidentally storing `rdf_predicate` as a namespace base (e.g. `.../rdfs#` without `label`) fails silently at import | Validate on model class creation: predicate IRIs must have a local name after `#` or `/`; warn when predicate equals a declared prefix namespace URI |
-| P0 | **XSD partial dates** | Schema.org `foundingDate` as `xsd:gYear` cannot map to `date` | Register `gYear`, `gMonth`, `gMonthDay` in default literal registry; optional `Year`, `YearMonth` field types or document `str` + converter |
-| P1 | **Property-based typing** | Wikidata (and some LOV vocabularies) use `wdt:P31` / `dbo:type` instead of `rdf:type` for classification | `Rdf.instance_of: str \| list[str]` — URI(s) of type resource; `all_from_graph` / discovery filter subjects with `(?, instance_of, type_uri)`; complements empty `type_uri` + predicate discovery |
-| P1 | **Hydrate `ResourceRef` / URI FKs** | `country: str` holding `wd:Q142` forces manual join dicts (Wikidata capitals example) | `ResourceRef` or `ref_field(Predicate, model=Country)` hydrates nested model on import; optional `country: Country` via nested IRI embed when object is a full resource description |
-| P1 | **Linked object graphs in examples** | Laureate ↔ NobelPrize and DCAT catalog ↔ dataset are separate models with no predicate between them in Python | Document nested `NobelPrize \| None` on `Laureate` (inverse or forward predicate); DCAT `catalog: Dataset \| None` embed patterns in cookbook |
-| P1 | **Refactor in-repo examples** | New APIs ship without dogfooding; `examples/realworld/` still shows pre-0.4.1 workarounds | Update `examples/realworld/*` and affected `examples/` / doc snippets to use each shipped 0.4.1 feature; extend `tests/test_realworld_examples.py` assertions |
+**Theme:** Close the gap between **typed records** and **linked-data workflows**—without waiting for Dataset (0.5) or full SPARQL helpers (0.6). Informed by [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md).
+
+| Priority | Feature | Status |
+|----------|---------|--------|
+| P0 | **Single-pass multi-class load** (`load_graph`, `load_models`, `load_models_from_graph`) | Done |
+| P0 | **Mapping validation** (predicate local name; prefix namespace warning) | Done |
+| P0 | **XSD partial dates** (`gYear`, `gMonth`, `gMonthDay`; `literal_datatype=`) | Done |
+| P1 | **Property-based typing** (`Rdf.instance_of`, `instance_type_uri`) | Done |
+| P1 | **URI FK hydration** (`ref_field`) | Done |
+| P1 | **Linked object graphs in examples** (cookbook / nested embed patterns) | Docs (optional nested links in examples) |
+| P1 | **Refactor in-repo examples** | Done |
 | P2 | **Lang-tagged label defaults** | `rdfs:label@en` is ubiquitous; users must know `LangString` vs plain `str` | `Annotated[str, Lang("en")]` auto-import for configured fields; or `rdf_field(..., lang="en")` sugar |
 | P2 | **QID / slug conventions** | Wikidata IDs (`Q90`) vs full IRIs — `IriId` works but examples need boilerplate | `WikidataItem` recipe in cookbook; optional `Rdf.id_encoding = "qid"` when `namespace` is `wd:` entity base |
 | P2 | **Optional inverse export** | Import reads inverse; export is forward-only (by design) but some portals expect bidirectional edges | `Rdf.export_inverse: bool` or per-field `export_inverse=True` to emit `(remote, inv, subject)` on `to_graph` / sync |

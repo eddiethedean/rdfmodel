@@ -4,15 +4,15 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.4.0)
+## Current status (0.4.1)
 
-**Released (beta) on PyPI:** File `parse` / `serialize` (rdflib formats), `Rdf.base_uri`, JSON-LD context passthrough, subclass dispatch by `rdf:type`, inverse predicates on import, and optional SHACL via `triplemodel[shacl]`. Earlier releases add RDF lists, `LangString`, blank-node hardening, and graph sync. SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
+**Released (beta) on PyPI:** Everything in **0.4.0** (file `parse` / `serialize`, dispatch, inverse predicates, optional SHACL) plus **0.4.1** linked-data ergonomics: `load_graph` / `load_models` / `load_models_from_graph`, `Rdf.instance_of`, `ref_field`, XSD `gYear` / `gMonth` / `gMonthDay`, and predicate mapping validation at class definition. See {doc}`changelog` and {doc}`11-real-world-patterns`.
 
-**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) — Nobel linked data, DCAT catalog, Wikidata capitals excerpt, Schema.org NGOs (offline TTL + CI tests). These exercises informed **0.4.1** priorities in [ROADMAP.md § 0.4.1](ROADMAP.md#041--real-world-ergonomics).
+**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) — Nobel, DCAT, Wikidata capitals, Schema.org NGOs (offline TTL + CI). SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments.
 
-**Not yet shipped:** Real-world ergonomics (**0.4.1**); Dataset/named graphs (**0.5**).
+**Not yet shipped:** Dataset/named graphs (**0.5**); SPARQL helpers (**0.6**).
 
-**Next focus:** **0.4.1** — multi-class load from one file, mapping validation, property-based typing (Wikidata), XSD partial dates, `ResourceRef` hydration; then **0.5.0** (`to_dataset` / named graph contexts).
+**Next focus:** **0.5.0** — `to_dataset` / named graph contexts on `Rdf`.
 
 ---
 
@@ -101,13 +101,13 @@ Exercises in `examples/realworld/` showed where TripleModel is already **Pythoni
 
 | Lesson | User pain today | Planned response | Release |
 |--------|-----------------|------------------|---------|
-| One file, many classes | Nobel/DCAT need three `parse_file` calls on the same TTL | `load_models(graph, *classes)` / `ParseBundle` | **0.4.1** |
-| Wikidata typing | Manual QID lists + `from_graph` per subject | `Rdf.instance_of` + discovery | **0.4.1** |
-| Cross-resource links | `country: str` + hand-built dict | `ResourceRef` / `ref_field` hydration | **0.4.1** |
-| Partial dates | `foundingDate` forced to `str` | XSD `gYear` in literal registry | **0.4.1** |
-| Mapping footguns | `RDFS_LABEL` = namespace base breaks import | Class-definition validation on predicate IRIs | **0.4.1** |
+| One file, many classes | Nobel/DCAT need three `parse_file` calls on the same TTL | `load_models(graph, *classes)` | **0.4.1** (done) |
+| Wikidata typing | Manual QID lists + `from_graph` per subject | `Rdf.instance_of` + discovery | **0.4.1** (done) |
+| Cross-resource links | `country: str` + hand-built dict | `ref_field` hydration | **0.4.1** (done) |
+| Partial dates | `foundingDate` forced to `str` | XSD `gYear` in literal registry | **0.4.1** (done) |
+| Mapping footguns | `RDFS_LABEL` = namespace base breaks import | Class-definition validation on predicate IRIs | **0.4.1** (done) |
 | Object graphs in Python | Laureate and Prize are disconnected models | Nested embed + cookbook (inverse optional) | **0.4.1** docs; richer **0.7** CBD |
-| Dogfooding | Examples still teach workarounds after APIs ship | Refactor `examples/realworld/` (+ snippets) per feature; extend CI tests | **0.4.1** |
+| Dogfooding | Examples still teach workarounds after APIs ship | Refactor `examples/realworld/` (+ snippets) per feature; extend CI tests | **0.4.1** (done) |
 | Live endpoint slices | CONSTRUCT refresh script is ad hoc | `construct_models` + documented refresh recipe | **0.6** |
 | App-level joins | Country labels need manual joins | `hydrate_refs` / batch load from graph | **0.7** |
 
