@@ -20,6 +20,16 @@ Nothing yet.
 - **Guide** — `docs/guides/13-sparql-and-endpoints.md`
 - **Example** — `examples/exit_criteria_06.py`
 
+### Fixed
+
+- **`select_models`** — map subject URI bindings to `Rdf.id_field` via `id_from_subject_uri` even when the subject variable appears in `field_map`
+- **`init_bindings_from_model`** — bind `URIRef(subject_uri())` for `id_field` (not XSD string literals) so prepared-query `FILTER` works on in-memory graphs
+- **`load_sparql`** — infer query form from rdflib prepared `Query` objects (not only raw strings)
+
+### Changed
+
+- **Public exports** — `run_sparql`, `init_ns_from_model`, `graph_from_construct_result` on the `triplemodel` package root
+
 ## [0.5.0] - 2026-05-17
 
 ### Added

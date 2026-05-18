@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, TypeVar, cast, overload
 
 from pydantic import BaseModel
-from rdflib import Graph, Namespace
+from rdflib import Graph, Namespace, URIRef
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.sparql import Query
 from rdflib.query import Result
@@ -21,6 +21,7 @@ from triplemodel.metadata.cardinality import scalar_python_type, union_member_ty
 from triplemodel.namespaces import bind_namespaces
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.convert import python_to_term, term_to_python
+from triplemodel.terms.iri import looks_like_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 T = TypeVar("T", bound=BaseModel)
@@ -72,6 +73,21 @@ def detect_query_form(query: str) -> SparqlQueryForm:
     return cast(SparqlQueryForm, match.group(1).lower())
 
 
+def _query_form_from_prepared(query: Query) -> SparqlQueryForm:
+    """Infer SPARQL query form from a rdflib prepared ``Query`` algebra."""
+    algebra = getattr(query, "algebra", None)
+    if algebra is None:
+        return "unknown"
+    algebra_name = getattr(algebra, "name", None) or ""
+    form_map: dict[str, SparqlQueryForm] = {
+        "SelectQuery": "select",
+        "ConstructQuery": "construct",
+        "AskQuery": "ask",
+        "DescribeQuery": "describe",
+    }
+    return form_map.get(algebra_name, "unknown")
+
+
 def init_ns_from_model(model_cls: type[BaseModel]) -> dict[str, Namespace]:
     """Build ``initNs`` for SPARQL from ``model_cls`` ``Rdf.prefixes``."""
     prefixes = get_rdf_config(model_cls).prefixes_dict
@@ -90,6 +106,12 @@ def init_bindings_from_model(
                 f"Unknown model field {field_name!r} in init_bindings mapping."
             )
         var = Variable(var_name.lstrip("?"))
+        cfg = get_rdf_config(type(instance))
+        if field_name == cfg.id_field and cfg.id_field:
+            subject_uri_fn = getattr(instance, "subject_uri", None)
+            if callable(subject_uri_fn):
+                bindings[var] = URIRef(subject_uri_fn())
+                continue
         value = getattr(instance, field_name)
         bindings[var] = python_to_term(value)
     return bindings
@@ -243,6 +265,26 @@ def _term_for_field(
             except (TypeError, ValueError):
                 continue
     return term_to_python(term, registry=registry)
+
+
+def _projection_value_for_field(
+    model_cls: type[BaseModel],
+    field_name: str,
+    term: Node,
+    field_info: Any,
+    *,
+    registry: LiteralRegistry,
+) -> object:
+    """Map a SPARQL binding to a model field value for SELECT projection."""
+    cfg = get_rdf_config(model_cls)
+    if (
+        field_name == cfg.id_field
+        and cfg.id_field
+        and (isinstance(term, URIRef) or looks_like_iri(str(term)))
+    ):
+        _, id_value = _subject_id_from_uri(model_cls, str(term))
+        return id_value
+    return _term_for_field(term, field_info, registry=registry)
 
 
 def _subject_id_from_uri(model_cls: type[BaseModel], uri: str) -> tuple[str, object]:
@@ -418,7 +460,13 @@ def _select_models_projection(
             if term is None:
                 continue
             field_info = model_cls.model_fields[field_name]
-            data[field_name] = _term_for_field(term, field_info, registry=registry)
+            data[field_name] = _projection_value_for_field(
+                model_cls,
+                field_name,
+                term,
+                field_info,
+                registry=registry,
+            )
         instances.append(model_cls.model_validate(data))
     return instances
 
@@ -544,6 +592,8 @@ def load_sparql(
     if form is None:
         if isinstance(query, str):
             form = detect_query_form(query)
+        elif isinstance(query, Query):
+            form = _query_form_from_prepared(query)
         else:
             form = "unknown"
     if form == "ask":

@@ -115,6 +115,8 @@ bindings = init_bindings_from_model(alice, {"subj": "slug"})
 result = pq.execute(graph, initBindings=bindings)
 ```
 
+`run_sparql` (and helpers that call it) bind `Rdf.prefixes` on the **same** `Graph` you pass in (`bind_namespaces` with `override=True`). That mutates the graph for serialization and SPARQL prefix resolution.
+
 On **SPARQLStore**, `initBindings` may behave differently than on an in-memory graph when bindings must appear inside `WHERE`. Pass `use_store_provided=False` to `execute` / `run_sparql` if results look wrong (see [rdflib#1772](https://github.com/RDFLib/rdflib/issues/1772)).
 
 ## Security

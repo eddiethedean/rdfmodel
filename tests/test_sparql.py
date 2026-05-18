@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -86,6 +86,10 @@ def test_init_bindings_from_model():
     p = Person(slug="alice", name="Alice", age=30)
     bindings = init_bindings_from_model(p, {"slug": "slug", "n": "name"})
     assert len(bindings) == 2
+    from rdflib.term import Variable as V
+
+    assert bindings[V("slug")] == URIRef(f"{EX}alice")
+    assert str(bindings[V("n")]) == "Alice"
     with pytest.raises(ValueError, match="Unknown model field"):
         init_bindings_from_model(p, {"x": "missing"})
 
@@ -379,6 +383,13 @@ def test_load_sparql_unknown_form(mock_open: MagicMock) -> None:
 
 
 @patch("triplemodel.io.sparql.open_sparql_graph")
+def test_load_sparql_unsupported_query_object(mock_open: MagicMock) -> None:
+    mock_open.return_value = MagicMock()
+    with pytest.raises(ValueError, match="Cannot load models"):
+        load_sparql(Person, "http://example.org/sparql", cast(Any, object()))
+
+
+@patch("triplemodel.io.sparql.open_sparql_graph")
 def test_load_sparql_classmethod(mock_open: MagicMock) -> None:
     inner = _foaf_graph()
     remote = MagicMock()
@@ -408,6 +419,10 @@ def test_select_models_subject_in_field_map():
         field_map={"s": "slug", "name": "name"},
     )
     assert len(rows) == 2
+    by_slug = {r.slug: r for r in rows}
+    assert by_slug["alice"].name == "Alice"
+    assert by_slug["alice"].subject_uri() == f"{EX}alice"
+    assert by_slug["bob"].name == "Bob"
 
 
 def test_select_models_optional_binding_missing():
@@ -459,12 +474,61 @@ def test_select_models_hydrate_skips_missing_and_duplicates(
     assert len(people) == 1
 
 
-def test_load_sparql_prepared_query_unknown_form():
-    pq = prepare_model_query(Person, "SELECT ?name WHERE { ?s foaf:name ?name }")
+def test_load_sparql_prepared_query_select():
+    pq = prepare_model_query(
+        Person,
+        """
+        SELECT ?slug ?name WHERE {
+          ?s a foaf:Person .
+          ?s foaf:name ?name .
+          BIND(REPLACE(STR(?s), "http://example.org/people/", "") AS ?slug)
+        }
+        """,
+    )
     with patch("triplemodel.io.sparql.open_sparql_graph") as mock_open:
         mock_open.return_value = _foaf_graph()
-        with pytest.raises(ValueError, match="Cannot load models"):
-            load_sparql(Person, "http://example.org/sparql", pq.prepared)
+        rows = load_sparql(Person, "http://example.org/sparql", pq.prepared)
+    assert len(rows) == 2
+
+
+def test_query_form_from_prepared():
+    from rdflib.plugins.sparql.sparql import Query
+
+    from triplemodel.io.sparql import _query_form_from_prepared
+
+    assert (
+        _query_form_from_prepared(
+            prepare_model_query(Person, "SELECT ?n WHERE { ?s foaf:name ?n }").prepared
+        )
+        == "select"
+    )
+    assert (
+        _query_form_from_prepared(
+            prepare_model_query(
+                Person, "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }"
+            ).prepared
+        )
+        == "construct"
+    )
+    bare = MagicMock(spec=Query)
+    bare.algebra = None
+    assert _query_form_from_prepared(bare) == "unknown"
+
+
+def test_init_bindings_filter_subject_uri():
+    """Guide parity: id_field binds subject URI for FILTER(?s = ?subj)."""
+    g = _foaf_graph()
+    alice = Person(slug="alice", name="Alice", age=30)
+    bindings = init_bindings_from_model(alice, {"subj": "slug"})
+    result = g.query(
+        """
+        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+        SELECT ?name WHERE { ?s foaf:name ?name . FILTER(?s = ?subj) }
+        """,
+        initBindings=bindings,  # ty: ignore[invalid-argument-type]
+    )
+    names = [str(row[0]) for row in result]  # ty: ignore[index]
+    assert names == ["Alice"]
 
 
 def test_union_member_term_conversion():

@@ -1,5 +1,42 @@
 # Releasing TripleModel
 
+## 0.6.0 release readiness (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.6.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `docs/conf.py` release via `triplemodel.__version__` | Done |
+| `CHANGELOG.md` — `## [0.6.0]` complete (Added/Fixed/Changed); `[Unreleased]` stub | Done |
+| SPARQL helpers — `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query`, `run_sparql`, etc. | Done |
+| Exit criteria `examples/exit_criteria_06.py` (CONSTRUCT → models) | Done |
+| Guide `docs/guides/13-sparql-and-endpoints.md`; API `docs/api/sparql.rst` | Done |
+| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
+| README / PLAN / ROADMAP reflect **0.6.0** beta | Done |
+| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
+| Release workflow on tag: `verify` job includes `exit_criteria_06.py` | Done |
+
+**Pre-release checklist (0.6.0)**
+
+- [x] `version` `0.6.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] `[Unreleased]` empty (all 0.6.0 notes under `## [0.6.0]`)
+- [x] `pytest`, `ruff format --check`, `ruff check`, `ty check`
+- [x] `sphinx-build -b html docs docs/_build/html -W`
+- [x] `python -m build` and `twine check dist/*`
+- [x] `PYTHONPATH=src python examples/exit_criteria_05.py`
+- [x] `PYTHONPATH=src python examples/exit_criteria_06.py`
+- [x] `PYTHONPATH=src python examples/readme_examples.py`
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
+- [ ] Create and push git tag `v0.6.0` (triggers Release workflow)
+- [ ] GitHub release from tag; paste `## [0.6.0]` from `CHANGELOG.md`
+- [ ] Verify PyPI shows `triplemodel==0.6.0`
+
+```bash
+git tag -a v0.6.0 -m "Release 0.6.0"
+git push origin v0.6.0
+```
+
+---
+
 ## 0.5.0 release readiness (repo)
 
 Verified on `main` at commit `160a0bc` before tagging `v0.5.0` (prior tag: **v0.4.1**).

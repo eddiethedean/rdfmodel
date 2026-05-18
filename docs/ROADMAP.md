@@ -237,7 +237,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ## 0.5.0 — Datasets and named graphs
 
-**Status:** Released (beta) — on PyPI as `triplemodel==0.5.0` (tag `v0.5.0` pending)
+**Status:** Released (beta) — on PyPI as `triplemodel==0.5.0`
 
 **Theme:** rdflib **Dataset** (replacing deprecated `ConjunctiveGraph`).
 

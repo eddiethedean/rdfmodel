@@ -61,10 +61,13 @@ from triplemodel.io import (
     ask,
     construct_models,
     detect_query_form,
+    graph_from_construct_result,
     init_bindings_from_model,
+    init_ns_from_model,
     load_sparql,
     open_sparql_graph,
     prepare_model_query,
+    run_sparql,
     select_models,
 )
 from triplemodel.io.ops import graph_set, graph_value, merge_graphs, objects_for_field
@@ -155,10 +158,13 @@ __all__ = [
     "ask",
     "construct_models",
     "detect_query_form",
+    "graph_from_construct_result",
     "init_bindings_from_model",
+    "init_ns_from_model",
     "load_sparql",
     "open_sparql_graph",
     "prepare_model_query",
+    "run_sparql",
     "select_models",
     "__version__",
 ]
