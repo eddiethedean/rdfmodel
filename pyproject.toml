@@ -36,6 +36,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.8",
     "ty>=0.0.1",
+    "build>=1.0",
 ]
 docs = [
     "sphinx>=7.4,<9",

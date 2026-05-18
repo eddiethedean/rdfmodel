@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import zipfile
+
 from importlib.resources import files
 from pathlib import Path
 
@@ -23,11 +24,12 @@ def test_wheel_contains_py_typed() -> None:
     root = Path(__file__).resolve().parents[1]
     wheels = list((root / "dist").glob("triplemodel-*.whl"))
     if not wheels:
-        subprocess.run(
+        proc = subprocess.run(
             [sys.executable, "-m", "build", str(root)],
-            check=True,
             capture_output=True,
+            text=True,
         )
+        assert proc.returncode == 0, proc.stderr or proc.stdout
         wheels = list((root / "dist").glob("triplemodel-*.whl"))
     assert wheels, "expected a built wheel after python -m build"
     wheel = max(wheels, key=lambda p: p.stat().st_mtime)
