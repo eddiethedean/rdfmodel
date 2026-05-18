@@ -41,3 +41,29 @@ def discover_subject_uris(
             if isinstance(subj, URIRef):
                 subjects.add(str(subj))
     return sorted(subjects)
+
+
+def discover_subjects_by_instance_of(
+    graph: Graph,
+    cfg: RdfConfig,
+) -> list[str]:
+    """Subjects with ``(subject, instance_of, type)`` per :attr:`RdfConfig.instance_of`."""
+    preds = cfg.instance_of_predicates
+    if not preds:
+        return []
+    prefixes = cfg.prefixes_dict
+    type_uris = cfg.instance_type_uris
+    subjects: set[str] = set()
+    for pred_raw in preds:
+        pred_uri = URIRef(resolve_predicate(pred_raw, prefixes))
+        if type_uris:
+            for type_raw in type_uris:
+                type_uri = URIRef(resolve_predicate(type_raw, prefixes))
+                for subj in graph.subjects(pred_uri, type_uri):
+                    if isinstance(subj, URIRef):
+                        subjects.add(str(subj))
+        else:
+            for subj in graph.subjects(pred_uri, None):
+                if isinstance(subj, URIRef):
+                    subjects.add(str(subj))
+    return sorted(subjects)

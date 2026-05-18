@@ -35,6 +35,16 @@ def test_realworld_example_runs(script: str, realworld_path: None) -> None:
     runpy.run_path(str(REALWORLD / script), run_name="__main__")
 
 
+def test_nobel_load_models_api(realworld_path: None) -> None:
+    sys.path.insert(0, str(REALWORLD))
+    from nobel_laureates import Laureate, NobelPrize  # noqa: E402  # ty: ignore[unresolved-import]
+    from triplemodel import load_models  # noqa: E402
+
+    bundles = load_models(REALWORLD / "data" / "nobel_laureates_1901.ttl", Laureate, NobelPrize)
+    assert len(bundles[Laureate]) >= 1
+    assert len(bundles[NobelPrize]) >= 1
+
+
 def test_bundled_data_files_exist() -> None:
     data = REALWORLD / "data"
     names = [

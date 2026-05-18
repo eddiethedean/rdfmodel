@@ -10,7 +10,9 @@ Source: https://www.nobelprize.org/about/linked-data-examples/
 
 from __future__ import annotations
 
-from triplemodel import TripleModel, rdf_field
+from typing import cast
+
+from triplemodel import TripleModel, load_models, rdf_field
 from triplemodel.vocab import FOAF
 
 from _paths import data_file
@@ -53,8 +55,9 @@ class NobelPrize(TripleModel):
 
 
 def main() -> None:
-    laureates = Laureate.parse_file(data_file("nobel_laureates_1901.ttl"))
-    prizes = NobelPrize.parse_file(data_file("nobel_laureates_1901.ttl"))
+    bundles = load_models(data_file("nobel_laureates_1901.ttl"), Laureate, NobelPrize)
+    laureates = cast(list[Laureate], bundles[Laureate])
+    prizes = cast(list[NobelPrize], bundles[NobelPrize])
 
     print(
         f"Loaded {len(laureates)} laureates and {len(prizes)} prizes from 1901 excerpt"
@@ -68,7 +71,6 @@ def main() -> None:
     assert physics.year == "1901"
     assert "Physics" in physics.title
 
-    # Round-trip one laureate through in-memory graph
     roentgen = roentgen_matches[0]
     g = roentgen.to_graph()
     again = Laureate.from_graph(g, roentgen.subject_uri())

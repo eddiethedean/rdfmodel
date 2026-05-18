@@ -53,6 +53,10 @@ class RdfConfig:
 
     namespace: str = ""
     type_uri: str | None = None
+    instance_of: str | tuple[str, ...] | None = None
+    """Property URI(s) for classification (e.g. ``wdt:P31``) when not using ``rdf:type``."""
+    instance_type_uri: str | tuple[str, ...] | None = None
+    """Object URI(s) to filter ``instance_of`` (e.g. ``wd:Q5119`` for capital city)."""
     id_field: str | None = None
     """Model field whose value is appended to ``namespace`` for the subject IRI."""
     prefixes: Mapping[str, str] = field(default_factory=_empty_prefixes)
@@ -69,6 +73,24 @@ class RdfConfig:
     @property
     def prefixes_dict(self) -> dict[str, str]:
         return dict(self.prefixes)
+
+    @property
+    def instance_of_predicates(self) -> tuple[str, ...]:
+        raw = self.instance_of
+        if raw is None:
+            return ()
+        if isinstance(raw, str):
+            return (raw,) if raw else ()
+        return tuple(p for p in raw if p)
+
+    @property
+    def instance_type_uris(self) -> tuple[str, ...]:
+        raw = self.instance_type_uri
+        if raw is None:
+            return ()
+        if isinstance(raw, str):
+            return (raw,) if raw else ()
+        return tuple(t for t in raw if t)
 
     def subject_uri(self, instance: SubjectUriInstance) -> str:
         if not self.namespace:
@@ -148,6 +170,8 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
+                instance_of=getattr(rdf, "instance_of", None),
+                instance_type_uri=getattr(rdf, "instance_type_uri", None),
                 id_field=getattr(rdf, "id_field", None),
                 prefixes=prefixes,
                 embed=embed,

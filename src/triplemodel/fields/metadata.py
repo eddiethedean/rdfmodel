@@ -59,6 +59,7 @@ def rdf_field(
     predicate: str,
     *,
     inverse: str | None = None,
+    literal_datatype: str | None = None,
     default: _T | EllipsisType = ...,
     **field_kwargs: Unpack[RdfFieldKwargs],
 ) -> _T:
@@ -72,6 +73,8 @@ def rdf_field(
     }
     if inverse is not None:
         merged_extra["rdf_inverse"] = inverse
+    if literal_datatype is not None:
+        merged_extra["rdf_literal_datatype"] = literal_datatype
     return cast(
         _T,
         Field(
@@ -150,12 +153,59 @@ def lang_from_annotation(annotation: AnnotationExpr) -> str | None:
     return None
 
 
+def literal_datatype_for_field(field_info: FieldInfo) -> str | None:
+    """XSD datatype IRI or CURIE for literal export (e.g. ``xsd:gYear``)."""
+    extra = field_info.json_schema_extra
+    if isinstance(extra, dict):
+        dt = cast(JsonSchemaExtra, extra).get("rdf_literal_datatype")
+        if dt is not None:
+            return str(dt)
+    return None
+
+
 def lang_for_field(field_info: FieldInfo) -> str | None:
     """Language tag for a field, if configured."""
     for meta in field_info.metadata:
         if isinstance(meta, Lang):
             return meta.code
     return lang_from_annotation(field_annotation(field_info))
+
+
+def ref_field(
+    predicate: str,
+    *,
+    model: type[BaseModel],
+    inverse: str | None = None,
+    default: _T | EllipsisType = ...,
+    **field_kwargs: Unpack[RdfFieldKwargs],
+) -> _T:
+    """Foreign-key field: import hydrates ``model`` from the object URI in the graph."""
+    if inverse is not None:
+        raise ValueError("inverse= is not supported on ref_field")
+    extra = field_kwargs.pop("json_schema_extra", None) or {}
+    if not isinstance(extra, dict):
+        extra = {}
+    merged_extra: JsonSchemaExtra = {
+        **cast(JsonSchemaExtra, extra),
+        "rdf_predicate": predicate,
+        "rdf_ref_link": True,
+    }
+    return cast(
+        _T,
+        Field(
+            default=default,
+            json_schema_extra=merged_extra,
+            **cast(Any, field_kwargs),
+        ),
+    )
+
+
+def ref_link_for_field(field_info: FieldInfo) -> bool:
+    """True when the field is a URI foreign-key link (``ref_field``), not full embed."""
+    extra = field_info.json_schema_extra
+    if isinstance(extra, dict):
+        return bool(cast(JsonSchemaExtra, extra).get("rdf_ref_link"))
+    return False
 
 
 def id_field_is_iri_id(model_cls: type[BaseModel], id_field: str) -> bool:

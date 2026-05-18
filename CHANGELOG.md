@@ -7,9 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned
+## [0.4.1] - 2026-05-18
 
-See [ROADMAP.md § 0.4.1 — Real-world ergonomics](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md#041--real-world-ergonomics) and [PLAN.md § Real-world integration lessons](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md#real-world-integration-lessons-04-evaluation): single-pass multi-class load, mapping validation, `Rdf.instance_of`, XSD partial dates, `ResourceRef` hydration, refactor `examples/realworld/` (and related snippets/tests) to use each new API, and cookbook updates.
+### Added
+
+- **`load_graph`** — public alias for `parse_into_graph`
+- **`load_models_from_graph`** — load multiple `TripleModel` classes from one `Graph` without re-parsing
+- **`load_models(path, *classes)`** — single file parse returning `dict[type, list[Model]]` when multiple classes are passed
+- **`Rdf.instance_of` / `Rdf.instance_type_uri`** — property-based subject discovery (Wikidata `wdt:P31`, etc.)
+- **`ref_field(predicate, model=...)`** — URI foreign-key fields that hydrate a linked model on import
+- **XSD partial dates** — `gYear`, `gMonth`, `gMonthDay` import via literal registry; `rdf_field(..., literal_datatype="xsd:gYear")` for export
+- **Predicate mapping validation** — invalid `rdf_predicate` IRIs fail at class definition; warn when predicate equals a prefix namespace URI
+- **Guide** — `docs/guides/11-real-world-patterns.md`
+
+### Changed
+
+- **`examples/realworld/`** — Nobel/DCAT use `load_models`; Wikidata uses `instance_of` + `ref_field`; Schema.org uses typed `gYear` for `foundingDate`
+- **`tests/test_realworld_examples.py`** — API coverage via `tests/test_041_features.py`
 
 ## [0.4.0] - 2026-05-17
 

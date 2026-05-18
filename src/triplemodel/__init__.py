@@ -15,7 +15,7 @@ from triplemodel.config import (
     id_from_subject_uri,
     subject_base,
 )
-from triplemodel.fields import IriId, InverseOf, Predicate, rdf_field
+from triplemodel.fields import IriId, InverseOf, Predicate, rdf_field, ref_field
 from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.terms.lang import Lang, LangString
 from triplemodel.terms.opaque import OpaqueLiteral
@@ -28,7 +28,9 @@ from triplemodel.io import (
     graph_to_model_dispatch,
     graph_to_models,
     infer_format,
+    load_graph,
     load_models,
+    load_models_from_graph,
     model_to_graph,
     model_to_triples,
     models_to_graph,
@@ -47,7 +49,7 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 __all__ = [
     "EmbedMode",
@@ -60,8 +62,11 @@ __all__ = [
     "dump_model",
     "graph_to_model_dispatch",
     "infer_format",
+    "load_graph",
     "load_models",
+    "load_models_from_graph",
     "parse_into_graph",
+    "ref_field",
     "parse_url_into_graph",
     "resolve_model_class",
     "validate_graph",

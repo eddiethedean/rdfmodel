@@ -6,11 +6,13 @@ from typing import cast
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
+from rdflib import Literal, URIRef, XSD
 
 from triplemodel._typing import ModelFieldScalar, ModelFieldValue, TripleRow
 from triplemodel.config import RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel.embed.strategies import export_nested_triples
-from triplemodel.fields.metadata import lang_for_field
+from triplemodel.fields.metadata import lang_for_field, literal_datatype_for_field
+from triplemodel.namespaces import resolve_predicate
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.terms.lang import LangString
 from triplemodel.metadata.cardinality import (
@@ -89,14 +91,28 @@ def model_to_triples(
             )
             continue
 
+        if card == "ref":
+            if value is None:
+                continue
+            child_cfg = get_rdf_config(type(value))
+            triples.append((subject, predicate, child_cfg.subject_uri(value)))
+            continue
+
         if card == "list":
             continue
 
         lang = lang_for_field(field_info)
+        dt_raw = literal_datatype_for_field(field_info)
         for item in _field_values_for_export(name, value, field_info):
             obj = item
             if lang and isinstance(obj, str):
                 obj = LangString(obj, lang)
+            elif dt_raw is not None and isinstance(item, int):
+                if dt_raw in ("gYear", "xsd:gYear") or dt_raw == str(XSD.gYear):
+                    obj = Literal(str(item), datatype=XSD.gYear)
+                else:
+                    dt_uri = resolve_predicate(dt_raw, prefixes)
+                    obj = Literal(str(item), datatype=URIRef(dt_uri))
             triples.append((subject, predicate, obj))
 
     return triples

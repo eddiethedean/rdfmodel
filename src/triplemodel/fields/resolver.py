@@ -39,6 +39,8 @@ class FieldPredicateResolver:
         if cfg.type_uri:
             preds.add(RDF_TYPE)
         prefixes = cfg.prefixes_dict
+        for pred_raw in cfg.instance_of_predicates:
+            preds.add(resolve_predicate(pred_raw, prefixes))
         for field_info in model_cls.model_fields.values():
             pred = self.resolve_field_predicate(field_info, prefixes)
             if pred is not None:

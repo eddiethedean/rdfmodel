@@ -67,6 +67,9 @@ class TripleModel(BaseModel):
         for field_info in cls.model_fields.values():
             raise_if_nested_collection(field_info)
             raise_if_inverse_collection(field_info)
+        from triplemodel.fields.validation import validate_model_predicates
+
+        validate_model_predicates(cls)
         register_rdf_resource(cls)
 
     def subject_uri(self, *, uri: str | None = None) -> str:

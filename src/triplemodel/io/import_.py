@@ -144,7 +144,7 @@ def import_field_value(
             return [] if card == "list" else set()
         return None
 
-    if card == "nested" and nested_cls is not None:
+    if card in ("nested", "ref") and nested_cls is not None:
         if len(objects) > 1 and on_duplicate != "ignore":
             _handle_duplicate(field_name, predicate, uri, len(objects), on_duplicate)
         term = objects[0]
@@ -222,6 +222,27 @@ def graph_to_model(
         if (subject, URIRef(RDF_TYPE), type_ref) not in graph:
             raise ValueError(
                 f"Subject {uri_str!r} does not have rdf:type {cfg.type_uri!r} required by "
+                f"{model_cls.__name__}."
+            )
+    elif validate_type and cfg.instance_of_predicates:
+        prefixes = cfg.prefixes_dict
+        type_uris = cfg.instance_type_uris
+        matched = False
+        for pred_raw in cfg.instance_of_predicates:
+            pred_ref = URIRef(resolve_predicate(pred_raw, prefixes))
+            if type_uris:
+                for type_raw in type_uris:
+                    type_ref = URIRef(resolve_predicate(type_raw, prefixes))
+                    if (subject, pred_ref, type_ref) in graph:
+                        matched = True
+                        break
+            elif list(graph.objects(subject, pred_ref)):
+                matched = True
+            if matched:
+                break
+        if not matched:
+            raise ValueError(
+                f"Subject {uri_str!r} does not match instance_of constraints for "
                 f"{model_cls.__name__}."
             )
 
@@ -306,7 +327,10 @@ def graph_to_models(
     de_skolemize: bool | None = None,
 ) -> list[T]:
     """Load all resources of ``type_uri`` (or the model's configured type) as models."""
-    from triplemodel.io.discovery import discover_subject_uris
+    from triplemodel.io.discovery import (
+        discover_subject_uris,
+        discover_subjects_by_instance_of,
+    )
 
     cfg = config or get_rdf_config(model_cls)
     rdf_type = type_uri if type_uri is not None else cfg.type_uri
@@ -334,7 +358,14 @@ def graph_to_models(
         instances.sort(key=lambda m: cfg.subject_uri(m))
         return instances
 
-    for subject_uri in discover_subject_uris(graph, model_cls, cfg, resolver=resolver):
+    if cfg.instance_of_predicates:
+        subject_uris = discover_subjects_by_instance_of(graph, cfg)
+    else:
+        subject_uris = discover_subject_uris(
+            graph, model_cls, cfg, resolver=resolver
+        )
+
+    for subject_uri in subject_uris:
         instances.append(
             graph_to_model(
                 graph,

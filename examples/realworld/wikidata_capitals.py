@@ -10,9 +10,10 @@ Source: Wikidata Q90, Q84, Q64 (+ country labels) — CC0 1.0
 
 from __future__ import annotations
 
-from triplemodel import TripleModel, rdf_field
+from typing import Annotated
+
+from triplemodel import TripleModel, load_graph, rdf_field, ref_field
 from triplemodel.fields import IriId
-from triplemodel.io.files import parse_into_graph
 
 from _paths import data_file
 
@@ -33,58 +34,47 @@ class WikidataItem(TripleModel):
         id_field = "qid"
         prefixes = WIKIDATA_PREFIXES
 
-    qid: str = IriId()
-    label_en: str = rdf_field("rdfs:label")
+    qid: Annotated[str, IriId()]
+    label_en: str | None = rdf_field("rdfs:label", default=None)
 
 
 class CapitalCity(TripleModel):
     class Rdf:
         namespace = WD
         type_uri = ""
+        instance_of = "wdt:P31"
+        instance_type_uri = f"{WD}Q174844"
         id_field = "qid"
         prefixes = WIKIDATA_PREFIXES
 
-    qid: str = IriId()
-    label_en: str = rdf_field("rdfs:label")
+    qid: Annotated[str, IriId()]
+    label_en: str | None = rdf_field("rdfs:label", default=None)
     population: int = rdf_field("wdt:P1082")
-    country: str = rdf_field("wdt:P17")
-
-
-CITY_QIDS = ("Q90", "Q84", "Q64")
-COUNTRY_QIDS = ("Q142", "Q145", "Q183")
+    country: WikidataItem = ref_field("wdt:P17", model=WikidataItem)
 
 
 def main() -> None:
     path = data_file("wikidata_capitals.ttl")
-    graph = parse_into_graph(
-        source=path,
-        bind_prefixes=WIKIDATA_PREFIXES,
-    )
-    cities = [
-        CapitalCity.from_graph(graph, f"{WD}{qid}", validate_type=False)
-        for qid in CITY_QIDS
-    ]
-    countries = {
-        f"{WD}{qid}": WikidataItem.from_graph(graph, f"{WD}{qid}", validate_type=False)
-        for qid in COUNTRY_QIDS
-    }
+    graph = load_graph(source=path, bind_prefixes=WIKIDATA_PREFIXES)
+    cities = CapitalCity.all_from_graph(graph, validate_type=False)
 
     print("European capitals (Wikidata excerpt):")
     for city in sorted(cities, key=lambda c: c.population, reverse=True):
-        country_name = countries[city.country].label_en
-        country_qid = city.country.rsplit("/", 1)[-1]
+        country_qid = city.country.qid
         print(
             f"  {city.label_en}: population={city.population:,} "
-            f"country={country_name} ({country_qid})"
+            f"country={city.country.label_en} ({country_qid})"
         )
 
     paris = next(c for c in cities if c.qid.endswith("Q90"))
     assert paris.label_en == "Paris"
     assert paris.population == 2_103_778
+    assert paris.country.label_en == "France"
     g = paris.to_graph()
     restored = CapitalCity.from_graph(g, paris.subject_uri(), validate_type=False)
     assert restored.population == paris.population
-    print("Paris round-trip OK")
+    assert restored.country.qid.endswith("Q142")
+    print("Paris round-trip OK (country link preserved; labels live in source graph)")
 
 
 if __name__ == "__main__":

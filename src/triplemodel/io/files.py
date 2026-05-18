@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast, overload
 
 from pydantic import BaseModel
 from rdflib import Graph
@@ -14,6 +14,9 @@ from urllib.request import Request, urlopen
 from triplemodel.namespaces import bind_namespaces
 
 TModel = TypeVar("TModel", bound=BaseModel)
+T1 = TypeVar("T1", bound=BaseModel)
+T2 = TypeVar("T2", bound=BaseModel)
+T3 = TypeVar("T3", bound=BaseModel)
 
 _SUFFIX_TO_FORMAT: dict[str, str] = {
     ".ttl": "turtle",
@@ -146,17 +149,107 @@ def parse_url_into_graph(
     )
 
 
+def load_graph(
+    source: str | Path | io.BytesIO | io.StringIO | bytes | None = None,
+    *,
+    data: str | bytes | None = None,
+    format: str | None = None,
+    base: str | None = None,
+    bind_prefixes: Mapping[str, str] | None = None,
+    jsonld_context: dict[str, Any] | str | None = None,
+    **rdflib_kwargs: Any,
+) -> Graph:
+    """Parse RDF into an in-memory :class:`rdflib.Graph` (alias for :func:`parse_into_graph`)."""
+    return parse_into_graph(
+        source=source,
+        data=data,
+        format=format,
+        base=base,
+        bind_prefixes=bind_prefixes,
+        jsonld_context=jsonld_context,
+        **rdflib_kwargs,
+    )
+
+
+def load_models_from_graph(
+    graph: Graph,
+    *model_classes: type[TModel],
+    **kwargs: Any,
+) -> dict[type[TModel], list[TModel]]:
+    """Load multiple model classes from one graph without re-parsing."""
+    from triplemodel.io.import_ import graph_to_models
+    from triplemodel.model import TripleModel
+
+    result: dict[type[TModel], list[TModel]] = {}
+    for model_cls in model_classes:
+        if not issubclass(model_cls, TripleModel):
+            raise TypeError(f"{model_cls!r} is not a TripleModel subclass.")
+        result[model_cls] = cast(
+            list[TModel], graph_to_models(graph, model_cls, **kwargs)
+        )
+    return result
+
+
+@overload
 def load_models(
     path: str | Path,
     model_cls: type[TModel],
     **kwargs: Any,
-) -> list[TModel]:
-    """Load models from a file (alias for ``model_cls.parse_file``)."""
+) -> list[TModel]: ...
+
+
+@overload
+def load_models(
+    path: str | Path,
+    model_cls1: type[T1],
+    model_cls2: type[T2],
+    **kwargs: Any,
+) -> dict[type[T1] | type[T2], list[T1] | list[T2]]: ...
+
+
+@overload
+def load_models(
+    path: str | Path,
+    model_cls1: type[T1],
+    model_cls2: type[T2],
+    model_cls3: type[T3],
+    **kwargs: Any,
+) -> dict[
+    type[T1] | type[T2] | type[T3], list[T1] | list[T2] | list[T3]
+]: ...
+
+
+def load_models(
+    path: str | Path,
+    *model_classes: type[TModel],
+    **kwargs: Any,
+) -> list[TModel] | dict[type[TModel], list[TModel]]:
+    """Load one or more model classes from a file (single parse for multiple classes)."""
+    from triplemodel.config import get_rdf_config
     from triplemodel.model import TripleModel
 
-    if not issubclass(model_cls, TripleModel):
-        raise TypeError(f"{model_cls!r} is not a TripleModel subclass.")
-    return model_cls.parse_file(path, **kwargs)
+    if not model_classes:
+        raise TypeError("load_models() requires at least one model class.")
+    for model_cls in model_classes:
+        if not issubclass(model_cls, TripleModel):
+            raise TypeError(f"{model_cls!r} is not a TripleModel subclass.")
+    if len(model_classes) == 1:
+        return cast(list[TModel], model_classes[0].parse_file(path, **kwargs))
+    lead = model_classes[0]
+    cfg = get_rdf_config(lead)
+    fmt = infer_format(path, kwargs.get("format"))
+    resolved_base = (
+        kwargs.get("base") if kwargs.get("base") is not None else cfg.base_uri
+    )
+    graph = parse_into_graph(
+        source=path,
+        format=fmt,
+        base=resolved_base,
+        bind_prefixes=cfg.prefixes_dict,
+        jsonld_context=cfg.jsonld_context,
+        **kwargs,
+    )
+    return load_models_from_graph(graph, *model_classes, **kwargs)
 
 
 def dump_model(

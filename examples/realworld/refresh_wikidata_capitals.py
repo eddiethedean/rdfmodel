@@ -68,7 +68,7 @@ def build_turtle(rows: list[dict[str, str]]) -> str:
     countries: dict[str, str] = {}
     for row in rows:
         qid = row["city"].rsplit("/", 1)[-1]
-        lines.append(f"wd:{qid} rdfs:label {json.dumps(row['cityLabel'] + '@en')} ;")
+        lines.append(f"wd:{qid} rdfs:label {json.dumps(row['cityLabel'])}@en ;")
         lines.append("    wdt:P31 wd:Q174844 ;")
         if row["pop"]:
             lines.append(f'    wdt:P1082 "{row["pop"]}"^^xsd:decimal ;')
@@ -81,7 +81,7 @@ def build_turtle(rows: list[dict[str, str]]) -> str:
             lines[-1] = lines[-1].rstrip(" ;") + " ."
         lines.append("")
     for cqid, label in sorted(countries.items()):
-        lines.append(f"wd:{cqid} rdfs:label {json.dumps(label + '@en')} .")
+        lines.append(f"wd:{cqid} rdfs:label {json.dumps(label)}@en .")
     lines.append("")
     return "\n".join(lines)
 

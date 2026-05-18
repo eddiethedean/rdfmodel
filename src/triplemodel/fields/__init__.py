@@ -7,6 +7,7 @@ from triplemodel.fields.metadata import (
     id_field_is_iri_id,
     inverse_for_field,
     rdf_field,
+    ref_field,
 )
 from triplemodel.fields.metadata import (
     annotation_has_iri_id,
@@ -33,5 +34,6 @@ __all__ = [
     "predicate_for_field",
     "predicate_from_annotation",
     "rdf_field",
+    "ref_field",
     "resolve_field_predicate",
 ]

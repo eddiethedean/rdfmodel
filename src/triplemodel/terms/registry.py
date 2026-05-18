@@ -23,6 +23,9 @@ class LiteralRegistry:
             type,
             tuple[Callable[..., Literal], Callable[[Literal], RegistryValue]],
         ] = {}
+        self._datatype_from_literal: dict[
+            str, Callable[[Literal], RegistryValue]
+        ] = {}
 
     def register_literal_type(
         self,
@@ -41,6 +44,15 @@ class LiteralRegistry:
             from rdflib.term import bind
 
             bind(datatype, py_type)
+            self._datatype_from_literal[str(datatype)] = cast(
+                Callable[[Literal], RegistryValue], from_literal
+            )
+
+    def converter_for_datatype(
+        self, datatype: str
+    ) -> Callable[[Literal], RegistryValue] | None:
+        """Return import converter registered for an XSD datatype IRI."""
+        return self._datatype_from_literal.get(datatype)
 
     def converter_for_type(
         self, py_type: type
@@ -68,6 +80,10 @@ class LiteralRegistry:
     def literal_to_python(
         self, term: Literal, py_type: type[PyT] | type | None
     ) -> RegistryValue | PyT | None:
+        if isinstance(term, Literal) and term.datatype is not None:
+            by_dt = self.converter_for_datatype(str(term.datatype))
+            if by_dt is not None:
+                return by_dt(term)
         if py_type is None:
             return None
         conv = self.converter_for_type(py_type)
@@ -98,6 +114,24 @@ default_registry.register_literal_type(
     Decimal, _decimal_to_literal, _decimal_from_literal, datatype=str(XSD.decimal)
 )
 default_registry.register_literal_type(UUID, _uuid_to_literal, _uuid_from_literal)
+
+
+def _g_year_from_literal(term: Literal) -> int:
+    return int(str(term))
+
+
+def _g_month_from_literal(term: Literal) -> str:
+    return str(term)
+
+
+def _g_month_day_from_literal(term: Literal) -> str:
+    return str(term)
+
+
+# Partial XSD dates: import via datatype; export via rdf_field(literal_datatype=...)
+default_registry._datatype_from_literal[str(XSD.gYear)] = _g_year_from_literal
+default_registry._datatype_from_literal[str(XSD.gMonth)] = _g_month_from_literal
+default_registry._datatype_from_literal[str(XSD.gMonthDay)] = _g_month_day_from_literal
 
 
 def register_literal_type(

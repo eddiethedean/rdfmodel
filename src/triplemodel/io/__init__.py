@@ -1,6 +1,9 @@
 """Graph I/O: export, import, sync, and helpers."""
 
-from triplemodel.io.discovery import discover_subject_uris
+from triplemodel.io.discovery import (
+    discover_subject_uris,
+    discover_subjects_by_instance_of,
+)
 from triplemodel.io.export import model_to_triples
 from triplemodel.io.graph import model_to_graph, models_to_graph, write_model_add
 from triplemodel.io.import_ import (
@@ -22,7 +25,9 @@ from triplemodel.io.files import (
     dump_model,
     fetch_url,
     infer_format,
+    load_graph,
     load_models,
+    load_models_from_graph,
     parse_into_graph,
     parse_url_into_graph,
 )
@@ -35,12 +40,15 @@ __all__ = [
     "OnDuplicate",
     "all_from_graph_dispatch",
     "discover_subject_uris",
+    "discover_subjects_by_instance_of",
     "dump_graph",
     "dump_model",
     "fetch_url",
     "graph_to_model_dispatch",
     "infer_format",
+    "load_graph",
     "load_models",
+    "load_models_from_graph",
     "parse_into_graph",
     "parse_url_into_graph",
     "graph_set",

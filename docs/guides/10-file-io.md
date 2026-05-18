@@ -79,6 +79,24 @@ person.to_graph(shacl_shapes="shapes.ttl")
 person.serialize(format="turtle", shacl_shapes=shapes_graph)
 ```
 
+## Multi-class load (one parse)
+
+When one Turtle file contains several `rdf:type`s (Nobel laureates and prizes, DCAT catalog and datasets):
+
+```python
+from triplemodel import load_graph, load_models, load_models_from_graph
+
+bundles = load_models("catalog.ttl", DataCatalog, Dataset, Distribution)
+catalogs = bundles[DataCatalog]
+
+graph = load_graph("catalog.ttl", bind_prefixes=DataCatalog.Rdf.prefixes)
+bundles = load_models_from_graph(graph, DataCatalog, Dataset)
+```
+
+For a single heterogeneous list by registered `rdf:type`, use `parse_file(..., dispatch=True)` instead.
+
+See {doc}`11-real-world-patterns` for Wikidata typing, `ref_field`, and XSD `gYear`.
+
 ## Module helpers
 
 ```python

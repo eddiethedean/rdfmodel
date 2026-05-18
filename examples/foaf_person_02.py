@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from rdflib import Graph
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 from triplemodel.vocab import FOAF

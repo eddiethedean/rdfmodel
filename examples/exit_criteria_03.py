@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Annotated
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
-from triplemodel.terms.lang import Lang, LangString
+from triplemodel.terms.lang import LangString
 from triplemodel.vocab import DC, FOAF
 
 EX = "http://example.org/people/"

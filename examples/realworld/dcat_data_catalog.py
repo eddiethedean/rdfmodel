@@ -10,7 +10,9 @@ Source: DCAT-AP sample describing Nobel Media linked data (SEMIC / nobelprize.or
 
 from __future__ import annotations
 
-from triplemodel import TripleModel, rdf_field
+from typing import cast
+
+from triplemodel import TripleModel, load_models, rdf_field
 
 from _paths import data_file
 
@@ -57,9 +59,10 @@ class Distribution(TripleModel):
 
 def main() -> None:
     path = data_file("dcat_nobel_catalog.ttl")
-    catalogs = DataCatalog.parse_file(path)
-    datasets = Dataset.parse_file(path)
-    distributions = Distribution.parse_file(path)
+    bundles = load_models(path, DataCatalog, Dataset, Distribution)
+    catalogs = cast(list[DataCatalog], bundles[DataCatalog])
+    datasets = cast(list[Dataset], bundles[Dataset])
+    distributions = cast(list[Distribution], bundles[Distribution])
 
     print(f"Catalog: {catalogs[0].title}")
     for ds in datasets:

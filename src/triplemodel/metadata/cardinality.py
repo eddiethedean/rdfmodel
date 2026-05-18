@@ -13,7 +13,7 @@ from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.terms.lang import LangString
 from triplemodel.terms.opaque import OpaqueLiteral
 
-FieldCardinality = Literal["scalar", "list", "set", "nested"]
+FieldCardinality = Literal["scalar", "list", "set", "nested", "ref"]
 
 
 def field_annotation(field_info: FieldInfo) -> AnnotationExpr:
@@ -85,6 +85,13 @@ def is_triple_model_type(tp: AnnotationExpr) -> bool:
     return is_rdf_resource_class(tp)
 
 
+def _ref_link_for_field(field_info: FieldInfo) -> bool:
+    extra = field_info.json_schema_extra
+    if isinstance(extra, dict):
+        return bool(cast("dict[str, object]", extra).get("rdf_ref_link"))
+    return False
+
+
 def field_cardinality(field_info: FieldInfo) -> FieldCardinality:
     """Classify how a mapped field maps to RDF objects."""
     ann = unwrap_annotation(field_annotation(field_info))
@@ -94,6 +101,8 @@ def field_cardinality(field_info: FieldInfo) -> FieldCardinality:
     if origin is set:
         return "set"
     if isinstance(ann, type) and is_triple_model_type(ann):
+        if _ref_link_for_field(field_info):
+            return "ref"
         return "nested"
     return "scalar"
 
@@ -116,7 +125,7 @@ def scalar_python_type(field_info: FieldInfo) -> type | None:
     if card in ("list", "set"):
         inner = element_type(field_annotation(field_info))
         return inner if isinstance(inner, type) else None
-    if card == "nested":
+    if card in ("nested", "ref"):
         return None
     if ann is LangString:
         return LangString
