@@ -4,13 +4,13 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.7.0)
+## Current status (0.8.0)
 
-**Release-ready (beta) on `main`:** PyPI latest is **0.6.0**; **0.7.0** publishes when tag `v0.7.0` is pushed. In-repo: graph comparison, CBD, RDFS subclass dispatch, `hydrate_refs`, `VocabularyRegistry`, transitive import helpers, {doc}`guides/14-graph-algorithms-and-rdfs`, and pre-release hardening (import skolemize, `Rdf.resolve_subclass`, bulk dispatch).
+**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.8.0`** — stores, chunked/streaming import, strict import, predicate-map caching, plugin hooks, and experimental `triplemodel-codegen` (see {doc}`ROADMAP` and {doc}`guides/15-stores-scale-and-strict`).
 
-**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_07.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_07.py) for CBD + subclass dispatch.
+**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_08.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_08.py) for chunked/streaming load; [examples/stores/sqlalchemy_sqlite.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/stores/sqlalchemy_sqlite.py) for SQLAlchemy store lifecycle.
 
-**Next focus:** **0.8.0** — stores, scale, optional OWL/RDFS codegen CLI (see {doc}`ROADMAP`).
+**Next focus:** **0.9.0** — rdflib parity audit, API freeze, full parser/store plugin passthrough (see {doc}`ROADMAP`).
 
 ---
 

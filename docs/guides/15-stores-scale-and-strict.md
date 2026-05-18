@@ -78,4 +78,4 @@ See ``examples/stores/sqlalchemy_sqlite.py`` and {doc}`13-sparql-and-endpoints` 
 triplemodel-codegen examples/codegen/sample.ttl -o models.py
 ```
 
-OWL/RDFS classes and datatype properties become stub ``TripleModel`` subclasses. Output is best-effort only.
+OWL/RDFS classes and datatype properties become stub ``TripleModel`` subclasses. Output is best-effort only — see limitations in {doc}`../api/codegen`.

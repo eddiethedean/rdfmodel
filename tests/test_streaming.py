@@ -52,6 +52,30 @@ def _sqlalchemy_store_available() -> bool:
     not _sqlalchemy_store_available(),
     reason="rdflib-sqlalchemy store plugin not installed",
 )
+def test_load_models_streaming_removes_ephemeral_store(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import os
+    import tempfile
+
+    path = tmp_path / "people.nt"
+    _write_nt(path, 1)
+    db_path = tmp_path / "ephemeral.sqlite"
+
+    def fake_mkstemp(*, suffix: str = ".sqlite"):
+        fd = os.open(db_path, os.O_CREAT | os.O_RDWR)
+        return fd, str(db_path)
+
+    monkeypatch.setattr(tempfile, "mkstemp", fake_mkstemp)
+    people = load_models_streaming(path, StreamPerson, store="sqlalchemy")
+    assert len(people) == 1
+    assert not db_path.exists()
+
+
+@pytest.mark.skipif(
+    not _sqlalchemy_store_available(),
+    reason="rdflib-sqlalchemy store plugin not installed",
+)
 def test_load_models_streaming_sqlalchemy_store(tmp_path: Path) -> None:
     path = tmp_path / "people.nt"
     _write_nt(path, 2)

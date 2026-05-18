@@ -40,7 +40,38 @@ def _write_nt(path: Path, count: int) -> None:
             fh.write(f'{subj} <{FOAF_NAME}> "Person {i}" .\n')
 
 
+def _strict_import_smoke() -> None:
+    g = Graph()
+    subj = URIRef(f"{EX}strict0")
+    g.add((subj, URIRef(RDF_TYPE), URIRef(FOAF_PERSON)))
+    g.add((subj, URIRef(FOAF_NAME), Literal("OK")))
+    people = list(
+        iter_graph_to_models(g, Person, chunk_size=10, strict_import=True)
+    )
+    assert len(people) == 1 and people[0][0].name == "OK"
+    print("strict_import smoke OK")
+
+
+def _store_smoke(nt_path: Path) -> None:
+    try:
+        from rdflib import Graph as RdfGraph
+
+        RdfGraph(store="SQLAlchemy", identifier="sqlite:///:memory:").close()
+    except Exception:
+        print("store smoke skipped (install triplemodel[sqlalchemy])")
+        return
+    people = load_models_streaming(
+        nt_path,
+        Person,
+        store="sqlalchemy",
+        chunk_size=min(500, max(COUNT, 1)),
+    )
+    assert len(people) == COUNT
+    print(f"sqlalchemy store smoke OK ({len(people)} people)")
+
+
 def main() -> None:
+    _strict_import_smoke()
     with tempfile.TemporaryDirectory() as tmp:
         nt_path = Path(tmp) / "people.nt"
         _write_nt(nt_path, COUNT)
@@ -64,7 +95,9 @@ def main() -> None:
             f"streaming load: {len(streamed)} people, {elapsed_stream:.2f}s "
             f"(TRIPLEMODEL_BENCH_COUNT={COUNT})"
         )
-    print("0.8.0 stores, scale, and strict import OK")
+        if os.environ.get("TRIPLEMODEL_STORE", "").lower() == "sqlalchemy":
+            _store_smoke(nt_path)
+    print("0.8.0 chunked/streaming import OK")
 
 
 if __name__ == "__main__":

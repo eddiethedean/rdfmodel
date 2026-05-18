@@ -251,6 +251,9 @@ def load_models(
     use_dataset = is_quad_format(fmt) or any(
         get_rdf_config(mc).graph_iri for mc in model_classes
     )
+    from triplemodel.io.import_ import split_load_kwargs
+
+    parse_kwargs, import_kwargs = split_load_kwargs(kwargs)
     if use_dataset:
         from triplemodel.io.dataset import load_models_from_dataset, parse_into_dataset
 
@@ -260,39 +263,59 @@ def load_models(
             base=resolved_base,
             bind_prefixes=cfg.prefixes_dict,
             jsonld_context=cfg.jsonld_context,
-            **kwargs,
+            **parse_kwargs,
         )
-        return load_models_from_dataset(dataset, *model_classes, **kwargs)
+        return load_models_from_dataset(dataset, *model_classes, **import_kwargs)
     graph = parse_into_graph(
         source=path,
         format=fmt,
         base=resolved_base,
         bind_prefixes=cfg.prefixes_dict,
         jsonld_context=cfg.jsonld_context,
-        **kwargs,
+        **parse_kwargs,
     )
-    return load_models_from_graph(graph, *model_classes, **kwargs)
+    return load_models_from_graph(graph, *model_classes, **import_kwargs)
 
 
 def _streaming_store_identifier(
     path: str | Path,
     store: str,
     explicit: str | None,
-) -> str:
+) -> tuple[str, str | None]:
+    """Return ``(store identifier, ephemeral file path to delete)``."""
     if explicit:
-        return explicit
+        return explicit, None
     if store.lower() in ("sqlalchemy", "berkeleydb"):
+        import os
         import tempfile
 
         suffix = ".db" if store.lower() == "berkeleydb" else ".sqlite"
         fd, db_path = tempfile.mkstemp(suffix=suffix)
-        import os
-
         os.close(fd)
         if store.lower() == "sqlalchemy":
-            return f"sqlite:///{db_path}"
-        return db_path
-    return str(path)
+            return f"sqlite:///{db_path}", db_path
+        return db_path, db_path
+    return str(path), None
+
+
+def _cleanup_ephemeral_store(
+    identifier: str,
+    store: str,
+    ephemeral_path: str | None,
+) -> None:
+    """Remove a temporary on-disk store created by :func:`_streaming_store_identifier`."""
+    if ephemeral_path is None:
+        return
+    import os
+
+    from triplemodel.io.stores import destroy_store
+
+    try:
+        destroy_store(identifier, store=store)
+    except Exception:
+        pass
+    if os.path.exists(ephemeral_path):
+        os.unlink(ephemeral_path)
 
 
 def parse_into_store_graph(
@@ -310,7 +333,7 @@ def parse_into_store_graph(
     from triplemodel.io.stores import open_graph, store_commit
 
     fmt = infer_format(path, format)
-    ident = _streaming_store_identifier(path, store, identifier)
+    ident, _ephemeral = _streaming_store_identifier(path, store, identifier)
     graph = open_graph(store, ident)
     parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
     graph.parse(source=str(path), format=fmt, publicID=base, **parse_kwargs)
@@ -334,7 +357,7 @@ def load_models_streaming(
     to avoid holding the full graph in memory. Turtle/TriG still require a full parse.
     """
     from triplemodel.config import get_rdf_config
-    from triplemodel.io.import_ import iter_graph_to_models
+    from triplemodel.io.import_ import iter_graph_to_models, split_load_kwargs
     from triplemodel.model import TripleModel
 
     if not model_classes:
@@ -350,42 +373,64 @@ def load_models_streaming(
     resolved_base = (
         kwargs.get("base") if kwargs.get("base") is not None else cfg.base_uri
     )
-    load_kwargs = {k: v for k, v in kwargs.items() if k not in ("format", "base")}
-    if use_store:
-        graph = parse_into_store_graph(
-            path,
-            store=store or "sqlalchemy",
-            identifier=store_identifier,
-            format=fmt,
-            base=resolved_base,
-            bind_prefixes=cfg.prefixes_dict,
-            jsonld_context=cfg.jsonld_context,
-            **load_kwargs,
-        )
-    else:
-        graph = parse_into_graph(
-            source=path,
-            format=fmt,
-            base=resolved_base,
-            bind_prefixes=cfg.prefixes_dict,
-            jsonld_context=cfg.jsonld_context,
-            **load_kwargs,
-        )
+    parse_kwargs, import_kwargs = split_load_kwargs(kwargs)
+    store_name = store or "sqlalchemy"
+    ephemeral_path: str | None = None
+    graph: Graph | None = None
+    try:
+        if use_store:
+            ident, ephemeral_path = _streaming_store_identifier(
+                path, store_name, store_identifier
+            )
+            graph = parse_into_store_graph(
+                path,
+                store=store_name,
+                identifier=ident,
+                format=fmt,
+                base=resolved_base,
+                bind_prefixes=cfg.prefixes_dict,
+                jsonld_context=cfg.jsonld_context,
+                **parse_kwargs,
+            )
+        else:
+            graph = parse_into_graph(
+                source=path,
+                format=fmt,
+                base=resolved_base,
+                bind_prefixes=cfg.prefixes_dict,
+                jsonld_context=cfg.jsonld_context,
+                **parse_kwargs,
+            )
 
-    def _load_class(model_cls: type[TModel]) -> list[TModel]:
-        instances: list[TModel] = []
-        for chunk in iter_graph_to_models(
-            graph,
-            model_cls,
-            chunk_size=chunk_size,
-            **load_kwargs,
-        ):
-            instances.extend(chunk)
-        return instances
+        def _load_class(model_cls: type[TModel]) -> list[TModel]:
+            instances: list[TModel] = []
+            for chunk in iter_graph_to_models(
+                graph,
+                model_cls,
+                chunk_size=chunk_size,
+                **import_kwargs,
+            ):
+                instances.extend(chunk)
+            return instances
 
-    if len(model_classes) == 1:
-        return _load_class(model_classes[0])
-    return {cls: _load_class(cls) for cls in model_classes}
+        if len(model_classes) == 1:
+            return _load_class(model_classes[0])
+        return {cls: _load_class(cls) for cls in model_classes}
+    finally:
+        if graph is not None:
+            close = getattr(graph.store, "close", None)
+            if callable(close):
+                try:
+                    close()
+                except Exception:
+                    pass
+        if ephemeral_path is not None:
+            store_ident = (
+                f"sqlite:///{ephemeral_path}"
+                if store_name.lower() == "sqlalchemy"
+                else ephemeral_path
+            )
+            _cleanup_ephemeral_store(store_ident, store_name, ephemeral_path)
 
 
 def dump_model(

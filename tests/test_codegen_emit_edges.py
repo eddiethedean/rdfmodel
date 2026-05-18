@@ -48,6 +48,8 @@ def test_generate_skips_non_uri_domain():
 
 
 def test_generate_duplicate_field_names():
+    import warnings
+
     g = Graph()
     cls = URIRef("http://example.org/onto#Item")
     g.add((cls, RDF.type, OWL.Class))
@@ -58,8 +60,11 @@ def test_generate_duplicate_field_names():
         prop = URIRef(uri)
         g.add((prop, RDF.type, OWL.DatatypeProperty))
         g.add((prop, RDFS.domain, cls))
-    source = generate_models_from_graph(g)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        source = generate_models_from_graph(g)
     assert source.count("name:") == 1
+    assert any("duplicate field name" in str(w.message).lower() for w in caught)
 
 
 def test_emit_class_parent_already_emitted():

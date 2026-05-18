@@ -29,6 +29,14 @@ Nothing yet.
 - **Public exports** — store, streaming, and chunked import helpers on the `triplemodel` package root
 - **Field resolver** — `owned_predicates()` delegates to cached maps when using the default resolver
 
+### Fixed
+
+- **`load_models` / `load_models_streaming`** — import kwargs (`validate_type`, `on_duplicate`, etc.) no longer forwarded to rdflib `parse()` (fixes `TypeError` on multi-class loads and streaming)
+- **`iter_graph_to_models`** — reject non-positive `chunk_size` instead of silently loading nothing
+- **Predicate-map cache** — honor `config=` overrides on `graph_to_model` / `owned_predicates_for_class`
+- **Ephemeral SQLAlchemy stores** — auto-created temp DB files from `load_models_streaming` are removed after load
+- **Codegen** — `FileNotFoundError` for missing ontology paths; `UserWarning` when duplicate field names are skipped
+
 ## [0.7.0] - 2026-05-18
 
 ### Added

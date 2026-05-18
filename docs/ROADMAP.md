@@ -94,6 +94,10 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
 | | `open` / `close` / `destroy` on store | context manager / lifecycle helpers | 0.8 **done** |
 | | Store transactions (`commit` / `rollback` / `open`) | passthrough when backing store supports | 0.8 **done** |
+| **Import** | Chunked / streaming model load | `iter_graph_to_models`, `load_models_streaming` | 0.8 **done** |
+| **Import** | Strict / warn on unmapped predicates | `Rdf.strict_import`, `Rdf.warn_unmapped_fields` | 0.8 **done** |
+| **Performance** | Predicate-map cache per class | `predicate_map_for_class`, `owned_predicates_for_class` | 0.8 **done** |
+| **Tools** | OWL/RDFS stub codegen (experimental) | `triplemodel-codegen` CLI | 0.8 **done** |
 | **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 |
 | **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | 1.0 |
 | **Plugins** | Register custom Parser/Serializer/Store | `triplemodel.plugins.register_*` passthrough | 0.9 |
@@ -257,7 +261,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ## 0.6.0 — SPARQL and remote graphs
 
-**Status:** Released (beta) — on PyPI as `triplemodel==0.6.0` (see `0.7.0` for latest)
+**Status:** Released (beta) — on PyPI as `triplemodel==0.6.0` (see **0.8.0** for latest)
 
 **Theme:** rdflib **query** and **SPARQL store** integration (TripleModel **passthrough** — not a Python query DSL).
 
@@ -280,6 +284,8 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ## 0.7.0 — Graph algorithms and RDFS ✅
 
+**Status:** Released (beta) — on PyPI as `triplemodel==0.7.0`
+
 **Theme:** rdflib **graph operations** that help modeling, not replace reasoners.
 
 - [x] **`cbd` wrapper** — `cbd_graph`, `cbd_model`, `TripleModel.cbd`
@@ -298,6 +304,8 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 ---
 
 ## 0.8.0 — Stores, scale, and ergonomics ✅
+
+**Status:** Released (beta) — on PyPI as `triplemodel==0.8.0`
 
 **Theme:** rdflib **stores** and production-sized graphs.
 
@@ -417,6 +425,6 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` | SM-4 (if needed) |
 | 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
 | 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | ✅ |
-| 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | — |
+| 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | ✅ |
 | 0.9.0 | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
 | **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `triplemodel` |

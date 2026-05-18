@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Iterator
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
@@ -53,6 +53,30 @@ from triplemodel.terms.convert import term_to_python
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 T = TypeVar("T", bound=BaseModel)
+
+_IMPORT_KWARG_KEYS = frozenset(
+    {
+        "validate_type",
+        "on_duplicate",
+        "resolver",
+        "registry",
+        "de_skolemize",
+        "strict_import",
+        "warn_unmapped_fields",
+        "type_uri",
+        "config",
+        "chunk_size",
+    }
+)
+
+
+def split_load_kwargs(
+    kwargs: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Split mixed kwargs into rdflib parse kwargs and model import kwargs."""
+    import_kwargs = {k: v for k, v in kwargs.items() if k in _IMPORT_KWARG_KEYS}
+    parse_kwargs = {k: v for k, v in kwargs.items() if k not in _IMPORT_KWARG_KEYS}
+    return parse_kwargs, import_kwargs
 
 
 def _handle_duplicate(
@@ -334,7 +358,9 @@ def graph_to_model(
         elif id_field_is_iri_id(model_cls, cfg.id_field):
             data[cfg.id_field] = uri_str
 
-    for name, predicate in predicate_map_for_class(model_cls, resolver=r).items():
+    for name, predicate in predicate_map_for_class(
+        model_cls, resolver=r, config=cfg
+    ).items():
         if predicate is None:
             continue
         field_info = model_cls.model_fields[name]
@@ -442,6 +468,8 @@ def iter_graph_to_models(
     warn_unmapped_fields: bool | None = None,
 ) -> Iterator[list[T]]:
     """Yield chunks of model instances loaded from ``graph``."""
+    if chunk_size <= 0:
+        raise ValueError(f"chunk_size must be positive, got {chunk_size!r}.")
     cfg = config or get_rdf_config(model_cls)
     from triplemodel.io.skolem import apply_de_skolemize
 

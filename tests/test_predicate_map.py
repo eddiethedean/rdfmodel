@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from triplemodel import TripleModel, rdf_field
+from triplemodel.config import get_rdf_config
 from triplemodel.fields.resolver import FieldPredicateResolver
 from triplemodel.metadata.predicate_map import (
     clear_predicate_map_cache,
@@ -59,3 +62,13 @@ def test_owned_predicates_cached():
     o2 = owned_predicates_for_class(CachedPerson)
     assert o1 is o2
     assert f"{EX}name" in o1
+
+
+def test_owned_predicates_honors_config_override():
+    clear_predicate_map_cache()
+    base = get_rdf_config(CachedPerson)
+    custom = replace(base, instance_of=f"{EX}classifiedAs")
+    owned_default = owned_predicates_for_class(CachedPerson)
+    owned_custom = owned_predicates_for_class(CachedPerson, config=custom)
+    assert f"{EX}classifiedAs" not in owned_default
+    assert f"{EX}classifiedAs" in owned_custom

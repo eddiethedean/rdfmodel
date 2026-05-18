@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from rdflib import Graph, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
 
@@ -19,6 +20,18 @@ def test_ontology_graph_from_string_data():
     )
     g = ontology_graph(ttl, format="turtle")
     assert len(g) >= 1
+
+
+def test_ontology_graph_missing_file(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError, match="not found"):
+        ontology_graph(tmp_path / "missing.ttl")
+
+
+def test_ontology_graph_directory_not_file(tmp_path: Path) -> None:
+    directory = tmp_path / "onto_dir"
+    directory.mkdir()
+    with pytest.raises(FileNotFoundError, match="not a file"):
+        ontology_graph(directory)
 
 
 def test_ontology_graph_from_path(tmp_path: Path):

@@ -124,6 +124,6 @@ No new APIs — reuse existing `examples/realworld/`:
 
 See {doc}`11-real-world-patterns` for `load_models`, `ref_field`, and Wikidata typing.
 
-## Deferred: OWL/RDFS codegen CLI
+## OWL/RDFS codegen (0.8, experimental)
 
-Experimental **codegen** (OWL/RDFS → stub `TripleModel` classes) shipped in **0.8** — see {doc}`15-stores-scale-and-strict`.
+Experimental **codegen** (OWL/RDFS → stub `TripleModel` classes) shipped in **0.8** — see {doc}`15-stores-scale-and-strict` and {doc}`../api/codegen`.

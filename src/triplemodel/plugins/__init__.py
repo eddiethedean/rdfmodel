@@ -2,8 +2,9 @@
 
 Full rdflib parser/store registration passthrough is planned for 0.9
 (``register_parser`` / ``register_store``). For 0.8, register literals and
-pass a custom :class:`~triplemodel.protocols.PredicateResolver` via ``resolver=``
-on import/export helpers, or assign :data:`triplemodel.fields.resolver.default_resolver`.
+use :class:`~triplemodel.fields.resolver.FieldPredicateResolver` via
+:func:`register_predicate_resolver`, or pass ``resolver=`` on import/export
+helpers without registering globally.
 """
 
 from __future__ import annotations

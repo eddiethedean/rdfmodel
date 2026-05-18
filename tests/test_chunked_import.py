@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from rdflib import Graph, Literal, URIRef
 
 from triplemodel import TripleModel, graph_to_models, iter_graph_to_models, rdf_field
@@ -34,6 +35,14 @@ def test_iter_graph_to_models_chunks():
     chunks = list(iter_graph_to_models(g, ChunkPerson, chunk_size=2))
     assert [len(c) for c in chunks] == [2, 2, 1]
     assert sum(len(c) for c in chunks) == 5
+
+
+def test_iter_graph_to_models_invalid_chunk_size():
+    g = _build_graph(1)
+    with pytest.raises(ValueError, match="chunk_size must be positive"):
+        list(iter_graph_to_models(g, ChunkPerson, chunk_size=0))
+    with pytest.raises(ValueError, match="chunk_size must be positive"):
+        list(iter_graph_to_models(g, ChunkPerson, chunk_size=-1))
 
 
 def test_graph_to_models_with_chunk_size():

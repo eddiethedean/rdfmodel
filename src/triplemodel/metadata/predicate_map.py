@@ -7,7 +7,7 @@ from functools import lru_cache
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from triplemodel.config import get_rdf_config
+from triplemodel.config import RdfConfig, get_rdf_config
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.protocols import PredicateResolver
 
@@ -15,6 +15,19 @@ from triplemodel.protocols import PredicateResolver
 def uses_default_resolver(resolver: PredicateResolver | None) -> bool:
     """True when ``resolver`` is unset or the package default."""
     return resolver is None or resolver is default_resolver
+
+
+def _use_predicate_cache(
+    model_cls: type[BaseModel],
+    resolver: PredicateResolver | None,
+    config: RdfConfig | None,
+) -> bool:
+    """True when class-level predicate maps may be served from cache."""
+    if not uses_default_resolver(resolver):
+        return False
+    if config is None:
+        return True
+    return config == get_rdf_config(model_cls)
 
 
 @lru_cache(maxsize=None)
@@ -42,11 +55,12 @@ def predicate_map_for_class(
     model_cls: type[BaseModel],
     *,
     resolver: PredicateResolver | None = None,
+    config: RdfConfig | None = None,
 ) -> dict[str, str | None]:
     """Field name → resolved predicate IRI (cached for ``default_resolver``)."""
-    if uses_default_resolver(resolver):
+    if _use_predicate_cache(model_cls, resolver, config):
         return dict(_predicate_items_default(model_cls))
-    cfg = get_rdf_config(model_cls)
+    cfg = config or get_rdf_config(model_cls)
     prefixes = cfg.prefixes_dict
     r = resolver or default_resolver
     result: dict[str, str | None] = {}
@@ -61,10 +75,10 @@ def owned_predicates_for_class(
     model_cls: type[BaseModel],
     *,
     resolver: PredicateResolver | None = None,
-    config=None,
+    config: RdfConfig | None = None,
 ) -> frozenset[str]:
     """Owned predicate IRIs for ``model_cls`` (cached for ``default_resolver``)."""
-    if uses_default_resolver(resolver):
+    if _use_predicate_cache(model_cls, resolver, config):
         return _owned_predicates_default(model_cls)
     cfg = config or get_rdf_config(model_cls)
     r = resolver or default_resolver

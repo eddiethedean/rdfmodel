@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import warnings
 from urllib.parse import urlparse
 
 from rdflib import Graph, URIRef
@@ -110,6 +111,12 @@ def generate_models_from_graph(graph: Graph) -> str:
             classes.get(class_uri, []), key=lambda x: x[1]
         ):
             if fname in seen_fields:
+                warnings.warn(
+                    f"Skipping duplicate field name {fname!r} on {class_uri!r} "
+                    f"(predicate {prop_uri!r}).",
+                    UserWarning,
+                    stacklevel=2,
+                )
                 continue
             seen_fields.add(fname)
             lines.append(f'    {fname}: {py_type} = rdf_field("{prop_uri}")')

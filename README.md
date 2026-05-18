@@ -79,10 +79,13 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **Inverse predicates** | `rdf_field(..., inverse=...)` for import; forward predicate on export |
 | **Validation** | Optional SHACL via `triplemodel[shacl]` and `shacl_shapes=` on export |
 | **Package typing** | PEP 561 `py.typed` |
-
 | **SPARQL** | `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query` |
 | **Graph algorithms** | `graphs_equal`, `graph_diff`, `model_diff`, `cbd_graph` / `cbd_model`, `hydrate_refs`, `model_join` |
 | **RDFS** | Subclass-aware dispatch, `transitive_objects` / `transitive_subjects`, `VocabularyRegistry`, `Transitive` import |
+| **Scale & stores** | `iter_graph_to_models`, `load_models_streaming`, `parse_into_store_graph`, `open_graph`; optional `triplemodel[sqlalchemy]` |
+| **Strict import** | `Rdf.strict_import`, `Rdf.warn_unmapped_fields` on `graph_to_model` |
+| **Plugins** | `triplemodel.plugins` — `register_predicate_resolver`, literal/resource registration |
+| **Codegen** | Experimental `triplemodel-codegen` CLI (OWL/RDFS → stub models) |
 
 ### `list` vs `set`
 
