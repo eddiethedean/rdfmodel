@@ -140,6 +140,7 @@ def import_field_value(
     embed: EmbedMode,
     on_duplicate: OnDuplicate,
     registry: LiteralRegistry = default_registry,
+    de_skolemize: bool = False,
 ) -> ModelFieldValue:
     """Hydrate a single model field from RDF objects (used by :func:`graph_to_model`)."""
     card = field_cardinality(field_info)
@@ -169,6 +170,7 @@ def import_field_value(
                 term,
                 on_duplicate=on_duplicate,
                 registry=registry,
+                de_skolemize=de_skolemize,
             )
         return import_nested_value(
             graph,
@@ -177,6 +179,7 @@ def import_field_value(
             embed=embed,
             on_duplicate=on_duplicate,
             registry=registry,
+            de_skolemize=de_skolemize,
         )
 
     if card == "list":
@@ -339,6 +342,7 @@ def graph_to_model(
             embed=cfg.embed,
             on_duplicate=on_duplicate,
             registry=registry,
+            de_skolemize=False,
         )
 
     try:

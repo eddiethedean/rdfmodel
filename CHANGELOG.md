@@ -27,6 +27,13 @@ Nothing yet.
 
 - **Wikidata capitals** — `examples/realworld/wikidata_capitals.py` uses `hydrate_refs` for country labels
 - **Public exports** — graph algorithm and RDFS helpers on the `triplemodel` package root
+- **Bulk dispatch** — `all_from_graph_dispatch()` discovers subjects via `resolve_model_class` (RDFS-aware), not only direct registered `rdf:type` triples
+
+### Fixed
+
+- **Import skolemization** — nested `ref_field` / embed imports and `hydrate_refs` pass `de_skolemize=False` after the outermost `de_skolemize`; bulk dispatch de-skolemizes once per graph
+- **`Rdf.resolve_subclass`** — `resolve_model_class()` honors per-class config when `use_subclass` is omitted (previously always used RDFS closure)
+- **Docs** — guide 14 real-world example paths; `docs/examples.md` FOAF nick field type; ROADMAP 0.6 PyPI version; SPARQL helpers on root API index
 
 ### Deferred
 

@@ -59,6 +59,12 @@ def hydrate_refs(
     model_cls = type(instances[0])
     if not field_names:
         return list(instances)
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.skolem import apply_de_skolemize
+
+    cfg = get_rdf_config(model_cls)
+    do_de = cfg.skolemize_import if de_skolemize is None else de_skolemize
+    graph = apply_de_skolemize(graph, de_skolemize=do_de)
     cache: dict[tuple[type[BaseModel], str], BaseModel] = {}
     out: list[T] = []
     for inst in instances:
@@ -86,7 +92,7 @@ def hydrate_refs(
                     on_duplicate=on_duplicate,
                     resolver=resolver,
                     registry=registry,
-                    de_skolemize=de_skolemize,
+                    de_skolemize=False,
                 )
             updates[field_name] = cache[key]
         if updates:

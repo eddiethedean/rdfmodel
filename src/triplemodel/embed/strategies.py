@@ -45,6 +45,7 @@ class IriEmbedStrategy:
         *,
         on_duplicate: OnDuplicate = "warn",
         registry: LiteralRegistry = default_registry,
+        de_skolemize: bool = False,
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
 
@@ -59,6 +60,7 @@ class IriEmbedStrategy:
             str(term),
             on_duplicate=on_duplicate,
             registry=registry,
+            de_skolemize=de_skolemize,
         )
 
 
@@ -100,6 +102,7 @@ class BnodeEmbedStrategy:
         *,
         on_duplicate: OnDuplicate = "warn",
         registry: LiteralRegistry = default_registry,
+        de_skolemize: bool = False,
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
 
@@ -115,6 +118,7 @@ class BnodeEmbedStrategy:
             validate_type=False,
             on_duplicate=on_duplicate,
             registry=registry,
+            de_skolemize=de_skolemize,
         )
 
 
@@ -152,6 +156,7 @@ def import_nested_value(
     embed: EmbedMode = "iri",
     on_duplicate: OnDuplicate = "warn",
     registry: LiteralRegistry = default_registry,
+    de_skolemize: bool = False,
 ) -> BaseModel:
     """Hydrate a nested model from an RDF object term."""
     return get_embed_strategy(embed).import_value(
@@ -160,6 +165,7 @@ def import_nested_value(
         nested_cls,
         on_duplicate=on_duplicate,
         registry=registry,
+        de_skolemize=de_skolemize,
     )
 
 

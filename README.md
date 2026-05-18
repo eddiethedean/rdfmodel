@@ -318,7 +318,7 @@ http://example.org/people/bob%20jones
 - **Dispatch parse** — `parse(..., dispatch=True)` loads every registered `rdf:type` (not only the class you call `.parse` on); `type_uri=` is ignored when `dispatch=True`.
 - **Skolemize** — `skolemize` / `de_skolemize` on import or export mutate the **entire** shared `Graph`, not only the resource being loaded or synced.
 - **BNode subjects** are skipped by `all_from_graph()` and by `parse(..., dispatch=True)` / `all_from_graph_dispatch()`.
-- **Subclass dispatch** — only loads subjects whose `rdf:type` is registered on a model class; other types are omitted without error.
+- **Subclass dispatch** — `parse(..., dispatch=True)` and `all_from_graph_dispatch()` resolve subjects via `Rdf.resolve_subclass` (RDFS closure when enabled); unregistered types are omitted without error.
 - **Default add mode** does not remove stale triples — use `sync_to_graph` or `mode="replace"`.
 - **`sync_to_graph()`** defaults to `replace` when `Rdf.graph_mode` is `"add"` (unlike `to_graph()`, which defaults to add).
 

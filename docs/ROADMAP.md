@@ -257,7 +257,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ## 0.6.0 — SPARQL and remote graphs
 
-**Status:** Release-ready (beta) — tag `v0.6.0` pending (PyPI latest: `0.5.0`)
+**Status:** Released (beta) — on PyPI as `triplemodel==0.6.0` (see `0.7.0` for latest)
 
 **Theme:** rdflib **query** and **SPARQL store** integration (TripleModel **passthrough** — not a Python query DSL).
 

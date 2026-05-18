@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import RDFS
 
@@ -75,6 +76,45 @@ def test_resolve_exact_type_without_subclass():
     alice = URIRef(f"{EX}alice")
     cls = resolve_model_class(g, alice, use_subclass=False)
     assert cls is Agent
+
+
+def test_rdf_resolve_subclass_false_matches_direct_type():
+    class PersonDirect(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{EX}Person"
+            id_field = "slug"
+            resolve_subclass = False
+
+        slug: str
+
+    g = Graph()
+    alice = URIRef(f"{EX}alice")
+    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
+
+    cls = resolve_model_class(g, alice)
+    assert cls is PersonDirect
+
+
+def test_rdf_resolve_subclass_false_skips_superclass_via_closure():
+    class PersonOnly(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{EX}Person"
+            id_field = "slug"
+            resolve_subclass = False
+
+        slug: str
+
+    g = Graph()
+    person_t = URIRef(f"{EX}Person")
+    custom_t = URIRef(f"{EX}CustomRole")
+    alice = URIRef(f"{EX}alice")
+    g.add((custom_t, RDFS.subClassOf, person_t))
+    g.add((alice, URIRef(RDF_TYPE), custom_t))
+
+    with pytest.raises(ValueError, match="No registered"):
+        resolve_model_class(g, alice)
 
 
 def test_transitive_objects_chain():

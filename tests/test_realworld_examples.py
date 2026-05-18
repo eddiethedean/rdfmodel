@@ -75,15 +75,24 @@ def test_dcat_load_models_api(realworld_path: None) -> None:
 def test_wikidata_instance_of_and_ref_field(realworld_path: None) -> None:
     sys.path.insert(0, str(REALWORLD))
     from wikidata_capitals import CapitalCity, load_graph  # noqa: E402  # ty: ignore[unresolved-import]
+    from triplemodel import hydrate_refs  # noqa: E402
 
     graph = load_graph(
         source=REALWORLD / "data" / "wikidata_capitals.ttl",
         bind_prefixes=CapitalCity.Rdf.prefixes,
     )
-    cities = CapitalCity.all_from_graph(graph, validate_type=False)
+    cities = hydrate_refs(
+        CapitalCity.all_from_graph(graph, validate_type=False),
+        graph,
+        "country",
+    )
     assert len(cities) == 2
     paris = next(c for c in cities if c.qid.endswith("Q90"))
+    london = next(c for c in cities if c.qid.endswith("Q84"))
     assert paris.country.label_en == "France"
+    assert london.country.label_en == "United Kingdom"
+    assert paris.country.qid.endswith("Q142")
+    assert london.country.qid.endswith("Q145")
 
 
 def test_schema_org_gyear_from_bundled_ttl(realworld_path: None) -> None:

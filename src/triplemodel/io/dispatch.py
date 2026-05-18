@@ -9,10 +9,11 @@ from pydantic import BaseModel
 from rdflib import Dataset, Graph, Literal, URIRef
 from rdflib.term import Node
 
-from triplemodel.config import RDF_TYPE, get_graph_context, get_rdf_config
+from triplemodel.config import get_graph_context, get_rdf_config
 from triplemodel.io.import_ import OnDuplicate, graph_to_model
 from triplemodel.protocols import (
     PredicateResolver as PredicateResolverProtocol,
+    iter_registered_model_classes,
     iter_registered_type_uris,
     model_class_for_type_uri,
     resolve_model_class,
@@ -56,31 +57,44 @@ def all_from_graph_dispatch(
     registry: LiteralRegistry = default_registry,
     de_skolemize: bool | None = None,
 ) -> list[BaseModel]:
-    """Load all subjects whose ``rdf:type`` maps to a registered model class."""
+    """Load all subjects that resolve to a registered model class."""
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.skolem import apply_de_skolemize
+
+    if de_skolemize is None:
+        do_de = any(
+            get_rdf_config(cls).skolemize_import
+            for cls in iter_registered_model_classes()
+        )
+    else:
+        do_de = de_skolemize
+    graph = apply_de_skolemize(graph, de_skolemize=do_de)
+
     seen: set[str] = set()
     instances: list[BaseModel] = []
-    for type_uri in sorted(iter_registered_type_uris()):
-        for subject in sorted(
-            graph.subjects(URIRef(RDF_TYPE), URIRef(type_uri)),
-            key=str,
-        ):
-            if isinstance(subject, Literal) or not isinstance(subject, URIRef):
-                continue
-            key = str(subject)
-            if key in seen:
-                continue
-            seen.add(key)
-            instances.append(
-                graph_to_model_dispatch(
-                    graph,
-                    subject,
-                    validate_type=validate_type,
-                    on_duplicate=on_duplicate,
-                    resolver=resolver,
-                    registry=registry,
-                    de_skolemize=de_skolemize,
-                )
+    for subject in sorted(graph.subjects(None, None), key=str):
+        if isinstance(subject, Literal) or not isinstance(subject, URIRef):
+            continue
+        key = str(subject)
+        if key in seen:
+            continue
+        try:
+            model_cls = resolve_model_class(graph, subject)
+        except ValueError:
+            continue
+        seen.add(key)
+        instances.append(
+            graph_to_model(
+                graph,
+                model_cls,
+                subject,
+                validate_type=validate_type,
+                on_duplicate=on_duplicate,
+                resolver=resolver,
+                registry=registry,
+                de_skolemize=False,
             )
+        )
     instances.sort(key=lambda m: m.subject_uri())
     return instances
 
@@ -198,34 +212,67 @@ def all_from_dataset_dispatch(
         allowed = set(model_classes)
         type_uris = _type_uris_for_dispatch(model_classes)
 
+    from triplemodel.io.skolem import apply_de_skolemize
+
+    if de_skolemize is None:
+        classes_for_skolem = (
+            list(allowed)
+            if allowed is not None
+            else list(iter_registered_model_classes())
+        )
+        do_de = any(get_rdf_config(cls).skolemize_import for cls in classes_for_skolem)
+    else:
+        do_de = de_skolemize
+
     seen: set[str] = set()
     instances: list[BaseModel] = []
+    contexts_de_skolemized: set[object] = set()
     for type_uri in type_uris:
         model_cls = model_class_for_type_uri(type_uri)
         if model_cls is None:
             continue
         cfg = get_rdf_config(model_cls)
         context = get_graph_context(dataset, cfg.graph_iri)
-        for subject in sorted(
-            context.subjects(URIRef(RDF_TYPE), URIRef(type_uri)),
-            key=str,
-        ):
+        ctx_id = context.identifier
+        if ctx_id not in contexts_de_skolemized:
+            apply_de_skolemize(context, de_skolemize=do_de)
+            contexts_de_skolemized.add(ctx_id)
+        for subject in sorted(context.subjects(None, None), key=str):
             if isinstance(subject, Literal) or not isinstance(subject, URIRef):
                 continue
             key = str(subject)
             if key in seen:
                 continue
+            matching = _contexts_for_subject(dataset, subject)
+            if not matching:
+                continue
+            try:
+                type_view = (
+                    _union_subject_view(matching, subject)
+                    if len(matching) > 1
+                    else context
+                )
+                resolved_cls = resolve_model_class(type_view, subject)
+            except ValueError:
+                continue
+            if allowed is not None and resolved_cls not in allowed:
+                continue
             seen.add(key)
-            instance = graph_to_model_dispatch_from_dataset(
-                dataset,
-                subject,
-                validate_type=validate_type,
-                on_duplicate=on_duplicate,
-                resolver=resolver,
-                registry=registry,
-                de_skolemize=de_skolemize,
+            load_context, load_cls = _resolve_dataset_context(
+                dataset, subject, matching
             )
-            if allowed is None or type(instance) in allowed:
-                instances.append(instance)
+            instances.append(
+                graph_to_model(
+                    load_context,
+                    load_cls,
+                    subject,
+                    config=get_rdf_config(load_cls),
+                    validate_type=validate_type,
+                    on_duplicate=on_duplicate,
+                    resolver=resolver,
+                    registry=registry,
+                    de_skolemize=False,
+                )
+            )
     instances.sort(key=lambda m: m.subject_uri())
     return instances

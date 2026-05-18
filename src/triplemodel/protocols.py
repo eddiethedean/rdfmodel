@@ -7,10 +7,10 @@ from typing import Protocol, cast, runtime_checkable
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from rdflib import Graph, Literal
+from rdflib import Graph, Literal, URIRef
 from rdflib.term import Node
 
-from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
+from triplemodel.config import GraphMode, RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel.terms.registry import LiteralRegistry as LiteralRegistryImpl
 
 _rdf_resource_classes: set[type] = set()
@@ -69,11 +69,34 @@ def resolve_model_class(
     use_subclass: bool | None = None,
 ) -> type[BaseModel]:
     """Pick the most specific registered class for ``subject``'s ``rdf:type`` values."""
-    if use_subclass is None:
-        use_subclass = True
-    from triplemodel.io.rdfs import resolve_model_class_with_rdfs
+    if use_subclass is not None:
+        from triplemodel.io.rdfs import resolve_model_class_with_rdfs
 
-    return resolve_model_class_with_rdfs(graph, subject, use_subclass=use_subclass)
+        return resolve_model_class_with_rdfs(graph, subject, use_subclass=use_subclass)
+    from triplemodel.io.rdfs import (
+        _pick_most_specific,
+        subject_type_closure,
+    )
+
+    direct_types = {str(t) for t in graph.objects(subject, URIRef(RDF_TYPE))}
+    closure = subject_type_closure(graph, subject)
+    candidates: list[type[BaseModel]] = []
+    for type_uri in iter_registered_type_uris():
+        cls = model_class_for_type_uri(type_uri)
+        if cls is None:
+            continue
+        cfg = get_rdf_config(cls)
+        if cfg.resolve_subclass:
+            if type_uri in closure:
+                candidates.append(cls)
+        elif type_uri in direct_types:
+            candidates.append(cls)
+    if not candidates:
+        raise ValueError(
+            f"No registered TripleModel class for subject {subject!r} "
+            f"(rdf:types: {sorted(direct_types)})."
+        )
+    return _pick_most_specific(graph, candidates)
 
 
 def is_rdf_resource_class(tp: type) -> bool:

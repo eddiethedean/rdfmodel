@@ -57,7 +57,9 @@ register_rdf_resource(Agent)
 agent = graph_to_model_dispatch(graph, alice_uri)
 ```
 
-`Rdf.resolve_subclass` (default `True` on `RdfConfig`) controls this behavior. Disable with `use_subclass=False` on `resolve_model_class_with_rdfs` for exact `rdf:type` matching only.
+`Rdf.resolve_subclass` (default `True` on `RdfConfig`) controls this behavior when `resolve_model_class()` is called without `use_subclass=`. Disable per class with `class Rdf: resolve_subclass = False`, or pass `use_subclass=False` to `resolve_model_class_with_rdfs` for exact `rdf:type` matching only.
+
+Bulk loading via `all_from_graph_dispatch()` uses the same resolution rules as single-subject `graph_to_model_dispatch()`.
 
 ## Batch reference hydration
 
@@ -116,8 +118,8 @@ No new APIs — reuse existing `examples/realworld/`:
 
 | Pattern | Example |
 |---------|---------|
-| DCAT portal graphs | `examples/realworld/dcat_portal.py` |
-| `Schema.org` NGO registry | `examples/realworld/schema_org_ngo.py` |
+| DCAT portal graphs | `examples/realworld/dcat_data_catalog.py` |
+| `Schema.org` NGO registry | `examples/realworld/schema_org_ngos.py` |
 | Nobel / biographical LOD | `examples/realworld/nobel_laureates.py` |
 
 See {doc}`11-real-world-patterns` for `load_models`, `ref_field`, and Wikidata typing.

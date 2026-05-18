@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.7.0)
 
-**Release-ready (beta) on `main`:** PyPI latest is **0.6.0**; **0.7.0** publishes when tag `v0.7.0` is pushed. In-repo: graph comparison, CBD, RDFS subclass dispatch, `hydrate_refs`, `VocabularyRegistry`, transitive import helpers, and {doc}`guides/14-graph-algorithms-and-rdfs`.
+**Release-ready (beta) on `main`:** PyPI latest is **0.6.0**; **0.7.0** publishes when tag `v0.7.0` is pushed. In-repo: graph comparison, CBD, RDFS subclass dispatch, `hydrate_refs`, `VocabularyRegistry`, transitive import helpers, {doc}`guides/14-graph-algorithms-and-rdfs`, and pre-release hardening (import skolemize, `Rdf.resolve_subclass`, bulk dispatch).
 
 **Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_07.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_07.py) for CBD + subclass dispatch.
 

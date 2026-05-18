@@ -35,7 +35,7 @@ PYTHONPATH=src python examples/readme_examples.py
 
 ## Nested model with sync (`foaf_person_02.py`)
 
-[`examples/foaf_person_02.py`](https://github.com/eddiethedean/triplemodel/blob/main/examples/foaf_person_02.py) shows nested `Mailbox` (IRI embed), `Rdf.prefixes`, multiple `foaf:nick` values via **`set[str]`**, and clearing `foaf:age` with sync.
+[`examples/foaf_person_02.py`](https://github.com/eddiethedean/triplemodel/blob/main/examples/foaf_person_02.py) shows nested `Mailbox` (IRI embed), `Rdf.prefixes`, multiple `foaf:nick` values via **`list[str]`** (RDF list), and clearing `foaf:age` with sync.
 
 ```bash
 PYTHONPATH=src python examples/foaf_person_02.py
