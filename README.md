@@ -332,16 +332,12 @@ Details: [user guides](https://triplemodel.readthedocs.io/en/latest/guides/index
 ```bash
 git clone https://github.com/eddiethedean/triplemodel.git && cd triplemodel
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-pytest
-ruff format src tests && ruff check src tests
-ty check src tests
-PYTHONPATH=src python examples/exit_criteria_03.py
-PYTHONPATH=src python examples/exit_criteria_06.py
-PYTHONPATH=src:. python examples/doc/regenerate_outputs.py  # refresh doc output files
+pip install -e ".[dev,shacl,sqlalchemy,docs]"
+make ci              # pytest, lint, docs (matches GitHub Actions)
+make release-check   # before tagging: examples + twine check
 ```
 
-CI: Python 3.10–3.13; `tests/test_doc_examples.py` runs every snippet under `examples/doc/snippets/`. Release process: [RELEASING.md](RELEASING.md).
+CI: Python 3.10–3.13. Release process: [RELEASING.md](RELEASING.md).
 
 ## Documentation
 

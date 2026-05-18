@@ -28,6 +28,7 @@ Nothing yet.
 
 - **Public exports** — store, streaming, and chunked import helpers on the `triplemodel` package root
 - **Field resolver** — `owned_predicates()` delegates to cached maps when using the default resolver
+- **CI / dev** — test workflow installs `sqlalchemy` extra; root `Makefile` with `make ci` and `make release-check`
 
 ### Fixed
 

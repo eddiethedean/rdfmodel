@@ -14,9 +14,10 @@
 **Pre-release checklist (0.8.0)**
 
 - [x] `version` `0.8.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] Local gate: `make ci` (matches CI + docs HTML) and `make release-check` (adds examples + `twine check`)
 - [x] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
 - [x] `sphinx-build -b html docs docs/_build/html -W`
-- [x] `PYTHONPATH=src python examples/exit_criteria_08.py` (use `TRIPLEMODEL_BENCH_COUNT=1000` in CI)
+- [x] `examples/exit_criteria_08.py` and release workflow `exit_criteria_05`–`08` + `readme_examples.py`
 - [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
 - [ ] Create and push git tag `v0.8.0`
 

@@ -78,6 +78,7 @@ include = [
     "README.md",
     "CHANGELOG.md",
     "RELEASING.md",
+    "Makefile",
     "examples/readme_examples.py",
     "examples/foaf_person_02.py",
     "examples/exit_criteria_03.py",
