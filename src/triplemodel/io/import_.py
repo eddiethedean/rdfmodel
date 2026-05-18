@@ -361,9 +361,7 @@ def graph_to_models(
     if cfg.instance_of_predicates:
         subject_uris = discover_subjects_by_instance_of(graph, cfg)
     else:
-        subject_uris = discover_subject_uris(
-            graph, model_cls, cfg, resolver=resolver
-        )
+        subject_uris = discover_subject_uris(graph, model_cls, cfg, resolver=resolver)
 
     for subject_uri in subject_uris:
         instances.append(

@@ -38,6 +38,7 @@ guides/07-custom-literals-and-types
 guides/08-working-with-graphs
 guides/09-rdf-lists-and-lang
 guides/10-file-io
+guides/11-real-world-patterns
 ```
 
 ```{toctree}

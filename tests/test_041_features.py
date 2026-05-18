@@ -9,7 +9,14 @@ import pytest
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import RDF as RDF_NS
 
-from triplemodel import TripleModel, load_graph, load_models, load_models_from_graph, rdf_field, ref_field
+from triplemodel import (
+    TripleModel,
+    load_graph,
+    load_models,
+    load_models_from_graph,
+    rdf_field,
+    ref_field,
+)
 from triplemodel.io.import_ import graph_to_models
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,7 +66,9 @@ def test_gyear_imports_as_int() -> None:
             id_field = "slug"
 
         slug: str
-        year: int = rdf_field("https://schema.org/foundingDate", literal_datatype="xsd:gYear")
+        year: int = rdf_field(
+            "https://schema.org/foundingDate", literal_datatype="xsd:gYear"
+        )
 
     g = Graph()
     g.parse(
@@ -126,9 +135,7 @@ def test_load_models_path_multi_class(tmp_path: Path) -> None:
 
     path = tmp_path / "mix.ttl"
     path.write_text(
-        "@prefix ex: <http://ex/> .\n"
-        "ex:a1 a ex:TypeA .\n"
-        "ex:b1 a ex:TypeB .\n",
+        "@prefix ex: <http://ex/> .\nex:a1 a ex:TypeA .\nex:b1 a ex:TypeB .\n",
         encoding="utf-8",
     )
     bundles = load_models(path, A, B)
@@ -163,8 +170,8 @@ def test_instance_of_discovery() -> None:
             f"@prefix wd: <{WD}> .\n"
             f"@prefix wdt: <{WDT}> .\n"
             "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
-            f"wd:Q90 rdfs:label \"Paris\"@en ; wdt:P31 wd:Q174844 .\n"
-            f"wd:Q99 rdfs:label \"Other\"@en ; wdt:P31 wd:Q5 .\n"
+            f'wd:Q90 rdfs:label "Paris"@en ; wdt:P31 wd:Q174844 .\n'
+            f'wd:Q99 rdfs:label "Other"@en ; wdt:P31 wd:Q5 .\n'
         ),
         format="turtle",
     )
@@ -192,7 +199,11 @@ def test_ref_field_hydrates_nested() -> None:
             namespace = WD
             type_uri = ""
             id_field = "qid"
-            prefixes = {"wd": WD, "wdt": WDT, "rdfs": "http://www.w3.org/2000/01/rdf-schema#"}
+            prefixes = {
+                "wd": WD,
+                "wdt": WDT,
+                "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+            }
 
         qid: str
         country: Country = ref_field("wdt:P17", model=Country)
@@ -204,7 +215,7 @@ def test_ref_field_hydrates_nested() -> None:
             f"@prefix wdt: <{WDT}> .\n"
             "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
             'wd:Q142 rdfs:label "France"@en .\n'
-            "wd:Q90 rdfs:label \"Paris\"@en ; wdt:P17 wd:Q142 .\n"
+            'wd:Q90 rdfs:label "Paris"@en ; wdt:P17 wd:Q142 .\n'
         ),
         format="turtle",
     )
@@ -252,11 +263,7 @@ def test_instance_of_validate_type_fails() -> None:
 
     g = Graph()
     g.parse(
-        data=(
-            f"@prefix wd: <{WD}> .\n"
-            f"@prefix wdt: <{WDT}> .\n"
-            f"wd:Q1 wdt:P31 wd:Q1 .\n"
-        ),
+        data=(f"@prefix wd: <{WD}> .\n@prefix wdt: <{WDT}> .\nwd:Q1 wdt:P31 wd:Q1 .\n"),
         format="turtle",
     )
     with pytest.raises(ValueError, match="instance_of"):
@@ -497,7 +504,8 @@ def test_export_literal_datatype_full_uri() -> None:
 
         slug: str
         code: int = rdf_field(
-            "http://ex/code", literal_datatype="http://www.w3.org/2001/XMLSchema#integer"
+            "http://ex/code",
+            literal_datatype="http://www.w3.org/2001/XMLSchema#integer",
         )
 
     doc = Doc(slug="d", code=42)
@@ -530,7 +538,9 @@ def test_gyear_export_literal_datatype() -> None:
             prefixes = {"xsd": str(RdfXSD)}
 
         slug: str
-        year: int = rdf_field("https://schema.org/foundingDate", literal_datatype="xsd:gYear")
+        year: int = rdf_field(
+            "https://schema.org/foundingDate", literal_datatype="xsd:gYear"
+        )
 
     org = Org(slug="x", year=2000)
     rows = org.to_triples()
@@ -594,7 +604,11 @@ def test_wikidata_capitals_instance_of_and_ref() -> None:
             instance_of = "wdt:P31"
             instance_type_uri = f"{WD}Q174844"
             id_field = "qid"
-            prefixes = {"wd": WD, "wdt": WDT, "rdfs": "http://www.w3.org/2000/01/rdf-schema#"}
+            prefixes = {
+                "wd": WD,
+                "wdt": WDT,
+                "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+            }
 
         qid: str
         label_en: str | None = rdf_field("rdfs:label", default=None)

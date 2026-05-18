@@ -40,7 +40,9 @@ def test_nobel_load_models_api(realworld_path: None) -> None:
     from nobel_laureates import Laureate, NobelPrize  # noqa: E402  # ty: ignore[unresolved-import]
     from triplemodel import load_models  # noqa: E402
 
-    bundles = load_models(REALWORLD / "data" / "nobel_laureates_1901.ttl", Laureate, NobelPrize)
+    bundles = load_models(
+        REALWORLD / "data" / "nobel_laureates_1901.ttl", Laureate, NobelPrize
+    )
     assert len(bundles[Laureate]) >= 1
     assert len(bundles[NobelPrize]) >= 1
 

@@ -23,9 +23,7 @@ class LiteralRegistry:
             type,
             tuple[Callable[..., Literal], Callable[[Literal], RegistryValue]],
         ] = {}
-        self._datatype_from_literal: dict[
-            str, Callable[[Literal], RegistryValue]
-        ] = {}
+        self._datatype_from_literal: dict[str, Callable[[Literal], RegistryValue]] = {}
 
     def register_literal_type(
         self,

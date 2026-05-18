@@ -214,9 +214,7 @@ def load_models(
     model_cls2: type[T2],
     model_cls3: type[T3],
     **kwargs: Any,
-) -> dict[
-    type[T1] | type[T2] | type[T3], list[T1] | list[T2] | list[T3]
-]: ...
+) -> dict[type[T1] | type[T2] | type[T3], list[T1] | list[T2] | list[T3]]: ...
 
 
 def load_models(
