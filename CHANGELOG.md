@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+See [ROADMAP.md § 0.4.1 — Real-world ergonomics](docs/ROADMAP.md#041--real-world-ergonomics) and [PLAN.md § Real-world integration lessons](docs/PLAN.md#real-world-integration-lessons-04-evaluation): single-pass multi-class load, mapping validation, `Rdf.instance_of`, XSD partial dates, `ResourceRef` hydration, and cookbook updates from `examples/realworld/`.
+
 ## [0.4.0] - 2026-05-17
 
 ### Fixed

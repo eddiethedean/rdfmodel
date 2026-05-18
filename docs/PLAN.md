@@ -8,9 +8,11 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 **Released (beta) on PyPI:** File `parse` / `serialize` (rdflib formats), `Rdf.base_uri`, JSON-LD context passthrough, subclass dispatch by `rdf:type`, inverse predicates on import, and optional SHACL via `triplemodel[shacl]`. Earlier releases add RDF lists, `LangString`, blank-node hardening, and graph sync. SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
 
-**Not yet shipped:** Dataset/named graphs (**0.5**).
+**Validated in-repo:** [`examples/realworld/`](../examples/realworld/) — Nobel linked data, DCAT catalog, Wikidata capitals excerpt, Schema.org NGOs (offline TTL + CI tests). These exercises informed **0.4.1** priorities in [ROADMAP.md § 0.4.1](ROADMAP.md#041--real-world-ergonomics).
 
-**Next focus:** **0.5.0** — `to_dataset` / named graph contexts.
+**Not yet shipped:** Real-world ergonomics (**0.4.1**); Dataset/named graphs (**0.5**).
+
+**Next focus:** **0.4.1** — multi-class load from one file, mapping validation, property-based typing (Wikidata), XSD partial dates, `ResourceRef` hydration; then **0.5.0** (`to_dataset` / named graph contexts).
 
 ---
 
@@ -65,9 +67,10 @@ Runtime core stays **pydantic + rdflib + typing-extensions**. Everything else is
 
 - Field ↔ predicate mapping (`rdf_field`, `Predicate`, future CURIE/`Rdf.prefixes`)
 - Subject identity (namespace + id, percent-encoding, safe import)
-- Term conversion (XSD, lang tags, custom datatypes)
+- Term conversion (XSD, lang tags, custom datatypes; **0.4.1:** `gYear` / partial dates)
 - Stateless graph I/O and sync (add / remove / merge policies)
 - Document formats via rdflib (`parse` / `serialize`)
+- **Linked-data ergonomics (0.4.1):** one-parse multi-class load, `Rdf.instance_of` for non-`rdf:type` vocabularies, predicate-URI validation, URI FK → nested model hydration
 - Named graphs (`Dataset`) where models need contexts
 - Thin SPARQL **passthrough** (`graph.query`, optional helpers) — not a Python query DSL
 - Vocabulary helpers (`triplemodel.vocab`)
@@ -89,6 +92,25 @@ See also [ROADMAP.md § Explicitly out of scope](ROADMAP.md#explicitly-out-of-sc
 | Full OWL reasoning, path algebra, HTML scraping | Other tools / rdflib direct |
 
 TripleModel **may** add `select_models`-style helpers in 0.6 for users who want SPARQL without SparqlModel; SparqlModel remains the home for ergonomic app queries.
+
+---
+
+## Real-world integration lessons (0.4 evaluation)
+
+Exercises in `examples/realworld/` showed where TripleModel is already **Pythonic** (typed fields, `parse_file`, `set` keywords, `models_to_graph`, prefixes) and where **setup cost** dominates (Wikidata `wdt:P31` vs `rdf:type`, repeated `parse_file` per class, flat URI foreign keys, XSD `gYear`, predicate URI mistakes).
+
+| Lesson | User pain today | Planned response | Release |
+|--------|-----------------|------------------|---------|
+| One file, many classes | Nobel/DCAT need three `parse_file` calls on the same TTL | `load_models(graph, *classes)` / `ParseBundle` | **0.4.1** |
+| Wikidata typing | Manual QID lists + `from_graph` per subject | `Rdf.instance_of` + discovery | **0.4.1** |
+| Cross-resource links | `country: str` + hand-built dict | `ResourceRef` / `ref_field` hydration | **0.4.1** |
+| Partial dates | `foundingDate` forced to `str` | XSD `gYear` in literal registry | **0.4.1** |
+| Mapping footguns | `RDFS_LABEL` = namespace base breaks import | Class-definition validation on predicate IRIs | **0.4.1** |
+| Object graphs in Python | Laureate and Prize are disconnected models | Nested embed + cookbook (inverse optional) | **0.4.1** docs; richer **0.7** CBD |
+| Live endpoint slices | CONSTRUCT refresh script is ad hoc | `construct_models` + documented refresh recipe | **0.6** |
+| App-level joins | Country labels need manual joins | `hydrate_refs` / batch load from graph | **0.7** |
+
+**Documentation (no semver bump):** Promote real-world patterns into the cookbook; keep `examples/realworld/DATA_SOURCES.md` as the provenance index.
 
 ---
 
@@ -132,6 +154,7 @@ Until **0.2** sync/remove ships, SparqlModel should **not** declare a required `
 | **Foundation** | 0.1.x | Flat round-trip, CI, typing, docs |
 | **Model-complete** | 0.2–0.3 | Fields, sync, namespaces, literals, blanks, lists — **SparqlModel gate** |
 | **Document I/O** | 0.4 | Files and optional SHACL |
+| **Real-world ergonomics** | 0.4.1 | Multi-class load, Wikidata typing, XSD dates, mapping validation |
 | **Graph contexts** | 0.5 | Dataset / Trig |
 | **Query passthrough** | 0.6 | rdflib SPARQL helpers (not ORM) |
 | **Algorithms** | 0.7 | CBD, isomorphism, RDFS import helpers |
@@ -147,9 +170,10 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 
 1. **Correctness** — subject IRIs, literals, import/export symmetry.
 2. **SparqlModel gate items** — sync/remove (0.2), namespaces (0.2), nested models (0.2).
-3. **rdflib matrix** — per [ROADMAP.md](ROADMAP.md).
-4. **Ergonomic extras** — codegen, advanced SPARQL helpers.
-5. **Never** — session/query compiler in TripleModel core.
+3. **Real-world ergonomics (0.4.1)** — multi-class load, property-based typing, mapping validation, partial XSD dates (unblocks LOD examples without Dataset).
+4. **rdflib matrix** — per [ROADMAP.md](ROADMAP.md) (0.5+ Dataset, 0.6 SPARQL passthrough).
+5. **Ergonomic extras** — codegen, `hydrate_refs`, advanced SPARQL helpers.
+6. **Never** — session/query compiler in TripleModel core.
 
 ---
 
@@ -169,5 +193,6 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 
 - **0.2:** SparqlModel can prototype `triplemodel` for `model_to_graph` / load without losing `put` semantics.
 - **0.4:** Load/save Turtle/JSON-LD without SparqlModel-only parsers.
+- **0.4.1:** Nobel + DCAT examples use a single graph load; Wikidata capitals avoid hard-coded QID loops; Schema.org `gYear` imports without `str` workarounds; invalid `rdf_predicate` fails at class definition.
 - **0.9:** SparqlModel pins released `triplemodel`; duplicate term code removed from SparqlModel.
 - **1.0:** Downstream apps choose **triplemodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.

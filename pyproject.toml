@@ -72,6 +72,7 @@ include = [
     "examples/foaf_person_02.py",
     "examples/exit_criteria_03.py",
     "examples/exit_criteria_04.py",
+    "examples/realworld",
     "examples/doc",
     "docs/README.md",
     "docs/PLAN.md",

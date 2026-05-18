@@ -40,3 +40,14 @@ PYTHONPATH=src python examples/readme_examples.py
 ```bash
 PYTHONPATH=src python examples/foaf_person_02.py
 ```
+
+## Real-world data (`examples/realworld/`)
+
+Bundled RDF from public sources (Nobel Prize linked data, DCAT catalogs, Wikidata, Schema.org). Each script maps a **concrete integration problem**—see [`examples/realworld/README.md`](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) and [`DATA_SOURCES.md`](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/DATA_SOURCES.md).
+
+```bash
+PYTHONPATH=src python examples/realworld/nobel_laureates.py
+PYTHONPATH=src python examples/realworld/dcat_data_catalog.py
+PYTHONPATH=src python examples/realworld/wikidata_capitals.py
+PYTHONPATH=src python examples/realworld/schema_org_ngos.py
+```

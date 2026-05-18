@@ -74,6 +74,11 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | | `transitiveClosure`, `transitive_*` | optional helpers for hierarchy fields | 0.7 |
 | | `collection` (RDF lists) | `list[T]` ↔ `rdf:List` | 0.3 |
 | | `resource()` | lazy `ResourceRef` fields | 0.3 |
+| | Property-based typing (`wdt:P31`, `dbo:type`, …) | `Rdf.instance_of`, discovery without `rdf:type` only | 0.4.1 |
+| | XSD `gYear` / `gMonth` / `gMonthDay` | literal registry + field import for partial dates | 0.4.1 |
+| | Multi-class document load (one parse) | `load_models(graph, *classes)` / `ParseBundle` | 0.4.1 |
+| | Mapping validation (predicate vs prefix) | model `__pydantic_init_subclass__` checks | 0.4.1 |
+| | URI foreign-key hydration | `ResourceRef` → nested model, `ref_field` | 0.4.1 |
 | | `Dataset` / named graphs | `@graph` context on `Rdf`, `Dataset` I/O | 0.5 |
 | | `quads()`, `get_context()` | named-graph read/write in dataset helpers | 0.5 |
 | | `ConjunctiveGraph` | use `Dataset` only (rdflib deprecation) | 0.5 |
@@ -176,7 +181,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [x] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (each format rdflib registers in CI)
 - [x] **Format autodetection** — filename suffix and `format=` / media type passthrough
 - [x] **Base URI on parse** — rdflib 7 `publicID` semantics: `Rdf.base_uri` for resolving relative IRIs (not named-graph id)
-- [x] **`parse_file` / `parse_url`** — stream from path or URL into `list[TripleModel]`
+- [x] **`parse_file` / `parse_url`** — parse RDF from path or URL into `list[TripleModel]`
 - [x] **`parse(data=...)`** — load from string (Turtle/JSON-LD snippets in apps and tests)
 - [x] **JSON-LD context** — optional `@context` on `Rdf` class for compaction; passthrough compact/expand kwargs
 - [x] **SHACL (optional extra)** — validate before `to_graph()` via pyshacl or equivalent
@@ -186,6 +191,31 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 **Exit criteria:** Same `Person` instance equivalent from Turtle file, JSON-LD string, and in-memory `Graph`; invalid data fails SHACL when extra installed (`examples/exit_criteria_04.py`).
 
 **SparqlModel (SM-3):** `export_model` / file load paths call TripleModel; remove parallel format registry from SparqlModel.
+
+**Real-world validation (2026):** [`examples/realworld/`](../examples/realworld/) exercises Nobel linked data, DCAT catalogs, Wikidata excerpts, and Schema.org NGO records. The examples run offline in CI and surfaced gaps between “RDF works” and “feels Pythonic in application code.” See [Real-world ergonomics (0.4.1+)](#041--real-world-ergonomics) below.
+
+---
+
+## 0.4.1 — Real-world ergonomics
+
+**Theme:** Close the gap between **typed records** and **linked-data workflows**—without waiting for Dataset (0.5) or full SPARQL helpers (0.6). Informed by [`examples/realworld/`](../examples/realworld/) and integration friction (manual QID lists, triple `parse_file` per class, predicate URI footguns, flat foreign-key URIs).
+
+| Priority | Feature | Problem it solves | Planned API (sketch) |
+|----------|---------|-------------------|----------------------|
+| P0 | **Single-pass multi-class load** | One Turtle file, many `rdf:type`s (Nobel laureates + prizes; DCAT catalog + dataset + distribution) today requires `parse_file` per class on the same bytes | `load_graph(path) -> Graph` + `load_models(graph, Laureate, NobelPrize, ...)` or `ParseBundle.parse_file(path)` returning `dict[type[TripleModel], list]`; document `parse(..., dispatch=True)` when types are registered |
+| P0 | **Mapping validation** | Accidentally storing `rdf_predicate` as a namespace base (e.g. `.../rdfs#` without `label`) fails silently at import | Validate on model class creation: predicate IRIs must have a local name after `#` or `/`; warn when predicate equals a declared prefix namespace URI |
+| P0 | **XSD partial dates** | Schema.org `foundingDate` as `xsd:gYear` cannot map to `date` | Register `gYear`, `gMonth`, `gMonthDay` in default literal registry; optional `Year`, `YearMonth` field types or document `str` + converter |
+| P1 | **Property-based typing** | Wikidata (and some LOV vocabularies) use `wdt:P31` / `dbo:type` instead of `rdf:type` for classification | `Rdf.instance_of: str \| list[str]` — URI(s) of type resource; `all_from_graph` / discovery filter subjects with `(?, instance_of, type_uri)`; complements empty `type_uri` + predicate discovery |
+| P1 | **Hydrate `ResourceRef` / URI FKs** | `country: str` holding `wd:Q142` forces manual join dicts (Wikidata capitals example) | `ResourceRef` or `ref_field(Predicate, model=Country)` hydrates nested model on import; optional `country: Country` via nested IRI embed when object is a full resource description |
+| P1 | **Linked object graphs in examples** | Laureate ↔ NobelPrize and DCAT catalog ↔ dataset are separate models with no predicate between them in Python | Document nested `NobelPrize \| None` on `Laureate` (inverse or forward predicate); DCAT `catalog: Dataset \| None` embed patterns in cookbook |
+| P2 | **Lang-tagged label defaults** | `rdfs:label@en` is ubiquitous; users must know `LangString` vs plain `str` | `Annotated[str, Lang("en")]` auto-import for configured fields; or `rdf_field(..., lang="en")` sugar |
+| P2 | **QID / slug conventions** | Wikidata IDs (`Q90`) vs full IRIs — `IriId` works but examples need boilerplate | `WikidataItem` recipe in cookbook; optional `Rdf.id_encoding = "qid"` when `namespace` is `wd:` entity base |
+| P2 | **Optional inverse export** | Import reads inverse; export is forward-only (by design) but some portals expect bidirectional edges | `Rdf.export_inverse: bool` or per-field `export_inverse=True` to emit `(remote, inv, subject)` on `to_graph` / sync |
+| P3 | **Refresh-from-endpoint recipe** | Wikidata excerpt maintenance via SPARQL CONSTRUCT | Document pattern until **0.6** `construct_models`; keep `examples/realworld/refresh_wikidata_capitals.py` as template |
+
+**Exit criteria:** Nobel + DCAT examples use **one** `parse`/`load_models` call per file; Wikidata capitals use `instance_of` or documented discovery without hard-coded QID loops; Schema.org NGOs import `foundingDate` without manual `str` workaround; invalid `rdf_predicate` in `rdf_field` fails at class definition with a clear error.
+
+**Not in 0.4.1 (later releases):** SPARQL SELECT/CONSTRUCT loaders (0.6), CBD for subgraph extract (0.7), named graphs (0.5), inverse export default-on (stay forward-only unless opted in).
 
 ---
 
@@ -240,8 +270,10 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **RDFS subclass import** — follow `rdfs:subClassOf` when choosing model class
 - [ ] **Vocabulary registry** — prefix ↔ model class ↔ `type_uri` registry
 - [ ] **Codegen (experimental)** — OWL/RDFS → stub `TripleModel` classes (CLI)
+- [ ] **`hydrate_refs` / `model.join`** — given `ResourceRef` or URI fields, batch-load related resources from the same graph (Wikidata country labels without manual dicts)
+- [ ] **Catalog & registry patterns** — cookbook recipes for DCAT portal graphs, Schema.org NGO registries, Nobel/VIAF-style biographical LOD
 
-**Exit criteria:** Subclass graph imports into correct `Agent` vs `Person`; `cbd` example in cookbook.
+**Exit criteria:** Subclass graph imports into correct `Agent` vs `Person`; `cbd` example in cookbook; Wikidata capitals example uses `hydrate_refs` instead of hand-built `COUNTRY_QIDS` dicts.
 
 ---
 
@@ -253,7 +285,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **Optional extras** — `sqlalchemy`, `berkeleydb` store backends with examples
 - [ ] **Store lifecycle** — `Graph.open` / `close` / `destroy` context managers for on-disk stores
 - [ ] **Store transactions** — expose `commit` / `rollback` / `open` when store supports
-- [ ] **Batch import** — chunked `graph_to_models` for large type sets
+- [ ] **Batch import** — chunked `graph_to_models` for large type sets; streaming `load_models` for multi-GB files without re-parsing per class
 - [ ] **Caching** — memoize predicate maps per model class
 - [ ] **Strict mode** — fail on unknown predicates; warn on unmapped fields
 - [ ] **Plugin hooks** — custom term serializers and field resolvers (pre-0.9 registry)
@@ -271,7 +303,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 - [ ] **API audit** — last breaking renames before 1.0
 - [ ] **Migration guide** — from 0.1.x
 - [ ] **Full API reference** — Sphinx/mkdocs
-- [ ] **Cookbook** — formats, SPARQL, Dataset, SHACL, Fuseki, optional stores
+- [ ] **Cookbook** — formats, SPARQL, Dataset, SHACL, Fuseki, optional stores; **real-world** chapter (Nobel, DCAT, Wikidata, Schema.org) from `examples/realworld/`
 - [ ] **Typing** — strict mypy on public API; `py.typed` complete
 - [ ] **Compatibility matrix** — pinned pydantic / rdflib ranges in CI
 
@@ -360,6 +392,7 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | 0.2.0 | Fields, namespaces, merge, remove/set | `bind`, `remove`, `value`, vocabs | **SM-1** (dependency gate) |
 | 0.3.0 | Literals, blanks, lists, skolemize | `term`, `collection`, `resource` | SM-2 |
 | **0.4.0** | All document formats, base URI, SHACL | `parse`, `serialize` | **SM-3** |
+| **0.4.1** | Real-world ergonomics (multi-class load, Wikidata typing, XSD dates) | property typing, `load_models`, mapping validation | — |
 | 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` | SM-4 (if needed) |
 | 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
 | 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | — |

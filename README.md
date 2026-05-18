@@ -274,7 +274,7 @@ http://example.org/people/bob%20jones
 
 **Multiple tags on one predicate** — use `set[str] = rdf_field("foaf:topic", default_factory=set)`.
 
-**Runnable scripts:** [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py), [`examples/readme_examples.py`](examples/readme_examples.py), and [`examples/doc/snippets/`](examples/doc/snippets/).
+**Runnable scripts:** [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py), [`examples/readme_examples.py`](examples/readme_examples.py), [`examples/realworld/`](examples/realworld/) (Nobel, DCAT, Wikidata, Schema.org), and [`examples/doc/snippets/`](examples/doc/snippets/).
 
 ## TripleModel vs SparqlModel
 
