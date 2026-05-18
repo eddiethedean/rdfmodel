@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.7.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.8.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -90,10 +90,10 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 |
 | | Remote SPARQL read (`SPARQLStore`) | `TripleModel.load_sparql(url, query)` | 0.6 |
 | | Remote SPARQL read-write (`SPARQLUpdateStore`) | persistent endpoint + `update()` passthrough | 0.6 |
-| | BerkeleyDB, SQLAlchemy | optional extras `triplemodel[berkeleydb]`, `[sqlalchemy]` | 0.8 |
+| | BerkeleyDB, SQLAlchemy | optional extras `triplemodel[berkeleydb]`, `[sqlalchemy]` | 0.8 **done** |
 | | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
-| | `open` / `close` / `destroy` on store | context manager / lifecycle helpers | 0.8 |
-| | Store transactions (`commit` / `rollback` / `open`) | passthrough when backing store supports | 0.8 |
+| | `open` / `close` / `destroy` on store | context manager / lifecycle helpers | 0.8 **done** |
+| | Store transactions (`commit` / `rollback` / `open`) | passthrough when backing store supports | 0.8 **done** |
 | **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 |
 | **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | 1.0 |
 | **Plugins** | Register custom Parser/Serializer/Store | `triplemodel.plugins.register_*` passthrough | 0.9 |
@@ -289,7 +289,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [x] **Safe graph merge** — documented in {doc}`guides/14-graph-algorithms-and-rdfs` and {doc}`guides/08-working-with-graphs`
 - [x] **RDFS subclass import** — `resolve_model_class_with_rdfs`; `Rdf.resolve_subclass` (default true)
 - [x] **Vocabulary registry** — `VocabularyRegistry`
-- [ ] **Codegen (experimental)** — OWL/RDFS → stub `TripleModel` classes (CLI) — **deferred to 0.8+**
+- [x] **Codegen (experimental)** — deferred from 0.7; shipped in **0.8** as `triplemodel-codegen`
 - [x] **`hydrate_refs` / `model_join`** — batch-load shared ref URIs; Wikidata capitals example updated
 - [x] **Catalog & registry patterns** — doc pointers in guide 14 to `examples/realworld/`
 
@@ -297,20 +297,21 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ---
 
-## 0.8.0 — Stores, scale, and ergonomics
+## 0.8.0 — Stores, scale, and ergonomics ✅
 
 **Theme:** rdflib **stores** and production-sized graphs.
 
-- [ ] **SPARQL store adapter** — documented pattern for persistent remote graphs
-- [ ] **Optional extras** — `sqlalchemy`, `berkeleydb` store backends with examples
-- [ ] **Store lifecycle** — `Graph.open` / `close` / `destroy` context managers for on-disk stores
-- [ ] **Store transactions** — expose `commit` / `rollback` / `open` when store supports
-- [ ] **Batch import** — chunked `graph_to_models` for large type sets; streaming `load_models` for multi-GB files without re-parsing per class
-- [ ] **Caching** — memoize predicate maps per model class
-- [ ] **Strict mode** — fail on unknown predicates; warn on unmapped fields
-- [ ] **Plugin hooks** — custom term serializers and field resolvers (pre-0.9 registry)
+- [x] **SPARQL store adapter** — documented pattern in guide 15 + guide 13 (persistent remote graphs)
+- [x] **Optional extras** — `sqlalchemy`, `berkeleydb` store backends with examples
+- [x] **Store lifecycle** — `open_graph`, `graph_store_session`, `destroy_store`
+- [x] **Store transactions** — `store_commit` / `store_rollback` passthrough
+- [x] **Batch import** — `iter_graph_to_models`, `load_models_streaming`, `parse_into_store_graph`
+- [x] **Caching** — predicate maps per model class (`metadata/predicate_map.py`)
+- [x] **Strict mode** — `Rdf.strict_import`, `warn_unmapped_fields`
+- [x] **Plugin hooks** — `triplemodel.plugins` (pre-0.9 full registry)
+- [x] **Codegen (experimental)** — `triplemodel-codegen` CLI
 
-**Exit criteria:** 100k-triple FOAF dump imports under documented benchmark; SQLAlchemy store example runs in CI with extra.
+**Exit criteria:** ✅ `examples/exit_criteria_08.py` (chunked/streaming benchmark); SQLAlchemy tests when `[sqlalchemy]` extra is installed.
 
 ---
 

@@ -45,6 +45,7 @@ from triplemodel.io import (
     graph_to_model_from_dataset,
     graph_to_models,
     graph_to_models_from_dataset,
+    iter_graph_to_models,
     infer_format,
     is_quad_format,
     iter_model_quads,
@@ -53,6 +54,13 @@ from triplemodel.io import (
     load_models,
     load_models_from_dataset,
     load_models_from_graph,
+    load_models_streaming,
+    open_graph,
+    parse_into_store_graph,
+    graph_store_session,
+    store_commit,
+    store_rollback,
+    destroy_store,
     model_to_dataset,
     model_to_graph,
     model_to_triples,
@@ -102,7 +110,7 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 __all__ = [
     "EmbedMode",
@@ -129,6 +137,9 @@ __all__ = [
     "load_models",
     "load_models_from_dataset",
     "load_models_from_graph",
+    "load_models_streaming",
+    "open_graph",
+    "parse_into_store_graph",
     "model_to_dataset",
     "models_to_dataset",
     "parse_into_dataset",
@@ -162,7 +173,10 @@ __all__ = [
     "graph_set",
     "graph_to_model",
     "graph_to_models",
+    "graph_store_session",
     "graph_value",
+    "destroy_store",
+    "iter_graph_to_models",
     "id_from_subject_uri",
     "merge_graphs",
     "model_to_graph",
@@ -172,6 +186,8 @@ __all__ = [
     "rdf_field",
     "register_literal_type",
     "register_rdf_resource",
+    "store_commit",
+    "store_rollback",
     "subject_base",
     "sync_to_dataset",
     "sync_to_graph",

@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.8.0] - 2026-05-18
+
+### Added
+
+- **Predicate-map caching** — cached field → predicate IRIs for the default resolver (`predicate_map_for_class`, `owned_predicates_for_class`)
+- **Strict import** — `Rdf.strict_import` and `Rdf.warn_unmapped_fields`; enforcement in `graph_to_model`
+- **Chunked import** — `iter_graph_to_models`, `graph_to_models(..., chunk_size=)`
+- **Streaming load** — `load_models_streaming`, `parse_into_store_graph` for large N-Triples/N-Quads
+- **Store helpers** — `open_graph`, `graph_store_session`, `store_commit`, `store_rollback`, `destroy_store`
+- **Optional extras** — `triplemodel[sqlalchemy]`, `triplemodel[berkeleydb]`
+- **Plugin hooks** — `triplemodel.plugins` (`register_predicate_resolver`, re-exports)
+- **Codegen (experimental)** — `triplemodel-codegen` CLI for OWL/RDFS → stub models
+- **Guide** — `docs/guides/15-stores-scale-and-strict.md`
+- **Examples** — `examples/exit_criteria_08.py`, `examples/stores/sqlalchemy_sqlite.py`, `examples/codegen/`
+
+### Changed
+
+- **Public exports** — store, streaming, and chunked import helpers on the `triplemodel` package root
+- **Field resolver** — `owned_predicates()` delegates to cached maps when using the default resolver
+
 ## [0.7.0] - 2026-05-18
 
 ### Added

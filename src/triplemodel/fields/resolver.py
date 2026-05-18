@@ -72,5 +72,6 @@ def owned_predicates(
     resolver: PredicateResolver | None = None,
 ) -> frozenset[str]:
     """Predicates owned by ``model_cls`` (mapped fields and ``rdf:type``)."""
-    r = resolver or default_resolver
-    return r.owned_predicates(model_cls, config)
+    from triplemodel.metadata.predicate_map import owned_predicates_for_class
+
+    return owned_predicates_for_class(model_cls, resolver=resolver, config=config)

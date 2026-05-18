@@ -1,0 +1,10 @@
+@prefix ex: <http://example.org/onto#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:Agent a owl:Class .
+ex:Person a owl:Class ;
+    rdfs:subClassOf ex:Agent .
+ex:name a owl:DatatypeProperty ;
+    rdfs:domain ex:Person ;
+    rdfs:range rdfs:Literal .

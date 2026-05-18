@@ -1,5 +1,32 @@
 # Releasing TripleModel
 
+## 0.8.0 release readiness (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.8.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| Stores, chunked/streaming import, strict mode, plugins, codegen CLI | Done |
+| Exit criteria `examples/exit_criteria_08.py` (set `TRIPLEMODEL_BENCH_COUNT` for CI smoke) | Done |
+| Guide `docs/guides/15-stores-scale-and-strict.md`; API `stores`, `plugins`, `codegen` | Done |
+| Optional extras `sqlalchemy`, `berkeleydb`; CI `stores` job | Done |
+| Release workflow includes `exit_criteria_08.py` | Done |
+
+**Pre-release checklist (0.8.0)**
+
+- [x] `version` `0.8.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
+- [x] `sphinx-build -b html docs docs/_build/html -W`
+- [x] `PYTHONPATH=src python examples/exit_criteria_08.py` (use `TRIPLEMODEL_BENCH_COUNT=1000` in CI)
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
+- [ ] Create and push git tag `v0.8.0`
+
+```bash
+git tag -a v0.8.0 -m "Release 0.8.0"
+git push origin v0.8.0
+```
+
+---
+
 ## 0.7.0 release readiness (repo)
 
 Verified on `main` after **v0.6.0**. PyPI latest before this release: **0.6.0**.

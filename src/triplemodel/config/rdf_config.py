@@ -76,6 +76,10 @@ class RdfConfig:
     """Named graph IRI for Dataset contexts; ``None`` uses the default graph."""
     resolve_subclass: bool = True
     """When dispatching, match ``rdfs:subClassOf`` ancestors of ``rdf:type``."""
+    strict_import: bool = False
+    """Raise when the graph has predicates on the subject outside owned fields."""
+    warn_unmapped_fields: bool = False
+    """Warn when the graph has predicates on the subject outside owned fields."""
 
     @property
     def prefixes_dict(self) -> dict[str, str]:
@@ -220,6 +224,8 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                 graph_iri_raw = getattr(rdf, "graph", None)
             graph_iri = (str(graph_iri_raw).strip() if graph_iri_raw else None) or None
             resolve_subclass = bool(getattr(rdf, "resolve_subclass", True))
+            strict_import = bool(getattr(rdf, "strict_import", False))
+            warn_unmapped_fields = bool(getattr(rdf, "warn_unmapped_fields", False))
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
@@ -236,5 +242,7 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                 jsonld_context=jsonld_context,
                 graph_iri=graph_iri,
                 resolve_subclass=resolve_subclass,
+                strict_import=strict_import,
+                warn_unmapped_fields=warn_unmapped_fields,
             )
     return RdfConfig()

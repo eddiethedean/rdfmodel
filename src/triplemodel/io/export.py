@@ -14,6 +14,7 @@ from triplemodel.embed.strategies import export_nested_triples
 from triplemodel.fields.metadata import lang_for_field, literal_datatype_for_field
 from triplemodel.namespaces import resolve_predicate
 from triplemodel.fields.resolver import default_resolver
+from triplemodel.metadata.predicate_map import predicate_map_for_class
 from triplemodel.terms.lang import LangString
 from triplemodel.metadata.cardinality import (
     field_cardinality,
@@ -65,13 +66,10 @@ def model_to_triples(
     if cfg.type_uri:
         triples.append((subject, RDF_TYPE, cfg.type_uri))
 
-    id_field = cfg.id_field
-    for name, field_info in cls.model_fields.items():
-        if id_field and name == id_field:
-            continue
-        predicate = r.resolve_field_predicate(field_info, prefixes)
+    for name, predicate in predicate_map_for_class(cls, resolver=r).items():
         if predicate is None:
             continue
+        field_info = cls.model_fields[name]
         raise_if_nested_collection(field_info)
         raise_if_inverse_collection(field_info)
         value = getattr(model, name)

@@ -16,6 +16,9 @@ Module reference
    graph
    dataset
    sparql
+   stores
+   plugins
+   codegen
    sync
    fields
    namespaces

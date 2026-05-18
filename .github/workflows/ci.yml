@@ -21,3 +21,13 @@ jobs:
       - run: ruff format --check src tests
       - run: ruff check src tests
       - run: ty check src tests
+
+  stores:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,sqlalchemy]"
+      - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q

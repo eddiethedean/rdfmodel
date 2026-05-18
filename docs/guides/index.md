@@ -1,6 +1,6 @@
 # User guides
 
-These guides explain how to use TripleModel **0.7.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read {doc}`01-getting-started`.
+These guides explain how to use TripleModel **0.8.x** in order of increasing complexity. Each guide is self-contained, but later guides assume you have read {doc}`01-getting-started`.
 
 | # | Guide | Topics |
 |---|--------|--------|
@@ -18,5 +18,6 @@ These guides explain how to use TripleModel **0.7.x** in order of increasing com
 | 12 | {doc}`12-datasets-and-named-graphs` | `Rdf.graph_iri`, `Dataset`, TriG / N-Quads |
 | 13 | {doc}`13-sparql-and-endpoints` | SPARQL SELECT/CONSTRUCT/ASK/UPDATE, remote endpoints |
 | 14 | {doc}`14-graph-algorithms-and-rdfs` | CBD, graph compare, RDFS dispatch, `hydrate_refs`, transitive import |
+| 15 | {doc}`15-stores-scale-and-strict` | Stores, chunked/streaming import, strict mode, plugins, codegen |
 
 **Next:** {doc}`01-getting-started`

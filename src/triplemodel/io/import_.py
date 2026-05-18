@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+from collections.abc import Iterator
 from typing import TypeVar, cast
 
 from pydantic import BaseModel, ValidationError
@@ -34,6 +35,10 @@ from triplemodel.fields.metadata import (
 from triplemodel.io.rdfs import transitive_objects
 from triplemodel.namespaces import resolve_predicate
 from triplemodel.fields.resolver import default_resolver
+from triplemodel.metadata.predicate_map import (
+    owned_predicates_for_class,
+    predicate_map_for_class,
+)
 from triplemodel.metadata.cardinality import (
     field_cardinality,
     nested_model_type,
@@ -67,6 +72,38 @@ def _handle_duplicate(
         raise ValueError(dup_msg)
     if on_duplicate == "warn":
         warnings.warn(dup_msg, stacklevel=3)
+
+
+def _enforce_subject_predicates(
+    graph: Graph,
+    subject: Node,
+    uri_str: str,
+    model_cls: type[BaseModel],
+    cfg: RdfConfig,
+    *,
+    resolver: PredicateResolverProtocol | None = None,
+    strict_import: bool | None = None,
+    warn_unmapped: bool | None = None,
+) -> None:
+    """Optionally validate triples on ``subject`` against owned predicates."""
+    do_strict = cfg.strict_import if strict_import is None else strict_import
+    do_warn = cfg.warn_unmapped_fields if warn_unmapped is None else warn_unmapped
+    if not do_strict and not do_warn:
+        return
+    owned = owned_predicates_for_class(model_cls, resolver=resolver, config=cfg)
+    allowed = set(owned) | {RDF_TYPE}
+    for _, pred, _ in graph.triples((subject, None, None)):
+        pred_str = str(pred)
+        if pred_str in allowed:
+            continue
+        msg = (
+            f"Predicate {pred_str!r} on subject {uri_str!r} is not mapped on "
+            f"{model_cls.__name__}."
+        )
+        if do_strict:
+            raise ValueError(msg)
+        if do_warn:
+            warnings.warn(msg, stacklevel=3)
 
 
 def _handle_forward_inverse_conflict(
@@ -243,6 +280,8 @@ def graph_to_model(
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
     de_skolemize: bool | None = None,
+    strict_import: bool | None = None,
+    warn_unmapped_fields: bool | None = None,
 ) -> T:
     """Hydrate a single model instance from triples about ``uri``."""
     cfg = config or get_rdf_config(model_cls)
@@ -295,12 +334,10 @@ def graph_to_model(
         elif id_field_is_iri_id(model_cls, cfg.id_field):
             data[cfg.id_field] = uri_str
 
-    for name, field_info in model_cls.model_fields.items():
-        if cfg.id_field and name == cfg.id_field:
-            continue
-        predicate = r.resolve_field_predicate(field_info, prefixes)
+    for name, predicate in predicate_map_for_class(model_cls, resolver=r).items():
         if predicate is None:
             continue
+        field_info = model_cls.model_fields[name]
         raise_if_nested_collection(field_info)
         raise_if_inverse_collection(field_info)
         pred_ref = URIRef(predicate)
@@ -345,6 +382,17 @@ def graph_to_model(
             de_skolemize=False,
         )
 
+    _enforce_subject_predicates(
+        graph,
+        subject,
+        uri_str,
+        model_cls,
+        cfg,
+        resolver=r,
+        strict_import=strict_import,
+        warn_unmapped=warn_unmapped_fields,
+    )
+
     try:
         return model_cls.model_validate(data)
     except ValidationError as exc:
@@ -353,10 +401,36 @@ def graph_to_model(
         ) from exc
 
 
-def graph_to_models(
+def _subject_uris_for_model(
+    graph: Graph,
+    model_cls: type[T],
+    cfg: RdfConfig,
+    *,
+    type_uri: str | None = None,
+    resolver: PredicateResolverProtocol | None = None,
+) -> list[str]:
+    from triplemodel.io.discovery import (
+        discover_subject_uris,
+        discover_subjects_by_instance_of,
+    )
+
+    rdf_type = type_uri if type_uri is not None else cfg.type_uri
+    if rdf_type:
+        return sorted(
+            str(s)
+            for s in graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type))
+            if isinstance(s, URIRef)
+        )
+    if cfg.instance_of_predicates:
+        return discover_subjects_by_instance_of(graph, cfg)
+    return discover_subject_uris(graph, model_cls, cfg, resolver=resolver)
+
+
+def iter_graph_to_models(
     graph: Graph,
     model_cls: type[T],
     *,
+    chunk_size: int = 500,
     type_uri: str | None = None,
     config: RdfConfig | None = None,
     validate_type: bool = True,
@@ -364,60 +438,78 @@ def graph_to_models(
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
     de_skolemize: bool | None = None,
-) -> list[T]:
-    """Load all resources of ``type_uri`` (or the model's configured type) as models."""
-    from triplemodel.io.discovery import (
-        discover_subject_uris,
-        discover_subjects_by_instance_of,
-    )
-
+    strict_import: bool | None = None,
+    warn_unmapped_fields: bool | None = None,
+) -> Iterator[list[T]]:
+    """Yield chunks of model instances loaded from ``graph``."""
     cfg = config or get_rdf_config(model_cls)
     from triplemodel.io.skolem import apply_de_skolemize
 
     do_de = cfg.skolemize_import if de_skolemize is None else de_skolemize
     graph = apply_de_skolemize(graph, de_skolemize=do_de)
-    rdf_type = type_uri if type_uri is not None else cfg.type_uri
+    uris = _subject_uris_for_model(
+        graph, model_cls, cfg, type_uri=type_uri, resolver=resolver
+    )
 
-    instances: list[T] = []
-    if rdf_type:
-        for subject in sorted(
-            graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type)),
-            key=str,
-        ):
-            if isinstance(subject, URIRef):
-                instances.append(
+    def _gen() -> Iterator[list[T]]:
+        for start in range(0, len(uris), chunk_size):
+            chunk_uris = uris[start : start + chunk_size]
+            chunk: list[T] = []
+            for subject_uri in chunk_uris:
+                chunk.append(
                     graph_to_model(
                         graph,
                         model_cls,
-                        str(subject),
+                        subject_uri,
                         config=cfg,
                         validate_type=validate_type,
                         on_duplicate=on_duplicate,
                         resolver=resolver,
                         registry=registry,
                         de_skolemize=False,
+                        strict_import=strict_import,
+                        warn_unmapped_fields=warn_unmapped_fields,
                     )
                 )
+            yield chunk
+
+    return _gen()
+
+
+def graph_to_models(
+    graph: Graph,
+    model_cls: type[T],
+    *,
+    chunk_size: int | None = None,
+    type_uri: str | None = None,
+    config: RdfConfig | None = None,
+    validate_type: bool = True,
+    on_duplicate: OnDuplicate = "warn",
+    resolver: PredicateResolverProtocol | None = None,
+    registry: LiteralRegistry = default_registry,
+    de_skolemize: bool | None = None,
+    strict_import: bool | None = None,
+    warn_unmapped_fields: bool | None = None,
+) -> list[T]:
+    """Load all resources of ``type_uri`` (or the model's configured type) as models."""
+    cfg = config or get_rdf_config(model_cls)
+    size = chunk_size if chunk_size is not None else 2**31
+    instances: list[T] = []
+    for chunk in iter_graph_to_models(
+        graph,
+        model_cls,
+        chunk_size=size,
+        type_uri=type_uri,
+        config=cfg,
+        validate_type=validate_type,
+        on_duplicate=on_duplicate,
+        resolver=resolver,
+        registry=registry,
+        de_skolemize=de_skolemize,
+        strict_import=strict_import,
+        warn_unmapped_fields=warn_unmapped_fields,
+    ):
+        instances.extend(chunk)
+    if cfg.type_uri or type_uri:
         instances.sort(key=lambda m: cfg.subject_uri(m))
-        return instances
-
-    if cfg.instance_of_predicates:
-        subject_uris = discover_subjects_by_instance_of(graph, cfg)
-    else:
-        subject_uris = discover_subject_uris(graph, model_cls, cfg, resolver=resolver)
-
-    for subject_uri in subject_uris:
-        instances.append(
-            graph_to_model(
-                graph,
-                model_cls,
-                subject_uri,
-                config=cfg,
-                validate_type=validate_type,
-                on_duplicate=on_duplicate,
-                resolver=resolver,
-                registry=registry,
-                de_skolemize=False,
-            )
-        )
     return instances

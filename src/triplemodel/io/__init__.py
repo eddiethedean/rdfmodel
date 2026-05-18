@@ -11,6 +11,14 @@ from triplemodel.io.import_ import (
     graph_to_model,
     graph_to_models,
     import_field_value,
+    iter_graph_to_models,
+)
+from triplemodel.io.stores import (
+    destroy_store,
+    graph_store_session,
+    open_graph,
+    store_commit,
+    store_rollback,
 )
 from triplemodel.io.compare import (
     GraphDiff,
@@ -44,6 +52,8 @@ from triplemodel.io.files import (
     load_graph,
     load_models,
     load_models_from_graph,
+    load_models_streaming,
+    parse_into_store_graph,
     parse_into_graph,
     parse_url_into_graph,
 )
@@ -121,9 +131,17 @@ __all__ = [
     "iter_model_quads",
     "load_dataset",
     "load_graph",
+    "destroy_store",
+    "graph_store_session",
+    "iter_graph_to_models",
     "load_models",
     "load_models_from_dataset",
     "load_models_from_graph",
+    "load_models_streaming",
+    "open_graph",
+    "parse_into_store_graph",
+    "store_commit",
+    "store_rollback",
     "model_to_dataset",
     "models_to_dataset",
     "parse_into_dataset",

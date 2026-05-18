@@ -274,6 +274,120 @@ def load_models(
     return load_models_from_graph(graph, *model_classes, **kwargs)
 
 
+def _streaming_store_identifier(
+    path: str | Path,
+    store: str,
+    explicit: str | None,
+) -> str:
+    if explicit:
+        return explicit
+    if store.lower() in ("sqlalchemy", "berkeleydb"):
+        import tempfile
+
+        suffix = ".db" if store.lower() == "berkeleydb" else ".sqlite"
+        fd, db_path = tempfile.mkstemp(suffix=suffix)
+        import os
+
+        os.close(fd)
+        if store.lower() == "sqlalchemy":
+            return f"sqlite:///{db_path}"
+        return db_path
+    return str(path)
+
+
+def parse_into_store_graph(
+    path: str | Path,
+    *,
+    store: str = "sqlalchemy",
+    identifier: str | None = None,
+    format: str | None = None,
+    base: str | None = None,
+    bind_prefixes: Mapping[str, str] | None = None,
+    jsonld_context: dict[str, Any] | str | None = None,
+    **rdflib_kwargs: Any,
+) -> Graph:
+    """Parse a document into a store-backed ``Graph`` (recommended for large N-Triples/N-Quads)."""
+    from triplemodel.io.stores import open_graph, store_commit
+
+    fmt = infer_format(path, format)
+    ident = _streaming_store_identifier(path, store, identifier)
+    graph = open_graph(store, ident)
+    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
+    graph.parse(source=str(path), format=fmt, publicID=base, **parse_kwargs)
+    store_commit(graph)
+    if bind_prefixes:
+        bind_namespaces(graph, dict(bind_prefixes))
+    return graph
+
+
+def load_models_streaming(
+    path: str | Path,
+    *model_classes: type[TModel],
+    store: str | None = None,
+    chunk_size: int = 500,
+    store_identifier: str | None = None,
+    **kwargs: Any,
+) -> list[TModel] | dict[type[TModel], list[TModel]]:
+    """Load models from a large file using chunked hydration (optional on-disk store).
+
+    For N-Triples / N-Quads, pass ``store='sqlalchemy'`` (requires ``triplemodel[sqlalchemy]``)
+    to avoid holding the full graph in memory. Turtle/TriG still require a full parse.
+    """
+    from triplemodel.config import get_rdf_config
+    from triplemodel.io.import_ import iter_graph_to_models
+    from triplemodel.model import TripleModel
+
+    if not model_classes:
+        raise TypeError("load_models_streaming() requires at least one model class.")
+    for model_cls in model_classes:
+        if not issubclass(model_cls, TripleModel):
+            raise TypeError(f"{model_cls!r} is not a TripleModel subclass.")
+
+    lead = model_classes[0]
+    cfg = get_rdf_config(lead)
+    fmt = infer_format(path, kwargs.get("format"))
+    use_store = store is not None
+    resolved_base = (
+        kwargs.get("base") if kwargs.get("base") is not None else cfg.base_uri
+    )
+    load_kwargs = {k: v for k, v in kwargs.items() if k not in ("format", "base")}
+    if use_store:
+        graph = parse_into_store_graph(
+            path,
+            store=store or "sqlalchemy",
+            identifier=store_identifier,
+            format=fmt,
+            base=resolved_base,
+            bind_prefixes=cfg.prefixes_dict,
+            jsonld_context=cfg.jsonld_context,
+            **load_kwargs,
+        )
+    else:
+        graph = parse_into_graph(
+            source=path,
+            format=fmt,
+            base=resolved_base,
+            bind_prefixes=cfg.prefixes_dict,
+            jsonld_context=cfg.jsonld_context,
+            **load_kwargs,
+        )
+
+    def _load_class(model_cls: type[TModel]) -> list[TModel]:
+        instances: list[TModel] = []
+        for chunk in iter_graph_to_models(
+            graph,
+            model_cls,
+            chunk_size=chunk_size,
+            **load_kwargs,
+        ):
+            instances.extend(chunk)
+        return instances
+
+    if len(model_classes) == 1:
+        return _load_class(model_classes[0])
+    return {cls: _load_class(cls) for cls in model_classes}
+
+
 def dump_model(
     model: BaseModel,
     path: str | Path,

@@ -126,4 +126,4 @@ See {doc}`11-real-world-patterns` for `load_models`, `ref_field`, and Wikidata t
 
 ## Deferred: OWL/RDFS codegen CLI
 
-Experimental **codegen** (OWL/RDFS → stub `TripleModel` classes) is planned for **0.8+**, not 0.7.0.
+Experimental **codegen** (OWL/RDFS → stub `TripleModel` classes) shipped in **0.8** — see {doc}`15-stores-scale-and-strict`.
