@@ -22,7 +22,6 @@ See [ROADMAP.md § 0.4.1 — Real-world ergonomics](https://github.com/eddiethed
 - **`patch` + skolemize** — stale nested blank-node cleanup runs before graph skolemization
 - **Subject discovery** — `all_from_graph` without `type_uri` no longer treats inverse-predicate link sources as subjects
 - **Dispatch** — `graph_to_model_dispatch` / `all_from_graph_dispatch` accept `resolver=`; bulk dispatch and type-based `graph_to_models` return instances in stable subject-URI order
-- **Inverse predicates on sync** — `replace` and `patch` remove stale `(?, inverse_predicate, subject)` triples when a field with `inverse=` is cleared
 - **Inverse import conflicts** — warn or error when both forward and inverse triples exist; forward objects win
 - **Duplicate `Rdf.type_uri`** — `UserWarning` when a second model class registers the same `type_uri`
 - **`from_graph` list duplicates** — honor `on_duplicate` for `list`/`set` fields (including multiple `rdf:List` heads)
@@ -39,6 +38,7 @@ See [ROADMAP.md § 0.4.1 — Real-world ergonomics](https://github.com/eddiethed
 - **`InverseOf` / `rdf_field(..., inverse=...)`** — import from inverse predicates; export uses the canonical forward predicate
 - **SHACL (optional)** — `triplemodel[shacl]` extra; `validate_graph` and `shacl_shapes=` on `to_graph` / `serialize`
 - **`examples/exit_criteria_04.py`** — Turtle / JSON-LD / graph round-trip exit criteria
+- **Real-world examples** — `examples/realworld/` (Nobel linked data, DCAT catalog, Wikidata capitals excerpt, Schema.org NGOs) with bundled TTL, offline CI tests, and data provenance notes
 
 ### Changed
 
@@ -46,7 +46,7 @@ See [ROADMAP.md § 0.4.1 — Real-world ergonomics](https://github.com/eddiethed
 - **`inverse=` on collections** — `list` / `set` fields with `inverse=` are rejected at class definition
 - **Import API** — `from_graph`, `all_from_graph`, and `parse*` accept `resolver=` and `registry=`; `all_from_graph` / `graph_to_models` accept `de_skolemize=`
 - **Nested import** — parent `on_duplicate` is honored when hydrating nested embeds
-- **Dev tooling** — pin `pytest>=8.3,<9` for reproducible CI
+- **Dev tooling** — pin `pytest>=8.3,<9` for reproducible CI; `sphinx-autodoc-typehints>=3` for Sphinx 8.2 doc builds
 - **Docs** — README limitations (inverse, skolemize graph-wide, dispatch scope); features/API tables; guides for sync, file I/O, and namespaces
 - **`parse_url` User-Agent** — uses `triplemodel/{version}` from package metadata
 - **Release docs** — `RELEASING.md` updated for 0.4.0; README limitations cover dispatch and sync defaults
