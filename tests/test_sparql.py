@@ -520,15 +520,17 @@ def test_init_bindings_filter_subject_uri():
     g = _foaf_graph()
     alice = Person(slug="alice", name="Alice", age=30)
     bindings = init_bindings_from_model(alice, {"subj": "slug"})
-    result = g.query(
+    assert ask(
+        g,
         """
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-        SELECT ?name WHERE { ?s foaf:name ?name . FILTER(?s = ?subj) }
+        ASK {
+          ?s foaf:name "Alice" .
+          FILTER(?s = ?subj)
+        }
         """,
         initBindings=bindings,  # ty: ignore[invalid-argument-type]
     )
-    names = [str(row[0]) for row in result]  # ty: ignore[index]
-    assert names == ["Alice"]
 
 
 def test_union_member_term_conversion():

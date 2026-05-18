@@ -238,7 +238,10 @@ def load_models(
         if not issubclass(model_cls, TripleModel):
             raise TypeError(f"{model_cls!r} is not a TripleModel subclass.")
     if len(model_classes) == 1:
-        return cast(list[TModel], model_classes[0].parse_file(path, **kwargs))
+        return cast(
+            list[TModel],
+            cast(type[TripleModel], model_classes[0]).parse(source=path, **kwargs),
+        )
     lead = model_classes[0]
     cfg = get_rdf_config(lead)
     fmt = infer_format(path, kwargs.get("format"))
