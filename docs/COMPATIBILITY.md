@@ -23,14 +23,14 @@ TripleModel is tested against the dependency ranges declared in `pyproject.toml`
 
 The main `test` job runs on Python 3.10–3.13 with current dependency releases.
 
-The `compat` job installs **minimum** pins:
+The `compat` job runs the full test suite with 100% coverage (same as the main `test` job):
 
-```text
-pydantic==2.5.0
-rdflib==7.0.0
-```
+| Python | Pins |
+|--------|------|
+| 3.10 | `pydantic==2.5.0` and `rdflib==7.0.0` |
+| 3.13 | `rdflib==7.0.0` only (pydantic from `pyproject.toml`; 2.5 has no 3.13 wheels) |
 
-and runs the full test suite with 100% coverage required (same as the main `test` job).
+Minimum **pydantic 2.5** is validated on 3.10–3.12 via the 3.10 compat leg and local `make compat` (use `make compat-rdflib` on 3.13).
 
 ## Type checking
 

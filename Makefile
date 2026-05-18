@@ -35,8 +35,15 @@ test:
 stores:
 	$(PYTHON) -m pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
 
+# pydantic 2.5 has no Python 3.13 wheels; on 3.13 use compat-rdflib instead.
 compat:
 	$(PIP) install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
+	rm -rf dist
+	$(PYTHON) -m build
+	$(PYTHON) -m pytest
+
+compat-rdflib:
+	$(PIP) install "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
 	rm -rf dist
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest
@@ -81,10 +88,11 @@ ci: install
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest
 	$(PYTHON) -m pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
-	$(PIP) install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
-	rm -rf dist
-	$(PYTHON) -m build
-	$(PYTHON) -m pytest
+	@if $(PYTHON) -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 13) else 1)"; then \
+		$(MAKE) compat-rdflib; \
+	else \
+		$(MAKE) compat; \
+	fi
 	$(PIP) install --upgrade "pydantic>=2.5,<3" "rdflib>=7.0,<8" -e ".[dev,shacl,sqlalchemy,docs]"
 	$(PYTHON) -m ruff format --check src tests
 	$(PYTHON) -m ruff check src tests
