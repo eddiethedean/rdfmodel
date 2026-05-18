@@ -130,6 +130,10 @@ def clear_stale_nested_bnode_children(
         pred = r.resolve_field_predicate(field_info, prefixes)
         if pred is None:
             continue
+        nested_cls = nested_model_type(field_info)
+        if nested_cls is None:
+            continue
+        nested_cfg = get_rdf_config(nested_cls)
         pred_ref = URIRef(pred)
         in_graph = {
             obj for obj in graph.objects(parent_ref, pred_ref) if isinstance(obj, BNode)
@@ -142,6 +146,13 @@ def clear_stale_nested_bnode_children(
         else:
             keep = set()
         for stale in in_graph - keep:
+            clear_inverse_links_to_subject(
+                graph,
+                stale,
+                cast(type[BaseModel], nested_cls),
+                config=nested_cfg,
+                resolver=r,
+            )
             remove_bnode_subgraph(graph, stale)
 
 
@@ -169,6 +180,6 @@ def clear_nested_bnode_children(
         if pred is None:
             continue
         pred_ref = URIRef(pred)
-        for bnode in graph.objects(parent_ref, pred_ref):
+        for bnode in list(graph.objects(parent_ref, pred_ref)):
             if isinstance(bnode, BNode):
                 remove_bnode_subgraph(graph, bnode)

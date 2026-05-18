@@ -68,6 +68,6 @@ See [Ecosystem](../ECOSYSTEM.md) for the full split.
 
 ## Nested resources
 
-With **`embed="iri"`**, `replace` and `patch` remove owned triples on nested child subjects that are no longer linked (for example when `mbox=None` or the child `slug` changes), and patch clears cleared scalars on linked children. **`embed="bnode"`** is experimental: `replace`/`patch` remove stale blank-node subgraphs in common cases; prefer IRI embed for stable IRIs. See [Nested models](05-nested-models.md).
+With **`embed="iri"`**, `replace` and `patch` remove owned triples on nested child subjects that are no longer linked (for example when `mbox=None` or the child `slug` changes), and remove stale `(?, inverse_predicate, child)` triples when the child had `inverse=` fields. **`embed="bnode"`** is experimental: `replace`/`patch` remove stale blank-node subgraphs and incoming inverse links in the same cases; prefer IRI embed for stable IRIs. See [Nested models](05-nested-models.md).
 
 **Next:** [Nested models →](05-nested-models.md)

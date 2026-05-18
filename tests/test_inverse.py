@@ -102,6 +102,17 @@ class Department(TripleModel):
     team: Team | None = rdf_field(f"{EX}hasTeam", default=None)
 
 
+class DepartmentBnode(TripleModel):
+    class Rdf:
+        namespace = f"{EX}dept/"
+        type_uri = f"{EX}DepartmentBnode"
+        id_field = "slug"
+        embed = "bnode"
+
+    slug: str
+    team: Team | None = rdf_field(f"{EX}hasTeam", default=None)
+
+
 def test_sync_replace_clears_inverse_on_stale_nested_iri() -> None:
     team = Team(slug="eng")
     dept = Department(slug="d1", team=team)
@@ -112,6 +123,53 @@ def test_sync_replace_clears_inverse_on_stale_nested_iri() -> None:
 
     sync_to_graph(Department(slug="d1", team=None), g, mode="replace")
     assert (lead, URIRef(f"{EX}leadsTeam"), team_uri) not in g
+
+
+def test_sync_replace_clears_inverse_on_stale_nested_bnode() -> None:
+    team = Team(slug="eng")
+    dept = DepartmentBnode(slug="d1", team=team)
+    g = dept.to_graph()
+    team_bnode = next(
+        o
+        for o in g.objects(URIRef(dept.subject_uri()), URIRef(f"{EX}hasTeam"))
+        if not isinstance(o, URIRef)
+    )
+    lead = URIRef(f"{EX}emp/lead")
+    g.add((lead, URIRef(f"{EX}leadsTeam"), team_bnode))
+
+    sync_to_graph(DepartmentBnode(slug="d1", team=None), g, mode="replace")
+    assert (lead, URIRef(f"{EX}leadsTeam"), team_bnode) not in g
+
+
+def test_sync_patch_clears_inverse_on_stale_nested_bnode() -> None:
+    team = Team(slug="eng")
+    dept = DepartmentBnode(slug="d1", team=team)
+    g = dept.to_graph()
+    team_bnode = next(
+        o
+        for o in g.objects(URIRef(dept.subject_uri()), URIRef(f"{EX}hasTeam"))
+        if not isinstance(o, URIRef)
+    )
+    lead = URIRef(f"{EX}emp/lead")
+    g.add((lead, URIRef(f"{EX}leadsTeam"), team_bnode))
+
+    sync_to_graph(DepartmentBnode(slug="d1", team=None), g, mode="patch")
+    assert (lead, URIRef(f"{EX}leadsTeam"), team_bnode) not in g
+
+
+def test_sync_replace_clears_stale_inverse_on_manager_change() -> None:
+    g = Graph()
+    alice = URIRef(f"{EX}emp/alice")
+    bob = URIRef(f"{EX}emp/bob")
+    carol = URIRef(f"{EX}emp/carol")
+    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((carol, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(f"{EX}manages"), alice))
+
+    sync_to_graph(Employee(slug="alice", manager=str(carol)), g, mode="replace")
+    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert (alice, URIRef(f"{EX}hasManager"), carol) in g
 
 
 def test_sync_patch_clears_inverse_on_stale_nested_iri() -> None:
@@ -150,6 +208,8 @@ def test_field_clears_inverse_list_and_set_branches() -> None:
     assert _field_clears_inverse([None], "list") is True
     assert _field_clears_inverse(set(), "set") is True
     assert _field_clears_inverse("not-a-list", "list") is False
+    assert _field_clears_inverse("bob", "scalar") is False
+    assert _field_clears_inverse(None, "scalar") is True
 
 
 def test_walk_embed_follows_bnode_link_in_graph() -> None:
@@ -291,7 +351,7 @@ def test_import_forward_inverse_conflict_raises() -> None:
         Employee.from_graph(g, str(alice), on_duplicate="error")
 
 
-def test_clear_inverse_skips_nonempty_fields() -> None:
+def test_sync_replace_clears_inverse_when_field_set() -> None:
     g = Graph()
     alice = URIRef(f"{EX}emp/alice")
     bob = URIRef(f"{EX}emp/bob")
@@ -301,7 +361,26 @@ def test_clear_inverse_skips_nonempty_fields() -> None:
 
     alice_model = Employee(slug="alice", manager=str(bob))
     sync_to_graph(alice_model, g, mode="replace")
-    assert (bob, URIRef(f"{EX}manages"), alice) in g
+    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert (alice, URIRef(f"{EX}hasManager"), bob) in g
+
+
+def test_inverse_on_list_field_rejected_at_class_definition() -> None:
+    import pytest
+
+    with pytest.raises(ValueError, match="inverse= is not supported on list"):
+
+        class BadListInverse(TripleModel):
+            class Rdf:
+                namespace = EX
+                id_field = "slug"
+
+            slug: str
+            tags: list[str] = rdf_field(
+                f"{EX}tags",
+                inverse=f"{EX}tagged",
+                default_factory=list,
+            )
 
 
 def test_import_multiple_inverse_subjects_warns() -> None:

@@ -55,6 +55,18 @@ _NESTED_COLLECTION_MSG = (
     "use a single nested field or multiple scalar objects per predicate."
 )
 
+_INVERSE_COLLECTION_MSG = "inverse= is not supported on list or set fields"
+
+
+def raise_if_inverse_collection(field_info: FieldInfo) -> None:
+    """Reject ``inverse=`` on ``list`` / ``set`` fields."""
+    from triplemodel.fields.metadata import inverse_for_field
+
+    if inverse_for_field(field_info) is None:
+        return
+    if field_cardinality(field_info) in ("list", "set"):
+        raise ValueError(_INVERSE_COLLECTION_MSG)
+
 
 def raise_if_nested_collection(field_info: FieldInfo) -> None:
     """Reject ``list[TripleModel]`` / ``set[TripleModel]`` field annotations."""

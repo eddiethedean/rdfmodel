@@ -115,6 +115,21 @@ def test_clear_stale_bnode_when_mbox_cleared():
     assert PersonBnodeStable.from_graph(g, p.subject_uri()).mbox is None
 
 
+def test_patch_skolemize_clears_stale_bnode_before_skolemizing():
+    p = PersonBnodeStable(slug="x", mbox=Mailbox(address="a@example.org"))
+    g = p.to_graph()
+    subj = URIRef(p.subject_uri())
+    pred = URIRef(f"{FOAF}mbox")
+    stale = BNode()
+    g.add((subj, pred, stale))
+    g.add((stale, RDF.type, URIRef("http://example.org/Mailbox")))
+    sync_to_graph(
+        PersonBnodeStable(slug="x", mbox=None), g, mode="patch", skolemize=True
+    )
+    assert (subj, pred, stale) not in g
+    assert PersonBnodeStable.from_graph(g, p.subject_uri()).mbox is None
+
+
 def test_skolemize_and_de_skolemize():
     g = Graph()
     b = BNode()
@@ -382,3 +397,43 @@ def test_nested_without_predicate_skips_bnode_cleanup():
     g = Graph()
     clear_stale_nested_bnode_children(Outer(slug="a"), g, EX + "a", config=cfg)
     clear_nested_bnode_children(Outer(slug="a"), g, EX + "a", config=cfg)
+
+
+def test_clear_stale_bnode_skips_when_nested_cls_unresolved(monkeypatch):
+    from triplemodel.io.sync import nested_cleanup as nc
+
+    class Inner(TripleModel):
+        class Rdf:
+            namespace = EX
+            id_field = "slug"
+
+        slug: str
+
+    class Outer(TripleModel):
+        class Rdf:
+            namespace = EX
+            embed = "bnode"
+            id_field = "slug"
+
+        slug: str
+        inner: Inner | None = rdf_field(f"{FOAF}mbox", default=None)
+
+    outer = Outer(slug="a", inner=Inner(slug="i"))
+    g = outer.to_graph()
+    n = len(g)
+
+    def fake_nested_model_type(field_info):
+        if field_info is Outer.model_fields["inner"]:
+            return None
+        from triplemodel.metadata.cardinality import nested_model_type as real
+
+        return real(field_info)
+
+    monkeypatch.setattr(nc, "nested_model_type", fake_nested_model_type)
+    nc.clear_stale_nested_bnode_children(
+        Outer(slug="a", inner=None),
+        g,
+        outer.subject_uri(),
+        config=get_rdf_config(Outer),
+    )
+    assert len(g) == n

@@ -15,6 +15,7 @@ from triplemodel.fields.resolver import default_resolver
 from triplemodel.terms.lang import LangString
 from triplemodel.metadata.cardinality import (
     field_cardinality,
+    raise_if_inverse_collection,
     raise_if_nested_collection,
 )
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
@@ -70,6 +71,7 @@ def model_to_triples(
         if predicate is None:
             continue
         raise_if_nested_collection(field_info)
+        raise_if_inverse_collection(field_info)
         value = getattr(model, name)
         card = field_cardinality(field_info)
 

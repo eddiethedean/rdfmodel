@@ -7,22 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **Stale nested IRI + inverse** — `replace` / `patch` remove incoming inverse triples when a nested IRI child is dropped from the parent
-- **Inverse import** — multiple inverse subjects are sorted by IRI string for deterministic import (lexicographically first wins with `on_duplicate="warn"`)
-- **Dispatch** — `graph_to_model_dispatch` / `all_from_graph_dispatch` accept `resolver=`; bulk dispatch returns instances in stable subject-URI order
-
-### Changed
-
-- **Nested collection error** — versionless message for unsupported `list[TripleModel]` / `set[TripleModel]`
-- **Dev tooling** — pin `pytest>=8.3,<9` for reproducible CI
-- **Docs** — README limitations (inverse, skolemize graph-wide, `set[TripleModel]`); features/API tables; skolemize note in graphs guide
-
 ## [0.4.0] - 2026-05-17
 
 ### Fixed
 
+- **Stale nested IRI + inverse** — `replace` / `patch` remove incoming inverse triples when a nested IRI child is dropped from the parent
+- **Stale nested bnode + inverse** — same cleanup when a nested blank-node child is removed
+- **Inverse on sync** — `replace` / `patch` clear all incoming inverse triples for inverse fields (including reassignment), not only when the field is cleared; forward predicates remain the export source of truth
+- **Inverse import** — multiple inverse subjects are sorted by IRI string for deterministic import (lexicographically first wins with `on_duplicate="warn"`)
+- **`patch` + skolemize** — stale nested blank-node cleanup runs before graph skolemization
+- **Subject discovery** — `all_from_graph` without `type_uri` no longer treats inverse-predicate link sources as subjects
+- **Dispatch** — `graph_to_model_dispatch` / `all_from_graph_dispatch` accept `resolver=`; bulk dispatch and type-based `graph_to_models` return instances in stable subject-URI order
 - **Inverse predicates on sync** — `replace` and `patch` remove stale `(?, inverse_predicate, subject)` triples when a field with `inverse=` is cleared
 - **Inverse import conflicts** — warn or error when both forward and inverse triples exist; forward objects win
 - **Duplicate `Rdf.type_uri`** — `UserWarning` when a second model class registers the same `type_uri`
@@ -43,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Nested collection error** — versionless message for unsupported `list[TripleModel]` / `set[TripleModel]`; rejected at class definition
+- **`inverse=` on collections** — `list` / `set` fields with `inverse=` are rejected at class definition
+- **Import API** — `from_graph`, `all_from_graph`, and `parse*` accept `resolver=` and `registry=`; `all_from_graph` / `graph_to_models` accept `de_skolemize=`
+- **Nested import** — parent `on_duplicate` is honored when hydrating nested embeds
+- **Dev tooling** — pin `pytest>=8.3,<9` for reproducible CI
+- **Docs** — README limitations (inverse, skolemize graph-wide, dispatch scope); features/API tables; guides for sync, file I/O, and namespaces
 - **`parse_url` User-Agent** — uses `triplemodel/{version}` from package metadata
 - **Release docs** — `RELEASING.md` updated for 0.4.0; README limitations cover dispatch and sync defaults
 - PyPI trove classifier **Development Status :: 4 - Beta** (0.1.x–0.3.x were released as alpha)

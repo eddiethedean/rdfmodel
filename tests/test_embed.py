@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from rdflib import Graph, URIRef
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
@@ -31,6 +32,16 @@ class Person(TripleModel):
     slug: str
     name: str = rdf_field(f"{FOAF}name")
     mbox: Mailbox | None = rdf_field(f"{FOAF}mbox", default=None)
+
+
+def test_nested_import_honors_parent_on_duplicate_error():
+    mbox = Mailbox(slug="m1", address="alice@example.org")
+    p = Person(slug="alice", name="Alice", mbox=mbox)
+    g = p.to_graph()
+    subj = URIRef(p.subject_uri())
+    g.add((subj, URIRef(f"{FOAF}mbox"), URIRef("http://example.org/mailbox/other")))
+    with pytest.raises(ValueError, match="Multiple objects"):
+        Person.from_graph(g, p.subject_uri(), on_duplicate="error")
 
 
 def test_nested_iri_embed_roundtrip():

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Literal, TypeVar, cast
+from typing import TypeVar, cast
 
 from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
@@ -11,7 +11,12 @@ from rdflib import Graph, URIRef, XSD
 from rdflib import Literal as RdfLiteral
 from rdflib.term import Node
 
-from triplemodel._typing import ModelFieldScalar, ModelFieldValue, ModelInitData
+from triplemodel._typing import (
+    ModelFieldScalar,
+    ModelFieldValue,
+    ModelInitData,
+    OnDuplicate,
+)
 from triplemodel.config import (
     RDF_TYPE,
     EmbedMode,
@@ -26,6 +31,7 @@ from triplemodel.fields.resolver import default_resolver
 from triplemodel.metadata.cardinality import (
     field_cardinality,
     nested_model_type,
+    raise_if_inverse_collection,
     raise_if_nested_collection,
     scalar_python_type,
     union_member_types,
@@ -36,8 +42,6 @@ from triplemodel.terms.convert import term_to_python
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 T = TypeVar("T", bound=BaseModel)
-
-OnDuplicate = Literal["ignore", "warn", "error"]
 
 
 def _handle_duplicate(
@@ -151,6 +155,7 @@ def import_field_value(
             term,
             cast(type[BaseModel], nested_cls),
             embed=embed,
+            on_duplicate=on_duplicate,
             registry=registry,
         )
 
@@ -238,6 +243,7 @@ def graph_to_model(
         if predicate is None:
             continue
         raise_if_nested_collection(field_info)
+        raise_if_inverse_collection(field_info)
         pred_ref = URIRef(predicate)
         forward_objects = list(graph.objects(subject, pred_ref))
         inv_raw = inverse_for_field(field_info)
@@ -297,6 +303,7 @@ def graph_to_models(
     on_duplicate: OnDuplicate = "warn",
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
+    de_skolemize: bool | None = None,
 ) -> list[T]:
     """Load all resources of ``type_uri`` (or the model's configured type) as models."""
     from triplemodel.io.discovery import discover_subject_uris
@@ -306,7 +313,10 @@ def graph_to_models(
 
     instances: list[T] = []
     if rdf_type:
-        for subject in graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type)):
+        for subject in sorted(
+            graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type)),
+            key=str,
+        ):
             if isinstance(subject, URIRef):
                 instances.append(
                     graph_to_model(
@@ -318,8 +328,10 @@ def graph_to_models(
                         on_duplicate=on_duplicate,
                         resolver=resolver,
                         registry=registry,
+                        de_skolemize=de_skolemize,
                     )
                 )
+        instances.sort(key=lambda m: cfg.subject_uri(m))
         return instances
 
     for subject_uri in discover_subject_uris(graph, model_cls, cfg, resolver=resolver):
@@ -333,6 +345,7 @@ def graph_to_models(
                 on_duplicate=on_duplicate,
                 resolver=resolver,
                 registry=registry,
+                de_skolemize=de_skolemize,
             )
         )
     return instances

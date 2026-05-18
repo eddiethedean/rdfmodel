@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Annotated
 
 import pytest
-from rdflib import Graph, URIRef
 
 from triplemodel import Predicate, TripleModel, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -15,7 +14,6 @@ from triplemodel.metadata.cardinality import (
     field_cardinality,
     is_triple_model_type,
     nested_model_type,
-    raise_if_nested_collection,
     scalar_python_type,
     unwrap_annotation,
 )
@@ -99,56 +97,48 @@ def test_owned_predicates_includes_type_and_curie():
 
 
 def test_list_of_triple_model_raises_on_export():
-    class Team(TripleModel):
-        class Rdf:
-            namespace = EX
-            type_uri = f"{FOAF}Person"
-            id_field = "slug"
-
-        slug: str
-        members: list[Child] = rdf_field(
-            "http://example.org/member", default_factory=list
-        )
-
     with pytest.raises(ValueError, match="not supported"):
-        Team(slug="t", members=[Child(slug="c", label="x")]).to_graph()
+
+        class Team(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = f"{FOAF}Person"
+                id_field = "slug"
+
+            slug: str
+            members: list[Child] = rdf_field(
+                "http://example.org/member", default_factory=list
+            )
 
 
 def test_list_of_triple_model_raises_on_import():
-    from triplemodel.io import graph_to_model
-
-    class Team(TripleModel):
-        class Rdf:
-            namespace = EX
-            type_uri = f"{FOAF}Person"
-            id_field = "slug"
-
-        slug: str
-        members: list[Child] = rdf_field(
-            "http://example.org/member", default_factory=list
-        )
-
-    g = Graph()
-    subj = URIRef(EX + "t")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
     with pytest.raises(ValueError, match="not supported"):
-        graph_to_model(g, Team, str(subj))
+
+        class Team(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = f"{FOAF}Person"
+                id_field = "slug"
+
+            slug: str
+            members: list[Child] = rdf_field(
+                "http://example.org/member", default_factory=list
+            )
 
 
 def test_set_of_triple_model_raises_on_export():
-    class Team(TripleModel):
-        class Rdf:
-            namespace = EX
-            type_uri = f"{FOAF}Person"
-            id_field = "slug"
-
-        slug: str
-        members: set[Child] = rdf_field(
-            "http://example.org/member", default_factory=set
-        )
-
     with pytest.raises(ValueError, match="not supported"):
-        raise_if_nested_collection(Team.model_fields["members"])
+
+        class Team(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = f"{FOAF}Person"
+                id_field = "slug"
+
+            slug: str
+            members: set[Child] = rdf_field(
+                "http://example.org/member", default_factory=set
+            )
 
 
 def test_owned_predicates_unknown_curie_raises_on_resolve():

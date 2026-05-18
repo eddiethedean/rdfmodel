@@ -46,7 +46,7 @@ Status key: **done** (0.1.0) · **planned** (target version) · **partial** · *
 | rdflib area | Capability | TripleModel surface (planned) | Ver |
 |-------------|------------|----------------------------|-----|
 | **Terms** | `URIRef`, `Literal`, XSD datatypes | `python_to_term` / `term_to_python` | 0.1 |
-| | `BNode`, anonymous subjects/objects | `Rdf.blank_node` strategy, skolemize on export | 0.3 |
+| | `BNode`, anonymous subjects/objects | `Rdf.blank_node_policy` (`"fresh"` \| `"stable"`), skolemize on export | 0.3 |
 | | Language tags (`Literal.lang`) | `LangString`, `Annotated[..., Lang("en")]` | 0.3 |
 | | `rdf:HTML` / `rdf:XMLLiteral` literals | optional field types or preserve via registry | 0.3 |
 | | Custom / unknown datatypes | pluggable `Literal` converters | 0.2 |
@@ -127,7 +127,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **Theme:** Everything needed for ordinary RDF-shaped Pydantic models on a single default graph.
 
-- [x] **Multi-valued fields** — `list[T]`, `set[T]` ↔ multiple objects per predicate
+- [x] **Multi-valued fields** — `list[T]`, `set[T]` ↔ multiple objects per predicate *(0.3+: `set[T]` only; `list[T]` is `rdf:List`)*
 - [x] **Nested `TripleModel`** — blank node or named IRI embedding (configurable)
 - [x] **Optional & null semantics** — omit vs explicit empty; **remove** prior triples when a field is cleared on re-export
 - [x] **Custom `Literal` datatypes** — register converters (`Decimal`, `UUID`, `Enum`, …); wire **rdflib `term.bind()`**

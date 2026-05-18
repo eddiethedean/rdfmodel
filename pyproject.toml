@@ -90,6 +90,9 @@ include = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = ["--cov=triplemodel", "--cov-report=term-missing", "--cov-fail-under=100"]
+filterwarnings = [
+    "ignore:Rdf.type_uri .* already registered:UserWarning",
+]
 
 [tool.coverage.run]
 source = ["triplemodel"]

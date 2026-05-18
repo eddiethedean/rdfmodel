@@ -10,6 +10,7 @@ from rdflib.term import Node
 
 from triplemodel._typing import TripleRow
 from triplemodel.config import EmbedMode, RdfConfig, get_rdf_config
+from triplemodel._typing import OnDuplicate
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 
@@ -42,6 +43,7 @@ class IriEmbedStrategy:
         term: Node,
         nested_cls: type[BaseModel],
         *,
+        on_duplicate: OnDuplicate = "warn",
         registry: LiteralRegistry = default_registry,
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
@@ -51,7 +53,13 @@ class IriEmbedStrategy:
                 f"Cannot import nested {nested_cls.__name__} from term {term!r} "
                 f"with embed='iri'."
             )
-        return graph_to_model(graph, nested_cls, str(term), registry=registry)
+        return graph_to_model(
+            graph,
+            nested_cls,
+            str(term),
+            on_duplicate=on_duplicate,
+            registry=registry,
+        )
 
 
 @dataclass(frozen=True)
@@ -90,6 +98,7 @@ class BnodeEmbedStrategy:
         term: Node,
         nested_cls: type[BaseModel],
         *,
+        on_duplicate: OnDuplicate = "warn",
         registry: LiteralRegistry = default_registry,
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
@@ -100,7 +109,12 @@ class BnodeEmbedStrategy:
                 f"with embed='bnode'."
             )
         return graph_to_model(
-            graph, nested_cls, term, validate_type=False, registry=registry
+            graph,
+            nested_cls,
+            term,
+            validate_type=False,
+            on_duplicate=on_duplicate,
+            registry=registry,
         )
 
 
@@ -136,11 +150,16 @@ def import_nested_value(
     nested_cls: type[BaseModel],
     *,
     embed: EmbedMode = "iri",
+    on_duplicate: OnDuplicate = "warn",
     registry: LiteralRegistry = default_registry,
 ) -> BaseModel:
     """Hydrate a nested model from an RDF object term."""
     return get_embed_strategy(embed).import_value(
-        graph, term, nested_cls, registry=registry
+        graph,
+        term,
+        nested_cls,
+        on_duplicate=on_duplicate,
+        registry=registry,
     )
 
 

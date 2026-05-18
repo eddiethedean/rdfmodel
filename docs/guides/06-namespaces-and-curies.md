@@ -21,7 +21,7 @@ class Person(TripleModel):
 
 `list[str]` maps to an **`rdf:List`**, not multiple `foaf:nick` triples. Use `set[str]` for several objects on one predicate — see {doc}`09-rdf-lists-and-lang`.
 
-On `to_graph()` / `sync_to_graph()` with a **new** graph, prefixes are bound automatically when `bind=True` (default for sync on empty graphs).
+On `to_graph()` / module-level `model_to_graph()` / `sync_to_graph()` with a **new** graph, prefixes are bound automatically when `bind=True` (default for sync on empty graphs). Instance `sync_to_graph()` does not take `bind=`; use module-level `sync_to_graph(..., bind=False)` when needed.
 
 ## CURIE expansion
 
@@ -63,7 +63,7 @@ bind_namespaces(graph, {"foaf": "http://xmlns.com/foaf/0.1/"}, strategy="core")
 | `"rdflib"` | Also call rdflib’s `bind_namespaces()` when available |
 | `"none"` | No-op |
 
-Pass `bind=False` to `sync_to_graph` when merging into a graph that already has prefix bindings.
+Pass `bind=False` to module-level `sync_to_graph` or `model_to_graph` when merging into a graph that already has prefix bindings.
 
 ## Vocabulary shortcuts
 

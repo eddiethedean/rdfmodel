@@ -7,12 +7,22 @@ from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import TYPE_CHECKING, ForwardRef, TypedDict, TypeAlias, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    ForwardRef,
+    Literal,
+    TypedDict,
+    TypeAlias,
+    TypeVar,
+    Union,
+)
 
 from uuid import UUID
 
 from pydantic import BaseModel
 from rdflib.term import Node
+
+OnDuplicate = Literal["ignore", "warn", "error"]
 
 # --- Python / RDF value shapes ---
 

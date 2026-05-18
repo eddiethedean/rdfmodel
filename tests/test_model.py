@@ -102,6 +102,33 @@ def test_all_from_graph_without_type_uri_discovers_subjects():
     assert {p.slug for p in loaded} == {"a", "b"}
 
 
+def test_all_from_graph_ignores_inverse_predicate_subjects():
+    EX_INV = "http://example.org/inv/"
+
+    class Report(TripleModel):
+        class Rdf:
+            namespace = f"{EX_INV}report/"
+            type_uri = ""
+            id_field = "slug"
+
+        slug: str
+        author: str | None = rdf_field(
+            f"{EX_INV}hasAuthor",
+            inverse=f"{EX_INV}authored",
+            default=None,
+        )
+
+    g = Graph()
+    report_uri = URIRef(f"{EX_INV}report/r1")
+    author_uri = URIRef(f"{EX_INV}person/alice")
+    g.add((author_uri, URIRef(f"{EX_INV}authored"), report_uri))
+    g.add((report_uri, URIRef(f"{EX_INV}hasAuthor"), author_uri))
+
+    loaded = Report.all_from_graph(g)
+    assert len(loaded) == 1
+    assert loaded[0].slug == "r1"
+
+
 def test_id_extraction_rejects_prefix_collision():
     ns = "http://example.com"
     uri = "http://example.computer/alice"

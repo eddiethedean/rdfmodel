@@ -94,24 +94,20 @@ def clear_inverse_links(
     config: RdfConfig | None = None,
     resolver: PredicateResolverProtocol | None = None,
 ) -> None:
-    """Remove ``(?, inverse_predicate, subject)`` when mapped fields are empty."""
+    """Remove all ``(?, inverse_predicate, subject)`` for inverse fields before re-export.
+
+    Export writes forward predicates only; stale inverse triples (including from
+    reassigned scalar values) must be cleared on sync.
+    """
     r = resolver or default_resolver
     cfg = config or get_rdf_config(type(model))
     subj = subject or cfg.subject_uri(model)
     subj_node = subj if isinstance(subj, Node) else subject_ref(subj)
     for inst, node, inst_cfg in _walk_embed_instances(model, subj_node, cfg, graph, r):
-        prefixes = inst_cfg.prefixes_dict
-        id_field = inst_cfg.id_field
-        for name, field_info in type(inst).model_fields.items():
-            if id_field and name == id_field:
-                continue
-            inv_raw = inverse_for_field(field_info)
-            if inv_raw is None:
-                continue
-            card = field_cardinality(field_info)
-            value = getattr(inst, name)
-            if not _field_clears_inverse(value, card):
-                continue
-            inv_pred = URIRef(resolve_predicate(inv_raw, prefixes))
-            for remote in list(graph.subjects(inv_pred, node)):
-                graph.remove((remote, inv_pred, node))
+        clear_inverse_links_to_subject(
+            graph,
+            node,
+            type(inst),
+            config=inst_cfg,
+            resolver=r,
+        )

@@ -215,11 +215,11 @@ sync_to_graph(person, graph, mode="patch")    # per-predicate replace; lighter t
 |--------|-------------|
 | `subject_uri(uri=None)` | Subject IRI for this instance |
 | `to_triples(uri=None)` | `(subject, predicate, object)` rows |
-| `to_graph(graph=None, uri=None, mode="add", skolemize=None)` | Serialize into a `Graph` |
-| `sync_to_graph(graph, uri=None, mode="replace", skolemize=None)` | Sync owned triples in-place |
-| `from_graph(graph, uri, ...)` | Load one resource |
-| `all_from_graph(graph, type_uri=None, ...)` | Load all resources of this type |
-| `parse` / `parse_file` / `parse_url` | Parse RDF into a `Graph` (class methods) |
+| `to_graph(graph=None, *, uri=None, mode="add", ...)` | Serialize into a `Graph` |
+| `sync_to_graph(graph, *, uri=None, mode="replace", ...)` | Sync owned triples in-place on this instance |
+| `from_graph(graph, uri, *, resolver=, registry=, ...)` | Load one resource |
+| `all_from_graph(graph, *, type_uri=None, resolver=, registry=, de_skolemize=, ...)` | Load all resources of this type |
+| `parse` / `parse_file` / `parse_url` | Parse RDF and return `list[TripleModel]` (class methods; optional `dispatch=True`) |
 | `serialize` | Write instance triples to a file or string |
 | `rdf_config()` | Resolved `RdfConfig` |
 
@@ -233,6 +233,8 @@ from triplemodel import (
     GraphMode,
     sync_to_graph,
     models_to_graph,
+    graph_to_model_dispatch,
+    all_from_graph_dispatch,
     merge_graphs,
     expand_curie,
     bind_namespaces,
@@ -286,7 +288,8 @@ http://example.org/people/bob%20jones
 - **Named graphs** — use rdflib `Dataset` directly until 0.5 (`to_dataset` on the roadmap).
 - **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
 - **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` and `set[TripleModel]` are not supported.
-- **Inverse predicates** — import uses forward or inverse triples (forward wins on conflict); `replace` / `patch` sync clears stale inverse links, including when nested IRI children are removed.
+- **Inverse predicates** — import uses forward or inverse triples (forward wins on conflict); `replace` / `patch` clear stale inverse links (including reassignment and dropped nested IRI/bnode children). Export writes forward predicates only.
+- **Dispatch parse** — `parse(..., dispatch=True)` loads every registered `rdf:type` (not only the class you call `.parse` on); `type_uri=` is ignored when `dispatch=True`.
 - **Skolemize** — `skolemize` / `de_skolemize` on import or export mutate the **entire** shared `Graph`, not only the resource being loaded or synced.
 - **BNode subjects** are skipped by `all_from_graph()` and by `parse(..., dispatch=True)` / `all_from_graph_dispatch()`.
 - **Subclass dispatch** — only loads subjects whose `rdf:type` is registered on a model class; other types are omitted without error.

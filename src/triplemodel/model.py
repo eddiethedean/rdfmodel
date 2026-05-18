@@ -56,8 +56,17 @@ class TripleModel(BaseModel):
         str_strip_whitespace=False,
     )
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
+    @classmethod
+    def __pydantic_init_subclass__(cls, **kwargs: Any) -> None:
+        super().__pydantic_init_subclass__(**kwargs)
+        from triplemodel.metadata.cardinality import (
+            raise_if_inverse_collection,
+            raise_if_nested_collection,
+        )
+
+        for field_info in cls.model_fields.values():
+            raise_if_nested_collection(field_info)
+            raise_if_inverse_collection(field_info)
         register_rdf_resource(cls)
 
     def subject_uri(self, *, uri: str | None = None) -> str:
@@ -176,6 +185,8 @@ class TripleModel(BaseModel):
         *,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
     ) -> Self:
         """Construct an instance from triples about ``uri``."""
@@ -185,6 +196,8 @@ class TripleModel(BaseModel):
             uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
             de_skolemize=de_skolemize,
         )
 
@@ -196,6 +209,9 @@ class TripleModel(BaseModel):
         type_uri: str | None = None,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
     ) -> list[Self]:
         """Load every resource of this model's RDF type from ``graph``."""
         return graph_to_models(
@@ -204,6 +220,9 @@ class TripleModel(BaseModel):
             type_uri=type_uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
         )
 
     @classmethod
@@ -220,6 +239,8 @@ class TripleModel(BaseModel):
         type_uri: str | None = None,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
     ) -> list[Self]:
         if dispatch:
@@ -231,6 +252,8 @@ class TripleModel(BaseModel):
                     graph,
                     validate_type=validate_type,
                     on_duplicate=on_duplicate,
+                    resolver=resolver,
+                    registry=registry,
                     de_skolemize=de_skolemize,
                 ),
             )
@@ -239,6 +262,9 @@ class TripleModel(BaseModel):
             type_uri=type_uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
         )
 
     @classmethod
@@ -253,6 +279,8 @@ class TripleModel(BaseModel):
         type_uri: str | None = None,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
         **rdflib_kwargs: Any,
     ) -> list[Self]:
@@ -275,6 +303,8 @@ class TripleModel(BaseModel):
             type_uri=type_uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
             de_skolemize=de_skolemize,
         )
 
@@ -289,6 +319,8 @@ class TripleModel(BaseModel):
         type_uri: str | None = None,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
         **rdflib_kwargs: Any,
     ) -> list[Self]:
@@ -303,6 +335,8 @@ class TripleModel(BaseModel):
             type_uri=type_uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
             de_skolemize=de_skolemize,
             **rdflib_kwargs,
         )
@@ -319,6 +353,8 @@ class TripleModel(BaseModel):
         type_uri: str | None = None,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
         **rdflib_kwargs: Any,
     ) -> list[Self]:
@@ -340,6 +376,8 @@ class TripleModel(BaseModel):
             type_uri=type_uri,
             validate_type=validate_type,
             on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
             de_skolemize=de_skolemize,
         )
 

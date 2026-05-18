@@ -58,11 +58,17 @@ When a document contains several `rdf:type` values and you have registered subcl
 instances = TripleModel.parse(data=ttl, format="turtle", dispatch=True)
 ```
 
-Each subject is loaded as the most specific registered model class.
+Each subject is loaded as the most specific registered model class. **Note:** `Person.parse(..., dispatch=True)` loads **every** registered `rdf:type` in the graph, not only `Person`; `type_uri=` is ignored when `dispatch=True`.
+
+Low-level helpers: `graph_to_model_dispatch` and `all_from_graph_dispatch` (accept `resolver=`, `registry=`, `de_skolemize=`).
+
+## Import options on class methods
+
+`from_graph`, `all_from_graph`, and `parse` / `parse_file` / `parse_url` accept `resolver=` and `registry=` for custom predicate resolution and literal conversion. `all_from_graph` and `graph_to_models` also accept `de_skolemize=`.
 
 ## Inverse predicates
 
-Map `owl:inverseOf`-style data on import with `inverse=` on `rdf_field` or `InverseOf` metadata. Export writes only the forward predicate. When a field is cleared, `sync_to_graph(..., mode="replace")` or `mode="patch"` also removes `(?, inverse_predicate, subject)` triples on other resources. If both forward and inverse triples exist for the same field, import uses the forward objects and warns (or raises with `on_duplicate="error"`).
+Map `owl:inverseOf`-style data on import with `inverse=` on `rdf_field` or `InverseOf` metadata (not on `list` / `set` fields). Export writes only the forward predicate. On `sync_to_graph(..., mode="replace")` or `mode="patch"`, all incoming inverse triples for inverse fields are cleared before re-export (including reassignment and dropped nested IRI/bnode children). If both forward and inverse triples exist for the same field, import uses the forward objects and warns (or raises with `on_duplicate="error"`).
 
 ## SHACL validation (optional)
 

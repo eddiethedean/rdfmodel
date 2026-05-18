@@ -15,7 +15,7 @@ def validate_graph(
 ) -> None:
     """Validate ``data_graph`` against SHACL shapes; raise ``ValueError`` on failure."""
     try:
-        import pyshacl  # ty: ignore[unresolved-import]
+        import pyshacl
     except ImportError as exc:
         raise ImportError(
             "SHACL validation requires pyshacl. Install with: pip install triplemodel[shacl]"

@@ -152,8 +152,6 @@ class PatchGraphMode:
     ) -> Graph:
         if bind and config.prefixes:
             bind_namespaces(graph, config.prefixes_dict)
-        do_skolem = config.skolemize_export if skolemize is None else skolemize
-        graph = apply_skolemize(graph, skolemize=do_skolem)
         reg = registry or default_registry
         subject = uri or config.subject_uri(model)
         clear_stale_nested_iri_children(
@@ -162,6 +160,8 @@ class PatchGraphMode:
         clear_stale_nested_bnode_children(
             model, graph, subject, config=config, resolver=resolver
         )
+        do_skolem = config.skolemize_export if skolemize is None else skolemize
+        graph = apply_skolemize(graph, skolemize=do_skolem)
         for subj_node, to_clear in collect_patch_clear_predicates(
             model,
             subject=subject,
