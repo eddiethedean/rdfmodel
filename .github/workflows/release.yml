@@ -24,6 +24,7 @@ jobs:
       - run: PYTHONPATH=src python examples/exit_criteria_06.py
       - run: PYTHONPATH=src python examples/exit_criteria_07.py
       - run: TRIPLEMODEL_BENCH_COUNT=1000 PYTHONPATH=src python examples/exit_criteria_08.py
+      - run: PYTHONPATH=src python examples/exit_criteria_09.py
       - run: PYTHONPATH=src python examples/readme_examples.py
       - run: rm -rf dist && python -m build
       - run: twine check dist/*

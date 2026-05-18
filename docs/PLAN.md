@@ -4,13 +4,13 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.8.0)
+## Current status (0.9.0)
 
-**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.8.0`** — stores, chunked/streaming import, strict import, predicate-map caching, plugin hooks, and experimental `triplemodel-codegen` (see {doc}`ROADMAP` and {doc}`guides/15-stores-scale-and-strict`).
+**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.9.0`** — rdflib matrix audit, API freeze (`docs/API_STABILITY.md`), full plugin passthrough (`register_parser` / `register_serializer` / `register_store`), cookbook, and compatibility CI (see {doc}`ROADMAP`).
 
-**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_08.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_08.py) for chunked/streaming load; [examples/stores/sqlalchemy_sqlite.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/stores/sqlalchemy_sqlite.py) for SQLAlchemy store lifecycle.
+**Validated in-repo:** [examples/exit_criteria_09.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_09.py); [docs/cookbook/](cookbook/index.md); prior 0.8 exit criteria and real-world examples.
 
-**Next focus:** **0.9.0** — rdflib parity audit, API freeze, full parser/store plugin passthrough (see {doc}`ROADMAP`).
+**Next focus:** **1.0.0** — governance, security hardening for `parse_url`, production semver (see {doc}`ROADMAP`).
 
 ---
 

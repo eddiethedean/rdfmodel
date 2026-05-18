@@ -5,7 +5,7 @@ PYTHON ?= python3
 PIP := $(PYTHON) -m pip
 export PYTHONPATH := src
 
-.PHONY: help ci install test stores lint format format-check ty docs docs-linkcheck \
+.PHONY: help ci install test stores compat lint format format-check ty docs docs-linkcheck \
 	build examples release-check clean
 
 help:
@@ -15,6 +15,7 @@ help:
 	@echo "  make install         Editable install with dev+shacl+sqlalchemy+docs extras"
 	@echo "  make test            pytest (100% coverage)"
 	@echo "  make stores          Store-focused pytest subset (--no-cov, like CI)"
+	@echo "  make compat          pytest with min pydantic/rdflib pins (like CI compat job)"
 	@echo "  make lint            ruff check + ty"
 	@echo "  make format          ruff format (fix)"
 	@echo "  make format-check    ruff format --check (CI)"
@@ -33,6 +34,10 @@ test:
 
 stores:
 	$(PYTHON) -m pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
+
+compat:
+	$(PIP) install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
+	$(PYTHON) -m pytest
 
 format:
 	$(PYTHON) -m ruff format src tests
@@ -63,6 +68,7 @@ examples:
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_06.py
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_07.py
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_08.py
+	$(PYTHON) examples/exit_criteria_09.py
 	$(PYTHON) examples/readme_examples.py
 
 release-check: ci examples build

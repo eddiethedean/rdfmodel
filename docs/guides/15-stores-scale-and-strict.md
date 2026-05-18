@@ -70,7 +70,24 @@ See ``examples/stores/sqlalchemy_sqlite.py`` and {doc}`13-sparql-and-endpoints` 
 
 ## Plugin hooks
 
-``triplemodel.plugins`` re-exports ``register_literal_type``, ``register_rdf_resource``, and ``register_predicate_resolver``. Full rdflib parser/store registration is planned for **0.9**.
+``triplemodel.plugins`` registers custom literals, resources, predicate resolvers, and rdflib plugins:
+
+```python
+from triplemodel.plugins import (
+    register_literal_type,
+    register_parser,
+    register_predicate_resolver,
+    register_serializer,
+    register_store,
+)
+
+# rdflib passthrough (module_path + class_name per rdflib.plugin.register)
+register_parser("myformat", "myapp.parsers", "MyParser")
+register_serializer("myformat", "myapp.serializers", "MySerializer")
+register_store("mystore", "myapp.stores", "MyStore")
+```
+
+See {doc}`../api/plugins`.
 
 ## Codegen (experimental)
 

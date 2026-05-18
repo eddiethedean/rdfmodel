@@ -10,7 +10,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 |--|--|
 | PyPI | `pip install triplemodel` |
 | Python | 3.10+ |
-| Status | Beta (0.8.x) |
+| Status | Beta (0.9.x) |
 
 ```{toctree}
 :hidden:
@@ -47,6 +47,14 @@ guides/15-stores-scale-and-strict
 
 ```{toctree}
 :hidden:
+:maxdepth: 1
+:caption: Cookbook
+
+cookbook/index
+```
+
+```{toctree}
+:hidden:
 :maxdepth: 2
 :caption: API reference
 
@@ -59,6 +67,8 @@ api/index
 :caption: Project
 
 changelog
+API_STABILITY
+COMPATIBILITY
 ROADMAP
 PLAN
 ECOSYSTEM

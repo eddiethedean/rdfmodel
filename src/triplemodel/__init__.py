@@ -110,7 +110,7 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 __all__ = [
     "EmbedMode",

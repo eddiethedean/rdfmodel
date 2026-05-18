@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.8.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.9.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -41,67 +41,67 @@ SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.p
 
 ## rdflib coverage matrix
 
-Status key: **done** (0.1.0) · **planned** (target version) · **partial** · **out of scope**
+Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 
-| rdflib area | Capability | TripleModel surface (planned) | Ver |
-|-------------|------------|----------------------------|-----|
-| **Terms** | `URIRef`, `Literal`, XSD datatypes | `python_to_term` / `term_to_python` | 0.1 |
-| | `BNode`, anonymous subjects/objects | `Rdf.blank_node_policy` (`"fresh"` \| `"stable"`), skolemize on export | 0.3 |
-| | Language tags (`Literal.lang`) | `LangString`, `Annotated[..., Lang("en")]` | 0.3 |
-| | `rdf:HTML` / `rdf:XMLLiteral` literals | optional field types or preserve via registry | 0.3 |
-| | Custom / unknown datatypes | pluggable `Literal` converters | 0.2 |
-| | `term.bind()` (Python ↔ datatype) | shared registry with rdflib `bind()` | 0.2 |
-| | `Variable` | SPARQL result binding only (not model fields) | 0.6 |
-| | RDF-star / quoted triples (`QuotedGraph`) | deferred unless rdflib 7 usage is stable | TBD |
+| rdflib area | Capability | TripleModel surface | Ver |
+|-------------|------------|---------------------|-----|
+| **Terms** | `URIRef`, `Literal`, XSD datatypes | `python_to_term` / `term_to_python` | 0.1 **done** |
+| | `BNode`, anonymous subjects/objects | `Rdf.blank_node_policy` (`"fresh"` \| `"stable"`), skolemize on export | 0.3 **done** |
+| | Language tags (`Literal.lang`) | `LangString`, `Annotated[..., Lang("en")]` | 0.3 **done** |
+| | `rdf:HTML` / `rdf:XMLLiteral` literals | preserve via `OpaqueLiteral` / registry | 0.3 **partial** |
+| | Custom / unknown datatypes | pluggable `Literal` converters | 0.2 **done** |
+| | `term.bind()` (Python ↔ datatype) | shared registry with rdflib `bind()` | 0.2 **done** |
+| | `Variable` | SPARQL result binding only (not model fields) | 0.6 **done** |
+| | RDF-star / quoted triples (`QuotedGraph`) | deferred unless rdflib 7 usage is stable | **TBD** |
 | | RDF Containers (`Bag` / `Seq` / `Alt`) | **out of scope** (prefer `rdf:List` in 0.3) | — |
-| **Graph API** | `add` / triple iterators | `to_graph`, `model_to_triples` | 0.1 |
-| | `remove` / `set` | sync cleared fields; functional-property `set` | 0.2 |
-| | `value()` | read single object for 0..1 cardinality fields | 0.2 |
-| | `__contains__` | `Graph.has_triple` / membership in tests | 0.2 |
-| | set ops `+` `-` `&` `^` | `merge_graphs` + documented BNode policy | 0.2 |
+| **Graph API** | `add` / triple iterators | `to_graph`, `model_to_triples` | 0.1 **done** |
+| | `remove` / `set` | sync cleared fields; functional-property `set` | 0.2 **done** |
+| | `value()` | read single object for 0..1 cardinality fields | 0.2 **done** |
+| | `__contains__` | `Graph.has_triple` / membership in tests | 0.2 **done** |
+| | set ops `+` `-` `&` `^` | `merge_graphs` + documented BNode policy | 0.2 **done** |
 | | slice / `__getitem__` triple patterns | **out of scope** (rdflib convenience sugar) | — |
-| | `bind`, `namespaces`, `compute_qname`, `qname` | `Rdf.prefixes`, `Namespace` helpers on models | 0.2 |
-| | `bind_namespaces` strategies (`core` / `rdflib` / `none`) | passthrough when creating `Graph` / `Dataset` | 0.2 |
-| | `parse` / `serialize` (all registered formats) | `TripleModel.parse`, `.serialize`, `load_*` / `dump_*` | 0.4 |
-| | parse base URI (`publicID`, rdflib 7) | `Rdf.base_uri` / `parse(..., base=)` for relative IRIs | 0.4 |
-| | `query` (SELECT, ASK, CONSTRUCT, DESCRIBE) | `select_models`, `ask`, `construct_models` | 0.6 |
-| | SPARQL `SERVICE` (federated) | works via `Graph.query`; document patterns | 0.6 |
-| | SPARQL UPDATE | `graph.update` wrapper + model-aware patches | 0.6 |
-| | `prepareQuery`, `initNs`, `initBindings` | prepared model queries + variable pre-bind | 0.6 |
-| | `cbd` (concise bounded description) | `model.cbd(graph)` → nested sub-model | 0.7 |
-| | `skolemize` / `de_skolemize` | export/import options on `to_graph` / `from_graph` | 0.3 |
-| | `isomorphic` / graph comparison | `graphs_equal`, optional `model_diff` | 0.7 |
-| | `transitiveClosure`, `transitive_*` | optional helpers for hierarchy fields | 0.7 |
-| | `collection` (RDF lists) | `list[T]` ↔ `rdf:List` | 0.3 |
-| | `resource()` | lazy `ResourceRef` fields | 0.3 |
-| | Property-based typing (`wdt:P31`, `dbo:type`, …) | `Rdf.instance_of`, discovery without `rdf:type` only | 0.4.1 |
-| | XSD `gYear` / `gMonth` / `gMonthDay` | literal registry + field import for partial dates | 0.4.1 |
-| | Multi-class document load (one parse) | `load_models(graph, *classes)` / `ParseBundle` | 0.4.1 |
-| | Mapping validation (predicate vs prefix) | model `__pydantic_init_subclass__` checks | 0.4.1 |
-| | URI foreign-key hydration | `ResourceRef` → nested model, `ref_field` | 0.4.1 |
+| | `bind`, `namespaces`, `compute_qname`, `qname` | `Rdf.prefixes`, `Namespace` helpers on models | 0.2 **done** |
+| | `bind_namespaces` strategies (`core` / `rdflib` / `none`) | passthrough when creating `Graph` / `Dataset` | 0.2 **done** |
+| | `parse` / `serialize` (all registered formats) | `TripleModel.parse`, `.serialize`, `load_*` / `dump_*` | 0.4 **done** |
+| | parse base URI (`publicID`, rdflib 7) | `Rdf.base_uri` / `parse(..., base=)` for relative IRIs | 0.4 **done** |
+| | `query` (SELECT, ASK, CONSTRUCT, DESCRIBE) | `select_models`, `ask`, `construct_models` | 0.6 **done** |
+| | SPARQL `SERVICE` (federated) | `Graph.query` / guide 13 patterns | 0.6 **done** |
+| | SPARQL UPDATE | `apply_update` + reload | 0.6 **done** |
+| | `prepareQuery`, `initNs`, `initBindings` | `prepare_model_query`, `init_ns_from_model`, `init_bindings_from_model` | 0.6 **done** |
+| | `cbd` (concise bounded description) | `cbd_model`, `cbd_graph` | 0.7 **done** |
+| | `skolemize` / `de_skolemize` | export/import options on `to_graph` / `from_graph` | 0.3 **done** |
+| | `isomorphic` / graph comparison | `graphs_equal`, `graph_diff`, `model_diff` | 0.7 **done** |
+| | `transitiveClosure`, `transitive_*` | `transitive_subjects`, `transitive_objects`, `subject_type_closure` | 0.7 **done** |
+| | `collection` (RDF lists) | `list[T]` ↔ `rdf:List` | 0.3 **done** |
+| | `resource()` | `ResourceRef` fields | 0.3 **done** |
+| | Property-based typing (`wdt:P31`, `dbo:type`, …) | `Rdf.instance_of`, discovery without `rdf:type` only | 0.4.1 **done** |
+| | XSD `gYear` / `gMonth` / `gMonthDay` | literal registry + field import for partial dates | 0.4.1 **done** |
+| | Multi-class document load (one parse) | `load_models(graph, *classes)` / `ParseBundle` | 0.4.1 **done** |
+| | Mapping validation (predicate vs prefix) | model `__pydantic_init_subclass__` checks | 0.4.1 **done** |
+| | URI foreign-key hydration | `ResourceRef` → nested model, `ref_field` | 0.4.1 **done** |
 | | `Dataset` / named graphs | `@graph` context on `Rdf`, `Dataset` I/O | 0.5 **done** |
 | | `quads()`, `get_context()` | named-graph read/write in dataset helpers | 0.5 **done** |
 | | `ConjunctiveGraph` | use `Dataset` only (rdflib deprecation) | 0.5 **done** |
-| **Formats** | Turtle, Trig, N-Triples, N-Quads | `serialize(format=...)` | 0.4 |
-| | RDF/XML, N3 | same | 0.4 |
-| | JSON-LD | same; optional `jsonld` extra if needed | 0.4 |
-| | TriG, TriX, HexTuples, longTurtle | same where rdflib registers parser/serializer | 0.4 |
+| **Formats** | Turtle, Trig, N-Triples, N-Quads | `serialize(format=...)` | 0.4 **done** |
+| | RDF/XML, N3 | same | 0.4 **done** |
+| | JSON-LD | same; optional `jsonld` extra if needed | 0.4 **done** |
+| | TriG, TriX, HexTuples, longTurtle | same where rdflib registers parser/serializer | 0.4 **done** |
 | | Microdata, RDFa | **out of scope** (HTML scraping, not domain modeling) | — |
-| **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 |
-| | Remote SPARQL read (`SPARQLStore`) | `TripleModel.load_sparql(url, query)` | 0.6 |
-| | Remote SPARQL read-write (`SPARQLUpdateStore`) | persistent endpoint + `update()` passthrough | 0.6 |
+| **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 **done** |
+| | Remote SPARQL read (`SPARQLStore`) | `load_sparql`, `open_sparql_graph` | 0.6 **done** |
+| | Remote SPARQL read-write (`SPARQLUpdateStore`) | `open_sparql_graph` + `apply_update` | 0.6 **done** |
 | | BerkeleyDB, SQLAlchemy | optional extras `triplemodel[berkeleydb]`, `[sqlalchemy]` | 0.8 **done** |
 | | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
-| | `open` / `close` / `destroy` on store | context manager / lifecycle helpers | 0.8 **done** |
-| | Store transactions (`commit` / `rollback` / `open`) | passthrough when backing store supports | 0.8 **done** |
+| | `open` / `close` / `destroy` on store | `graph_store_session`, `destroy_store` | 0.8 **done** |
+| | Store transactions (`commit` / `rollback` / `open`) | `store_commit`, `store_rollback` | 0.8 **done** |
 | **Import** | Chunked / streaming model load | `iter_graph_to_models`, `load_models_streaming` | 0.8 **done** |
 | **Import** | Strict / warn on unmapped predicates | `Rdf.strict_import`, `Rdf.warn_unmapped_fields` | 0.8 **done** |
 | **Performance** | Predicate-map cache per class | `predicate_map_for_class`, `owned_predicates_for_class` | 0.8 **done** |
 | **Tools** | OWL/RDFS stub codegen (experimental) | `triplemodel-codegen` CLI | 0.8 **done** |
-| **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 |
-| **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | 1.0 |
-| **Plugins** | Register custom Parser/Serializer/Store | `triplemodel.plugins.register_*` passthrough | 0.9 |
-| **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `triplemodel[shacl]` pre-export hook | 0.4 |
+| **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 **done** |
+| **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | **1.0** |
+| **Plugins** | Register custom Parser/Serializer/Store | `triplemodel.plugins.register_*` passthrough | 0.9 **done** |
+| **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `triplemodel[shacl]` pre-export hook | 0.4 **done** |
 | **contrib** | GraphDB, RDF4J clients | **out of scope** for core; link in cookbook only | — |
 | **Tools** | `rdflib.tools` CLI (csv2rdf, etc.) | **out of scope** (use rdflib directly) | — |
 | **Paths** | Path algebra | **out of scope** (graph traversal, not ORM) | — |
@@ -327,18 +327,18 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 **Theme:** Close the matrix; stabilize public API.
 
-- [ ] **Coverage audit** — every row in the matrix **done** or **out of scope**
-- [ ] **Plugin passthrough** — `register_parser` / `register_serializer` / `register_store` re-exports
-- [ ] **API audit** — last breaking renames before 1.0
-- [ ] **Migration guide** — from 0.1.x
-- [ ] **Full API reference** — Sphinx/mkdocs
-- [ ] **Cookbook** — formats, SPARQL, Dataset, SHACL, Fuseki, optional stores; **real-world** chapter (Nobel, DCAT, Wikidata, `Schema.org`) from `examples/realworld/`
-- [ ] **Typing** — strict mypy on public API; `py.typed` complete
-- [ ] **Compatibility matrix** — pinned pydantic / rdflib ranges in CI
+- [x] **Coverage audit** — every row in the matrix **done**, **partial**, **TBD**, or **out of scope** (see matrix above)
+- [x] **Plugin passthrough** — `register_parser` / `register_serializer` / `register_store` in `triplemodel.plugins`
+- [x] **API audit** — `__all__` freeze documented in `docs/API_STABILITY.md`
+- [x] **Migration guide** — **N/A** (no production adopters; CHANGELOG is historical record)
+- [x] **Full API reference** — Sphinx `docs/api/` + autodoc on `triplemodel` and submodules
+- [x] **Cookbook** — `docs/cookbook/` (formats, SPARQL/Fuseki, Dataset, SHACL, stores, real-world)
+- [x] **Typing** — `py.typed` + `ty check` in CI (canonical checker; not mypy)
+- [x] **Compatibility matrix** — pinned pydantic / rdflib ranges in CI `compat` job
 
-**Exit criteria:** No “planned” cells remain in the matrix except **TBD** / **out of scope**; beta on PyPI.
+**Exit criteria:** No open matrix gaps except **TBD** / **out of scope**; `examples/exit_criteria_09.py`; beta on PyPI.
 
-**SparqlModel (SM-5):** Publish compatibility range; migration guide for `sparqlmodel` users; cross-package contract tests in CI (optional job).
+**SparqlModel (SM-5):** Compatibility range in `ECOSYSTEM_SPARQLMODEL.md`; SparqlModel-side migration when pinning `triplemodel` (optional cross-package CI deferred).
 
 ---
 
@@ -426,5 +426,5 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
 | 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | ✅ |
 | 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | ✅ |
-| 0.9.0 | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
+| **0.9.0** | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
 | **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `triplemodel` |

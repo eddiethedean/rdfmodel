@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.9.0] - 2026-05-18
+
+### Added
+
+- **rdflib plugin passthrough** — `register_parser`, `register_serializer`, `register_store` in `triplemodel.plugins`
+- **API stability** — `docs/API_STABILITY.md`; frozen `triplemodel.__all__` from 0.9 onward
+- **Cookbook** — `docs/cookbook/` (formats, SPARQL/Fuseki, Dataset, SHACL, stores, real-world, plugins)
+- **Compatibility docs** — `docs/COMPATIBILITY.md`; CI `compat` job with min `pydantic==2.5.0` and `rdflib==7.0.0`
+- **Matrix audit** — rdflib coverage matrix marked **done** / **partial** / **TBD** / **out of scope**
+- **Examples** — `examples/exit_criteria_09.py`
+
+### Changed
+
+- **ROADMAP** — 0.9.0 exit criteria complete; migration guide N/A (no production adopters)
+- **SparqlModel (SM-5)** — recommended pin `triplemodel>=0.9,<2` in `ECOSYSTEM_SPARQLMODEL.md`
+- **Guides** — user guide version 0.9.x; plugin registration documented in guide 15
+
 ## [0.8.0] - 2026-05-18
 
 ### Added

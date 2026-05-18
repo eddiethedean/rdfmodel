@@ -6,6 +6,8 @@
 - [Pydantic](https://docs.pydantic.dev/) v2
 - [rdflib](https://rdflib.readthedocs.io/) v7
 
+Pinned ranges and CI matrix: {doc}`COMPATIBILITY`.
+
 ## PyPI
 
 ```bash

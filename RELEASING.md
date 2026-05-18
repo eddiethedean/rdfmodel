@@ -1,5 +1,31 @@
 # Releasing TripleModel
 
+## 0.9.0 release readiness (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.9.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| Matrix audit; plugin `register_parser` / `register_serializer` / `register_store` | Done |
+| `docs/API_STABILITY.md`, `docs/cookbook/`, `docs/COMPATIBILITY.md` | Done |
+| CI `compat` job (min pydantic / rdflib pins) | Done |
+| Exit criteria `examples/exit_criteria_09.py` | Done |
+
+**Pre-release checklist (0.9.0)**
+
+- [x] `version` `0.9.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] Local gate: `make ci` and `make release-check`
+- [x] `pytest` (100% cov), `ruff`, `ty`, `sphinx-build -W`
+- [x] `examples/exit_criteria_09.py` in Makefile, release workflow, sdist
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
+- [ ] Create and push git tag `v0.9.0`
+
+```bash
+git tag -a v0.9.0 -m "Release 0.9.0"
+git push origin v0.9.0
+```
+
+---
+
 ## 0.8.0 release readiness (repo)
 
 | Item | Status |
