@@ -589,7 +589,7 @@ class TripleModel(BaseModel):
             )
         graph = parse_url_into_graph(
             url,
-            format=format,
+            format=resolved_format,
             base=resolved_base,
             timeout=timeout,
             bind_prefixes=cfg.prefixes_dict,

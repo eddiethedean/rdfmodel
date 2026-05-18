@@ -194,7 +194,7 @@ def test_all_from_dataset_scoped(tmp_path: Path) -> None:
     )
     ds = models_to_dataset([Person(slug="alice", name="Alice")])
     for t in other:
-        ds.default_context.add(t)
+        ds.default_graph.add(t)
     people = Person.all_from_dataset(ds)
     assert len(people) == 1
     assert people[0].slug == "alice"
@@ -284,6 +284,56 @@ def test_dispatch_from_dataset() -> None:
     assert isinstance(p, Person)
     all_models = all_from_dataset_dispatch(ds)
     assert len(all_models) == 2
+
+
+def test_all_from_dataset_dispatch_model_classes_filter() -> None:
+    ds = models_to_dataset(
+        [
+            Person(slug="a", name="A"),
+            Catalog(slug="c", title="C"),
+        ]
+    )
+    only_people = all_from_dataset_dispatch(ds, model_classes=[Person])
+    assert len(only_people) == 1
+    assert isinstance(only_people[0], Person)
+
+
+def test_all_from_dataset_dispatch_model_classes_type_error() -> None:
+    with pytest.raises(TypeError, match="TripleModel"):
+        all_from_dataset_dispatch(Dataset(), model_classes=[object])  # ty: ignore[list-item]
+
+
+def test_dispatch_from_dataset_prefers_class_graph_context() -> None:
+    from triplemodel.config import RDF_TYPE
+    from triplemodel.protocols import register_rdf_resource
+
+    register_rdf_resource(PlainPerson)
+    uri = URIRef("http://example.org/plain/ambiguous")
+    ds = Dataset()
+    people_ctx = get_graph_context(ds, PEOPLE_GRAPH)
+    default_ctx = get_graph_context(ds, None)
+    for ctx in (people_ctx, default_ctx):
+        ctx.add((uri, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
+        ctx.add((uri, URIRef(f"{FOAF_NS}name"), Literal("Plain")))
+    m = graph_to_model_dispatch_from_dataset(ds, uri)
+    assert isinstance(m, PlainPerson)
+    assert m.name == "Plain"
+
+
+def test_dispatch_from_dataset_ambiguous_graph_raises() -> None:
+    from triplemodel.config import RDF_TYPE
+    from triplemodel.protocols import register_rdf_resource
+
+    register_rdf_resource(Catalog)
+    uri = URIRef("http://example.org/catalog/ambiguous")
+    ds = Dataset()
+    people_ctx = get_graph_context(ds, PEOPLE_GRAPH)
+    default_ctx = get_graph_context(ds, None)
+    for ctx in (people_ctx, default_ctx):
+        ctx.add((uri, URIRef(RDF_TYPE), URIRef(f"{DCAT_NS}Catalog")))
+        ctx.add((uri, URIRef(f"{DCAT_NS}title"), Literal("X")))
+    with pytest.raises(ValueError, match="multiple dataset graphs"):
+        graph_to_model_dispatch_from_dataset(ds, uri)
 
 
 def test_graph_to_model_from_dataset() -> None:

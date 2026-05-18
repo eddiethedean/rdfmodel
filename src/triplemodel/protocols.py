@@ -26,7 +26,9 @@ def register_rdf_resource(model_cls: type) -> None:
         if existing is not None and existing is not model_cls:
             warnings.warn(
                 f"Rdf.type_uri {cfg.type_uri!r} already registered on "
-                f"{existing.__name__}; replacing with {model_cls.__name__}.",
+                f"{existing.__name__}; replacing with {model_cls.__name__}. "
+                "Only one model class per type_uri should be registered per process; "
+                "dispatch and parse(..., dispatch=True) use the last registration.",
                 stacklevel=2,
             )
         _type_uri_index[cfg.type_uri] = cast(type[BaseModel], model_cls)

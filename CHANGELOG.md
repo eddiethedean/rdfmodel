@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Public exports** — `iter_model_quads`, `quads_in_context`, `all_from_dataset`, `graph_to_model_from_dataset`, `graph_to_models_from_dataset` on `triplemodel` package root
+- **`all_from_dataset_dispatch(..., model_classes=...)`** — optional filter to load only specified model classes from a dataset
+
+### Fixed
+
+- **`graph_to_model_dispatch_from_dataset`** — prefer the named graph matching the resolved model's `Rdf.graph_iri`; raise when the subject appears in multiple graphs and none match
+- **`TripleModel.parse_url`** — graph path uses inferred `resolved_format` consistently with the dataset path
+
+### Changed
+
+- **Duplicate `type_uri` warning** — documents that dispatch uses the last registration per process
+
 ## [0.5.0] - 2026-05-17
 
 ### Added
@@ -26,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`serialize`** — use `to_dataset` + `dump_dataset` when format is TriG/N-Quads or `Rdf.graph_iri` is set
 - **`load_models`** — single-parse multi-class load uses `Dataset` for quad formats or when any class has `graph_iri`
 
-## [0.4.1] - 2026-05-18
+## [0.4.1] - 2026-05-16
 
 ### Added
 

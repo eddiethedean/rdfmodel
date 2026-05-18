@@ -1,5 +1,44 @@
 # Releasing TripleModel
 
+## 0.5.0 release readiness (repo)
+
+Verified on `main` before tagging `v0.5.0` (prior tag: **v0.4.1**).
+
+| Item | Status |
+|------|--------|
+| Version `0.5.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `docs/conf.py` release via `triplemodel.__version__` | Done |
+| `CHANGELOG.md` — `## [0.5.0]` complete (Added/Changed); `[Unreleased]` empty | Done |
+| `src/triplemodel/py.typed` in source and wheel (`tests/test_packaging.py`) | Done |
+| Exit criteria `examples/exit_criteria_05.py` (named-graph TriG) | Done |
+| Guide `docs/guides/12-datasets-and-named-graphs.md`; API exports `iter_model_quads`, `quads_in_context`, etc. | Done |
+| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
+| README / PLAN / ROADMAP reflect **0.5.0** beta | Done |
+| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
+| Docs workflow: `sphinx-build -W` | Done (run locally before tag) |
+| Release workflow on tag: `pytest`, `build`, `twine check`, `ruff`, `ty`, `sphinx-build -W`, PyPI publish | Configured |
+
+**Pre-release checklist (0.5.0)**
+
+- [x] `version` `0.5.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] `[Unreleased]` empty (all 0.5.0 notes under `## [0.5.0]`)
+- [x] `pytest`, `ruff format --check`, `ruff check`, `ty check`
+- [x] `sphinx-build -b html docs docs/_build/html -W`
+- [x] `python -m build` and `twine check dist/*`
+- [x] `PYTHONPATH=src python examples/exit_criteria_05.py`
+- [x] `PYTHONPATH=src python examples/readme_examples.py`
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
+- [ ] Create and push git tag `v0.5.0` (triggers Release workflow)
+- [ ] GitHub release from tag; paste `## [0.5.0]` from `CHANGELOG.md`
+- [ ] Verify PyPI shows `triplemodel==0.5.0`
+
+```bash
+git tag -a v0.5.0 -m "Release 0.5.0"
+git push origin v0.5.0
+```
+
+---
+
 ## 0.4.1 release readiness (repo)
 
 Verified on `main` before tagging `v0.4.1` (prior tag: **v0.4.0**).

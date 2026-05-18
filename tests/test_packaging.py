@@ -34,3 +34,18 @@ def test_wheel_contains_py_typed() -> None:
     with zipfile.ZipFile(wheel) as zf:
         names = zf.namelist()
     assert any(n.endswith("triplemodel/py.typed") for n in names)
+
+
+def test_dataset_helpers_importable_from_top_level() -> None:
+    """Names documented in guides/12-datasets-and-named-graphs.md."""
+    import triplemodel
+
+    for name in (
+        "all_from_dataset",
+        "graph_to_model_from_dataset",
+        "graph_to_models_from_dataset",
+        "iter_model_quads",
+        "quads_in_context",
+    ):
+        assert name in triplemodel.__all__
+        assert getattr(triplemodel, name) is not None

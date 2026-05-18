@@ -94,6 +94,9 @@ pythonpath = ["src"]
 addopts = ["--cov=triplemodel", "--cov-report=term-missing", "--cov-fail-under=100"]
 filterwarnings = [
     "ignore:Rdf.type_uri .* already registered:UserWarning",
+    "ignore:Dataset.default_context is deprecated:DeprecationWarning",
+    "ignore:Dataset.contexts is deprecated:DeprecationWarning",
+    "ignore:ConjunctiveGraph is deprecated:DeprecationWarning",
 ]
 
 [tool.coverage.run]
