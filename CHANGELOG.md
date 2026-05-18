@@ -99,7 +99,7 @@ Nothing yet.
 
 ### Changed
 
-- **`examples/realworld/`** — Nobel/DCAT use `load_models`; Wikidata uses `instance_of` + `ref_field`; Schema.org uses typed `gYear` for `foundingDate`
+- **`examples/realworld/`** — Nobel/DCAT use `load_models`; Wikidata uses `instance_of` + `ref_field`; `Schema.org` uses typed `gYear` for `foundingDate`
 - **`tests/test_realworld_examples.py`** — API coverage via `tests/test_041_features.py`
 
 ### Fixed
@@ -133,7 +133,7 @@ Nothing yet.
 - **`InverseOf` / `rdf_field(..., inverse=...)`** — import from inverse predicates; export uses the canonical forward predicate
 - **SHACL (optional)** — `triplemodel[shacl]` extra; `validate_graph` and `shacl_shapes=` on `to_graph` / `serialize`
 - **`examples/exit_criteria_04.py`** — Turtle / JSON-LD / graph round-trip exit criteria
-- **Real-world examples** — `examples/realworld/` (Nobel linked data, DCAT catalog, Wikidata capitals excerpt, Schema.org NGOs) with bundled TTL, offline CI tests, and data provenance notes
+- **Real-world examples** — `examples/realworld/` (Nobel linked data, DCAT catalog, Wikidata capitals excerpt, `Schema.org` NGOs) with bundled TTL, offline CI tests, and data provenance notes
 
 ### Changed
 

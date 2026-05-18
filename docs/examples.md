@@ -43,7 +43,7 @@ PYTHONPATH=src python examples/foaf_person_02.py
 
 ## Real-world data (`examples/realworld/`)
 
-Bundled RDF from public sources (Nobel Prize linked data, DCAT catalogs, Wikidata, Schema.org). Each script maps a **concrete integration problem**—see [`examples/realworld/README.md`](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) and [`DATA_SOURCES.md`](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/DATA_SOURCES.md).
+Bundled RDF from public sources (Nobel Prize linked data, DCAT catalogs, Wikidata, `Schema.org`). Each script maps a **concrete integration problem**—see [`examples/realworld/README.md`](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) and [`DATA_SOURCES.md`](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/DATA_SOURCES.md).
 
 ```bash
 PYTHONPATH=src python examples/realworld/nobel_laureates.py

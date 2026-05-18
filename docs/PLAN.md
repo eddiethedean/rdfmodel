@@ -192,6 +192,6 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 
 - **0.2:** SparqlModel can prototype `triplemodel` for `model_to_graph` / load without losing `put` semantics.
 - **0.4:** Load/save Turtle/JSON-LD without SparqlModel-only parsers.
-- **0.4.1:** Nobel + DCAT examples use a single graph load; Wikidata capitals avoid hard-coded QID loops; Schema.org `gYear` imports without `str` workarounds; invalid `rdf_predicate` fails at class definition; **in-repo examples updated** to match each shipped API (`examples/realworld/`, relevant snippets, `test_realworld_examples.py`).
+- **0.4.1:** Nobel + DCAT examples use a single graph load; Wikidata capitals avoid hard-coded QID loops; `Schema.org` `gYear` imports without `str` workarounds; invalid `rdf_predicate` fails at class definition; **in-repo examples updated** to match each shipped API (`examples/realworld/`, relevant snippets, `test_realworld_examples.py`).
 - **0.9:** SparqlModel pins released `triplemodel`; duplicate term code removed from SparqlModel.
 - **1.0:** Downstream apps choose **triplemodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.

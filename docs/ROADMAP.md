@@ -192,7 +192,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **SparqlModel (SM-3):** `export_model` / file load paths call TripleModel; remove parallel format registry from SparqlModel.
 
-**Real-world validation (2026):** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) exercises Nobel linked data, DCAT catalogs, Wikidata excerpts, and Schema.org NGO records. The examples run offline in CI and surfaced gaps between “RDF works” and “feels Pythonic in application code.” See [Real-world ergonomics (0.4.1+)](#041--real-world-ergonomics) below.
+**Real-world validation (2026):** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) exercises Nobel linked data, DCAT catalogs, Wikidata excerpts, and `Schema.org` NGO records. The examples run offline in CI and surfaced gaps between “RDF works” and “feels Pythonic in application code.” See [Real-world ergonomics (0.4.1+)](#041--real-world-ergonomics) below.
 
 ---
 
@@ -216,7 +216,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 | P2 | **Optional inverse export** | Import reads inverse; export is forward-only (by design) but some portals expect bidirectional edges | `Rdf.export_inverse: bool` or per-field `export_inverse=True` to emit `(remote, inv, subject)` on `to_graph` / sync |
 | P3 | **Refresh-from-endpoint recipe** | Wikidata excerpt maintenance via SPARQL CONSTRUCT | Document pattern until **0.6** `construct_models`; keep `examples/realworld/refresh_wikidata_capitals.py` as template |
 
-**Exit criteria:** Nobel + DCAT examples use **one** `parse`/`load_models` call per file; Wikidata capitals use `instance_of` or documented discovery without hard-coded QID loops; Schema.org NGOs import `foundingDate` without manual `str` workaround; invalid `rdf_predicate` in `rdf_field` fails at class definition with a clear error.
+**Exit criteria:** Nobel + DCAT examples use **one** `parse`/`load_models` call per file; Wikidata capitals use `instance_of` or documented discovery without hard-coded QID loops; `Schema.org` NGOs import `foundingDate` without manual `str` workaround; invalid `rdf_predicate` in `rdf_field` fails at class definition with a clear error.
 
 **Example updates (ship with 0.4.1):** Each feature lands with corresponding example refactors—no “API only” release.
 
@@ -323,7 +323,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [ ] **API audit** — last breaking renames before 1.0
 - [ ] **Migration guide** — from 0.1.x
 - [ ] **Full API reference** — Sphinx/mkdocs
-- [ ] **Cookbook** — formats, SPARQL, Dataset, SHACL, Fuseki, optional stores; **real-world** chapter (Nobel, DCAT, Wikidata, Schema.org) from `examples/realworld/`
+- [ ] **Cookbook** — formats, SPARQL, Dataset, SHACL, Fuseki, optional stores; **real-world** chapter (Nobel, DCAT, Wikidata, `Schema.org`) from `examples/realworld/`
 - [ ] **Typing** — strict mypy on public API; `py.typed` complete
 - [ ] **Compatibility matrix** — pinned pydantic / rdflib ranges in CI
 

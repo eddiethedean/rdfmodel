@@ -117,7 +117,7 @@ No new APIs — reuse existing `examples/realworld/`:
 | Pattern | Example |
 |---------|---------|
 | DCAT portal graphs | `examples/realworld/dcat_portal.py` |
-| Schema.org NGO registry | `examples/realworld/schema_org_ngo.py` |
+| `Schema.org` NGO registry | `examples/realworld/schema_org_ngo.py` |
 | Nobel / biographical LOD | `examples/realworld/nobel_laureates.py` |
 
 See {doc}`11-real-world-patterns` for `load_models`, `ref_field`, and Wikidata typing.

@@ -84,7 +84,7 @@ rdflib 7 deprecates `ConjunctiveGraph` in favor of **`Dataset`**. In TripleModel
 - Use `parse_into_dataset` / `load_dataset` instead of `parse_into_graph` for TriG and N-Quads.
 - `Rdf.base_uri` (`publicID` on parse) is unchanged from 0.4.
 
-See the [rdflib Dataset documentation](https://rdflib.readthedocs.io/en/stable/apidocs/rdflib.html#rdflib.dataset.Dataset).
+See the [rdflib documentation](https://rdflib.readthedocs.io/en/stable/) (`Dataset`, named graphs, and quads).
 
 ## Helpers
 
