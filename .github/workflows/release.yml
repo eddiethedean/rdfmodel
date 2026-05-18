@@ -16,6 +16,12 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev,shacl,sqlalchemy,docs]" build twine
       - run: pytest
+      - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
+      - name: Compat (min pydantic + rdflib)
+        run: |
+          pip install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
+          pytest
+      - run: pip install -e ".[dev,shacl,sqlalchemy,docs]" build twine
       - run: ruff format --check src tests
       - run: ruff check src tests
       - run: ty check src tests

@@ -8,6 +8,8 @@
 | Matrix audit; plugin `register_parser` / `register_serializer` / `register_store` | Done |
 | `docs/API_STABILITY.md`, `docs/cookbook/`, `docs/COMPATIBILITY.md` | Done |
 | CI `compat` job (min pydantic / rdflib pins) | Done |
+| Release workflow `verify` mirrors CI (`stores` + `compat` legs) | Done |
+| pytest filters upstream `PyparsingDeprecationWarning` noise | Done |
 | Exit criteria `examples/exit_criteria_09.py` | Done |
 
 **Pre-release checklist (0.9.0)**
@@ -16,8 +18,8 @@
 - [x] Local gate: `make ci` and `make release-check`
 - [x] `pytest` (100% cov), `ruff`, `ty`, `sphinx-build -W`
 - [x] `examples/exit_criteria_09.py` in Makefile, release workflow, sdist
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.9.0`
+- [x] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (verified via `gh secret list`)
+- [ ] Commit release-hardening changes on `main`, then create and push git tag `v0.9.0`
 
 ```bash
 git tag -a v0.9.0 -m "Release 0.9.0"

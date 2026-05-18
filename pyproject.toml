@@ -118,6 +118,7 @@ filterwarnings = [
     "ignore:Dataset.default_context is deprecated:DeprecationWarning",
     "ignore:Dataset.contexts is deprecated:DeprecationWarning",
     "ignore:ConjunctiveGraph is deprecated:DeprecationWarning",
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
 ]
 
 [tool.coverage.run]
