@@ -55,7 +55,9 @@ class Rdf:
     embed = "bnode"
 ```
 
-The child is exported with a fresh blank node subject; import loads a bounded description around that node. `replace`/`patch` cleanup removes stale blank-node subgraphs; prefer **IRI embed** for stable round-trips and linking across graphs, or `blank_node_policy="stable"` when you need deterministic bnodes.
+The child is exported with a fresh blank node subject; import loads a bounded description around that node. `replace`/`patch` cleanup removes stale blank-node subgraphs.
+
+With the default **`blank_node_policy="fresh"`**, every `replace` or `patch` treats existing nested blank nodes as stale and re-exports them, even when the nested Python value is unchanged. Use **`blank_node_policy="stable"`** to keep the same blank node id across syncs when content is unchanged, or prefer **IRI embed** for stable round-trips and linking across graphs.
 
 ## Multiple parents, one graph
 

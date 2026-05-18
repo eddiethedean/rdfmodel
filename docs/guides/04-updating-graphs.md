@@ -6,7 +6,7 @@ Re-exporting with `to_graph()` alone **adds** triples; it does not remove stale 
 
 | Mode | Behaviour |
 |------|-----------|
-| `"add"` | Default for `to_graph()`. Append triples only (0.1 behaviour). |
+| `"add"` | Default for `to_graph()`. Append triples only (0.1 behaviour). `sync_to_graph(..., mode="add")` also clears incoming inverse triples for inverse-mapped fields before appending forward triples. |
 | `"replace"` | Remove all **owned** triples for the subject, then write current state. |
 | `"patch"` | Remove triples only for fields that are `None` or empty `list` / `set`; replace all objects for other mapped predicates (including every value of multi-valued fields). |
 
@@ -34,7 +34,7 @@ alice.sync_to_graph(graph, mode="replace")
 
 - **`replace`** — You want the graph slice for this subject to match the model exactly (for owned predicates). Good after editing several fields.
 - **`patch`** — You only cleared a few fields (for example set `age=None` or `nick=[]`) and want to drop those predicates without rewriting unrelated triples on the subject.
-- **`add`** — Building a graph from scratch or appending new resources; stale triples are acceptable or impossible.
+- **`add`** — Building a graph from scratch or appending new resources. Does not remove stale forward triples on the subject (use `replace` or `patch` for that). `sync_to_graph` with `mode="add"` still reconciles inverse predicates when fields use `inverse=`.
 
 ```python
 # First write
@@ -69,5 +69,9 @@ See [Ecosystem](../ECOSYSTEM.md) for the full split.
 ## Nested resources
 
 With **`embed="iri"`**, `replace` and `patch` remove owned triples on nested child subjects that are no longer linked (for example when `mbox=None` or the child `slug` changes), and remove stale `(?, inverse_predicate, child)` triples when the child had `inverse=` fields. **`embed="bnode"`** is experimental: `replace`/`patch` remove stale blank-node subgraphs and incoming inverse links in the same cases; prefer IRI embed for stable IRIs. See [Nested models](05-nested-models.md).
+
+## Skolemize and shared graphs
+
+`skolemize=True` on `sync_to_graph` affects the whole `Graph` you pass in. **`patch`** runs skolemize after stale cleanup and export; **`replace`** / **`add`** skolemize at the start of `write_model_add` before new triples are appended. When rdflib returns a new graph from `skolemize()`, use the graph returned from `sync_to_graph`.
 
 **Next:** [Nested models →](05-nested-models.md)

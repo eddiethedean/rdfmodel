@@ -18,6 +18,12 @@ _PARSER = "triplemodel-exit09-parser"
 _STORE = "triplemodel-exit09-memory"
 
 
+def _strip_uri(token: str) -> str:
+    if token.startswith("<") and token.endswith(">"):
+        return token[1:-1]
+    return token
+
+
 class _Exit09Parser(Parser):
     def parse(self, source: InputSource, sink) -> None:
         raw = source.getCharacterStream().read()
@@ -27,9 +33,17 @@ class _Exit09Parser(Parser):
         s, p, rest = line.split(None, 2)
         o = rest.rsplit(None, 1)[0] if rest.endswith(" .") else rest
         if o.startswith('"'):
-            sink.add((URIRef(s), URIRef(p), Literal(o.strip('"'))))
+            sink.add(
+                (
+                    URIRef(_strip_uri(s)),
+                    URIRef(_strip_uri(p)),
+                    Literal(o.strip('"')),
+                )
+            )
         else:
-            sink.add((URIRef(s), URIRef(p), URIRef(o)))
+            sink.add(
+                (URIRef(_strip_uri(s)), URIRef(_strip_uri(p)), URIRef(_strip_uri(o)))
+            )
 
 
 def main() -> int:
@@ -44,7 +58,13 @@ def main() -> int:
     assert get(_STORE, Store) is not None
 
     g = Graph()
-    g.parse(data="<http://ex/s> <http://ex/p> \"ok\" .", format=_PARSER)
+    g.parse(
+        data=(
+            "<http://example.org/exit09/subject> "
+            '<http://example.org/exit09/predicate> "ok" .'
+        ),
+        format=_PARSER,
+    )
     assert len(g) == 1
 
     g2 = Graph(store=_STORE)

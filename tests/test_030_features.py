@@ -130,6 +130,64 @@ def test_patch_skolemize_clears_stale_bnode_before_skolemizing():
     assert PersonBnodeStable.from_graph(g, p.subject_uri()).mbox is None
 
 
+class FlatPerson(TripleModel):
+    class Rdf:
+        namespace = EX
+        type_uri = f"{FOAF}Person"
+        id_field = "slug"
+
+    slug: str
+    name: str | None = rdf_field(f"{FOAF}name", default=None)
+
+
+def test_sync_skolemize_replace_and_patch_invoke_skolemize(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Replace and patch both invoke skolemize when requested."""
+    patch_calls: list[bool] = []
+    graph_calls: list[bool] = []
+
+    def track_patch(graph: Graph, *, skolemize: bool = False) -> Graph:
+        patch_calls.append(skolemize)
+        return graph.skolemize(new_graph=graph) if skolemize else graph
+
+    def track_graph(graph: Graph, *, skolemize: bool = False) -> Graph:
+        graph_calls.append(skolemize)
+        return graph.skolemize(new_graph=graph) if skolemize else graph
+
+    monkeypatch.setattr("triplemodel.io.sync.modes.apply_skolemize", track_patch)
+    monkeypatch.setattr("triplemodel.io.graph.apply_skolemize", track_graph)
+
+    p = FlatPerson(slug="x", name="Ann")
+    sync_to_graph(p, Graph(), mode="replace", skolemize=True)
+    assert graph_calls == [True]
+
+    patch_calls.clear()
+    sync_to_graph(
+        FlatPerson(slug="y", name="Bob"), Graph(), mode="patch", skolemize=True
+    )
+    assert patch_calls == [True]
+
+
+def test_patch_skolemize_runs_after_export(monkeypatch: pytest.MonkeyPatch) -> None:
+    order: list[str] = []
+
+    def track_lists(*args: Any, **kwargs: Any) -> None:
+        order.append("lists")
+
+    def track_skolem(graph: Graph, *, skolemize: bool = False) -> Graph:
+        order.append("skolemize")
+        return graph
+
+    monkeypatch.setattr("triplemodel.io.sync.modes.export_all_rdf_lists", track_lists)
+    monkeypatch.setattr("triplemodel.io.sync.modes.apply_skolemize", track_skolem)
+
+    p = PersonBnodeStable(slug="x", mbox=Mailbox(address="a@example.org"))
+    g = p.to_graph()
+    sync_to_graph(p, g, mode="patch", skolemize=True)
+    assert order == ["lists", "skolemize"]
+
+
 def test_skolemize_and_de_skolemize():
     g = Graph()
     b = BNode()

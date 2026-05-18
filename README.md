@@ -317,9 +317,11 @@ http://example.org/people/bob%20jones
 - **Union queries** — `from_dataset` reads one named graph only; use rdflib `dataset.query` for union semantics (see the [datasets guide](https://triplemodel.readthedocs.io/en/latest/guides/12-datasets-and-named-graphs.html)).
 - **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
 - **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` and `set[TripleModel]` are not supported.
-- **Inverse predicates** — import uses forward or inverse triples (forward wins on conflict); `replace` / `patch` clear stale inverse links (including reassignment and dropped nested IRI/bnode children). Export writes forward predicates only.
+- **Inverse predicates** — import uses forward or inverse triples (forward wins on conflict); `sync_to_graph` in `add`, `replace`, or `patch` clears incoming inverse triples before writing forward predicates (including reassignment and dropped nested IRI/bnode children). Export writes forward predicates only.
+- **Discovery** — `all_from_graph()` and dispatch discovery match subjects via forward owned predicates (and `rdf:type` / `instance_of`); resources reachable only through inverse triples are not discovered.
 - **Dispatch parse** — `parse(..., dispatch=True)` loads every registered `rdf:type` (not only the class you call `.parse` on); `type_uri=` is ignored when `dispatch=True`.
-- **Skolemize** — `skolemize` / `de_skolemize` on import or export mutate the **entire** shared `Graph`, not only the resource being loaded or synced.
+- **Skolemize** — `skolemize` / `de_skolemize` on import or export mutate the **entire** shared `Graph`, not only the resource being loaded or synced. `sync_to_graph(..., mode="patch")` runs skolemize after cleanup and export; `replace` / `add` skolemize via `write_model_add` before appending new triples.
+- **BNode embed + fresh policy** — with default `blank_node_policy="fresh"`, `replace` / `patch` remove and re-export nested blank nodes on every sync even when the nested value is unchanged; use `embed="iri"` or `blank_node_policy="stable"` for stable identities.
 - **BNode subjects** are skipped by `all_from_graph()` and by `parse(..., dispatch=True)` / `all_from_graph_dispatch()`.
 - **Subclass dispatch** — `parse(..., dispatch=True)` and `all_from_graph_dispatch()` resolve subjects via `Rdf.resolve_subclass` (RDFS closure when enabled); unregistered types are omitted without error.
 - **Default add mode** does not remove stale triples — use `sync_to_graph` or `mode="replace"`.

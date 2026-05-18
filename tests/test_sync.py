@@ -64,6 +64,25 @@ def test_sync_to_graph_defaults_to_replace_when_mode_omitted():
     assert len(g) >= 2
 
 
+def test_rdf_graph_mode_replace_on_sync_to_graph():
+    class ReplacePerson(TripleModel):
+        class Rdf:
+            namespace = EX
+            type_uri = f"{FOAF}Person"
+            id_field = "slug"
+            graph_mode = "replace"
+
+        slug: str
+        name: str = rdf_field(f"{FOAF}name")
+        age: int | None = rdf_field(f"{FOAF}age", default=None)
+
+    p = ReplacePerson(slug="a", name="A", age=30)
+    g = p.to_graph()
+    sync_to_graph(ReplacePerson(slug="a", name="A", age=None), g, mode=None)
+    subj = URIRef(p.subject_uri())
+    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+
+
 def test_patch_clears_curie_predicate_empty_list():
     class CuriePerson(TripleModel):
         class Rdf:

@@ -73,6 +73,8 @@ build:
 	$(PYTHON) -m build
 
 examples:
+	$(PYTHON) examples/exit_criteria_03.py
+	$(PYTHON) examples/exit_criteria_04.py
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_05.py
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_06.py
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_07.py

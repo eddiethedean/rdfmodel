@@ -11,8 +11,8 @@ from triplemodel.config import (
     effective_graph_mode,
     get_rdf_config,
 )
-from triplemodel.io.graph import write_model_add
 from triplemodel.io.sync.modes import (
+    AddGraphMode,
     PatchGraphMode,
     ReplaceGraphMode,
     predicates_to_patch,
@@ -56,7 +56,7 @@ def sync_to_graph(
         bind_namespaces(g, cfg.prefixes_dict)
 
     if resolved_mode == "add":
-        return write_model_add(
+        return AddGraphMode().apply(
             g,
             model,
             uri=uri,

@@ -19,6 +19,8 @@ When loading multiple classes from a path, `load_models` parses once using the *
 
 Use `parse(..., dispatch=True)` when you want one heterogeneous list keyed by `rdf:type` registration, not separate buckets per class.
 
+Subjects are discovered via forward mapped predicates (and `rdf:type` / `Rdf.instance_of`), not inverse predicates — resources that appear only as objects of inverse triples are omitted from `all_from_graph()` and dispatch loads.
+
 ## Wikidata-style typing (`instance_of`)
 
 When data uses `wdt:P31` instead of `rdf:type`:

@@ -172,6 +172,50 @@ def test_sync_replace_clears_stale_inverse_on_manager_change() -> None:
     assert (alice, URIRef(f"{EX}hasManager"), carol) in g
 
 
+def test_sync_patch_clears_stale_inverse_on_manager_change() -> None:
+    g = Graph()
+    alice = URIRef(f"{EX}emp/alice")
+    bob = URIRef(f"{EX}emp/bob")
+    carol = URIRef(f"{EX}emp/carol")
+    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((carol, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(f"{EX}manages"), alice))
+
+    sync_to_graph(Employee(slug="alice", manager=str(carol)), g, mode="patch")
+    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert (alice, URIRef(f"{EX}hasManager"), carol) in g
+
+
+def test_sync_add_clears_inverse_when_field_set() -> None:
+    g = Graph()
+    alice = URIRef(f"{EX}emp/alice")
+    bob = URIRef(f"{EX}emp/bob")
+    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(f"{EX}manages"), alice))
+
+    alice_model = Employee(slug="alice", manager=str(bob))
+    sync_to_graph(alice_model, g, mode="add")
+    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert (alice, URIRef(f"{EX}hasManager"), bob) in g
+
+
+def test_sync_add_clears_stale_inverse_on_manager_change() -> None:
+    g = Graph()
+    alice = URIRef(f"{EX}emp/alice")
+    bob = URIRef(f"{EX}emp/bob")
+    carol = URIRef(f"{EX}emp/carol")
+    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((carol, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
+    g.add((bob, URIRef(f"{EX}manages"), alice))
+
+    sync_to_graph(Employee(slug="alice", manager=str(carol)), g, mode="add")
+    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert (alice, URIRef(f"{EX}hasManager"), carol) in g
+
+
 def test_sync_patch_clears_inverse_on_stale_nested_iri() -> None:
     team = Team(slug="eng")
     dept = Department(slug="d1", team=team)
