@@ -39,6 +39,7 @@ guides/08-working-with-graphs
 guides/09-rdf-lists-and-lang
 guides/10-file-io
 guides/11-real-world-patterns
+guides/12-datasets-and-named-graphs
 ```
 
 ```{toctree}

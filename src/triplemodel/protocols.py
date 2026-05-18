@@ -39,6 +39,11 @@ def iter_registered_type_uris() -> frozenset[str]:
     return frozenset(_type_uri_index)
 
 
+def model_class_for_type_uri(type_uri: str) -> type[BaseModel] | None:
+    """Return the registered model class for ``type_uri``, if any."""
+    return _type_uri_index.get(type_uri)
+
+
 def iter_registered_model_classes() -> frozenset[type[BaseModel]]:
     """Return all registered :class:`~triplemodel.TripleModel` subclasses."""
     return frozenset(_type_uri_index.values())

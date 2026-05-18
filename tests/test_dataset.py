@@ -300,7 +300,42 @@ def test_all_from_dataset_dispatch_model_classes_filter() -> None:
 
 def test_all_from_dataset_dispatch_model_classes_type_error() -> None:
     with pytest.raises(TypeError, match="TripleModel"):
-        all_from_dataset_dispatch(Dataset(), model_classes=[object])  # ty: ignore[list-item]
+        all_from_dataset_dispatch(Dataset(), model_classes=[object])  # ty: ignore[invalid-argument-type]
+
+
+def test_graph_to_models_de_skolemize_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def track(graph, *, de_skolemize: bool = False):
+        calls.append(de_skolemize)
+        return graph
+
+    monkeypatch.setattr("triplemodel.io.skolem.apply_de_skolemize", track)
+
+    class SkolemPerson(TripleModel):
+        class Rdf:
+            namespace = "http://example.org/skolem/"
+            type_uri = f"{FOAF_NS}Person"
+            id_field = "slug"
+            graph_iri = PEOPLE_GRAPH
+            skolemize_import = True
+            prefixes = {"foaf": FOAF_NS}
+
+        slug: str
+        name: str = rdf_field("foaf:name")
+
+    ds = models_to_dataset(
+        [
+            SkolemPerson(slug="a", name="A"),
+            SkolemPerson(slug="b", name="B"),
+        ]
+    )
+    ctx = get_graph_context(ds, PEOPLE_GRAPH)
+    from triplemodel.io.import_ import graph_to_models
+
+    graph_to_models(ctx, SkolemPerson)
+    assert calls[0] is True
+    assert all(flag is False for flag in calls[1:])
 
 
 def test_dispatch_from_dataset_prefers_class_graph_context() -> None:

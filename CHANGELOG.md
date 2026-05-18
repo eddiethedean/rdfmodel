@@ -7,19 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **Public exports** — `iter_model_quads`, `quads_in_context`, `all_from_dataset`, `graph_to_model_from_dataset`, `graph_to_models_from_dataset` on `triplemodel` package root
-- **`all_from_dataset_dispatch(..., model_classes=...)`** — optional filter to load only specified model classes from a dataset
-
-### Fixed
-
-- **`graph_to_model_dispatch_from_dataset`** — prefer the named graph matching the resolved model's `Rdf.graph_iri`; raise when the subject appears in multiple graphs and none match
-- **`TripleModel.parse_url`** — graph path uses inferred `resolved_format` consistently with the dataset path
-
-### Changed
-
-- **Duplicate `type_uri` warning** — documents that dispatch uses the last registration per process
+Nothing yet.
 
 ## [0.5.0] - 2026-05-17
 
@@ -31,11 +19,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Config helpers** — `get_graph_context`, `resolve_graph_iri`, `is_quad_format`
 - **Quad helpers** — `iter_model_quads`, `quads_in_context`
 - **Dispatch** — `all_from_dataset_dispatch`, `graph_to_model_dispatch_from_dataset`
+- **Public exports** — `iter_model_quads`, `quads_in_context`, `all_from_dataset`, `graph_to_model_from_dataset`, `graph_to_models_from_dataset` on `triplemodel` package root
+- **`all_from_dataset_dispatch(..., model_classes=...)`** — optional filter to load only specified model classes from a dataset
+- **`model_class_for_type_uri`** — resolve registered class for an `rdf:type` IRI
 - **Guide** — `docs/guides/12-datasets-and-named-graphs.md`
 - **Example** — `examples/exit_criteria_05.py` (two named graphs, TriG round-trip)
 
+### Fixed
+
+- **`all_from_dataset_dispatch`** — dedupe subjects with multiple registered `rdf:type` values; hydrate via subclass dispatch (aligned with `all_from_graph_dispatch`)
+- **`graph_to_model_dispatch_from_dataset`** — union `rdf:type` across named graphs before resolving class; prefer the named graph matching the resolved model's `Rdf.graph_iri`; raise when the subject appears in multiple graphs and none match
+- **`TripleModel.parse_url`** — graph path uses inferred `resolved_format` consistently with the dataset path
+- **`graph_to_models`** — apply `de_skolemize` once per bulk import instead of per instance
+
 ### Changed
 
+- **Duplicate `type_uri` warning** — documents that dispatch uses the last registration per process
 - **`parse` / `parse_file` / `parse_url`** — use `Dataset` when format is TriG/N-Quads or `Rdf.graph_iri` is set
 - **`serialize`** — use `to_dataset` + `dump_dataset` when format is TriG/N-Quads or `Rdf.graph_iri` is set
 - **`load_models`** — single-parse multi-class load uses `Dataset` for quad formats or when any class has `graph_iri`

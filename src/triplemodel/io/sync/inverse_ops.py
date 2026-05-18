@@ -17,18 +17,6 @@ from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.iri import subject_ref
 
 
-def _field_clears_inverse(value: object, card: str) -> bool:
-    if value is None:
-        return True
-    if card == "list":
-        if not isinstance(value, list):
-            return False
-        return value == [] or all(v is None for v in value)
-    if card == "set":
-        return value in (set(), frozenset())
-    return False
-
-
 def _walk_embed_instances(
     model: BaseModel,
     subject: Node,

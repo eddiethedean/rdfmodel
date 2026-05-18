@@ -347,6 +347,10 @@ def graph_to_models(
     )
 
     cfg = config or get_rdf_config(model_cls)
+    from triplemodel.io.skolem import apply_de_skolemize
+
+    do_de = cfg.skolemize_import if de_skolemize is None else de_skolemize
+    graph = apply_de_skolemize(graph, de_skolemize=do_de)
     rdf_type = type_uri if type_uri is not None else cfg.type_uri
 
     instances: list[T] = []
@@ -366,7 +370,7 @@ def graph_to_models(
                         on_duplicate=on_duplicate,
                         resolver=resolver,
                         registry=registry,
-                        de_skolemize=de_skolemize,
+                        de_skolemize=False,
                     )
                 )
         instances.sort(key=lambda m: cfg.subject_uri(m))
@@ -388,7 +392,7 @@ def graph_to_models(
                 on_duplicate=on_duplicate,
                 resolver=resolver,
                 registry=registry,
-                de_skolemize=de_skolemize,
+                de_skolemize=False,
             )
         )
     return instances

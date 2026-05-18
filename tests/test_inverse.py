@@ -201,17 +201,6 @@ def test_import_forward_and_inverse_conflict_warns() -> None:
     assert model.manager == str(bob)
 
 
-def test_field_clears_inverse_list_and_set_branches() -> None:
-    from triplemodel.io.sync.inverse_ops import _field_clears_inverse
-
-    assert _field_clears_inverse([], "list") is True
-    assert _field_clears_inverse([None], "list") is True
-    assert _field_clears_inverse(set(), "set") is True
-    assert _field_clears_inverse("not-a-list", "list") is False
-    assert _field_clears_inverse("bob", "scalar") is False
-    assert _field_clears_inverse(None, "scalar") is True
-
-
 def test_walk_embed_follows_bnode_link_in_graph() -> None:
     from triplemodel.config import get_rdf_config
     from triplemodel.fields.resolver import default_resolver

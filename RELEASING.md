@@ -8,7 +8,7 @@ Verified on `main` before tagging `v0.5.0` (prior tag: **v0.4.1**).
 |------|--------|
 | Version `0.5.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
 | `docs/conf.py` release via `triplemodel.__version__` | Done |
-| `CHANGELOG.md` — `## [0.5.0]` complete (Added/Changed); `[Unreleased]` empty | Done |
+| `CHANGELOG.md` — `## [0.5.0]` complete (Added/Changed/Fixed); `[Unreleased]` stub | Done |
 | `src/triplemodel/py.typed` in source and wheel (`tests/test_packaging.py`) | Done |
 | Exit criteria `examples/exit_criteria_05.py` (named-graph TriG) | Done |
 | Guide `docs/guides/12-datasets-and-named-graphs.md`; API exports `iter_model_quads`, `quads_in_context`, etc. | Done |

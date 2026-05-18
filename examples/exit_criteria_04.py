@@ -38,7 +38,8 @@ def main() -> None:
         jsonld = person.serialize(format="json-ld")
         from_json = Person.parse(data=jsonld, format="json-ld")[0]
         assert from_json.name == person.name
-    except Exception:
+    except (ValueError, ImportError, OSError):
+        # JSON-LD round-trip optional when rdflib lacks serializer support
         pass
 
     with tempfile.TemporaryDirectory() as tmp:

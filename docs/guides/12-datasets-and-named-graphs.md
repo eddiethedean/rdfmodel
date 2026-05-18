@@ -56,6 +56,12 @@ bundles = load_models("portal.trig", Catalog, Dataset, Distribution)
 
 Each class is loaded from its own `Rdf.graph_iri` context after a single parse.
 
+## Subclass dispatch on datasets
+
+`parse(..., dispatch=True)` on TriG/N-Quads and `all_from_dataset_dispatch` use the same rules as graph dispatch: each subject is loaded **once** as the most specific registered class for its `rdf:type` values. When a subject appears in several named graphs, types are unioned for class resolution, then the graph matching the model's `Rdf.graph_iri` is used for hydration.
+
+Pass `model_classes=[Person, Catalog]` to load only those exact classes (recommended when unrelated models are registered in the same process).
+
 ## Default graph vs union
 
 | Operation | Behavior |

@@ -22,6 +22,8 @@ Output:
 
 Sync modes clear the entire list structure when the field is `None` or `[]`.
 
+If the graph has **more than one `rdf:List` head** for the same predicate, import uses the **first** head only. Use `on_duplicate="error"` on import to surface ambiguous data; `"ignore"` suppresses the warning but does not merge lists.
+
 ## `set[T]` → multiple objects
 
 Use a **`set`** when you want several objects on the same predicate without an RDF list (order not guaranteed):

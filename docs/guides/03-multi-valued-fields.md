@@ -25,7 +25,7 @@ On import, duplicate objects in the graph collapse to one set member. Export ord
 |-------------|---------------------------|
 | `str`, `int`, nested model, … | First only; `on_duplicate` applies |
 | `set[T]` | All objects imported as a set |
-| `list[T]` | RDF list (`rdf:first` / `rdf:rest`) — see guide 09 |
+| `list[T]` | RDF list (`rdf:first` / `rdf:rest`); multiple list heads → first only — see guide 09 |
 
 ## Sync and cleared fields
 

@@ -14,5 +14,7 @@ These guides explain how to use TripleModel **0.4.x** in order of increasing com
 | 7 | [Custom literals](07-custom-literals-and-types.md) | Registry, `Decimal`, `Enum` |
 | 8 | [Working with graphs](08-working-with-graphs.md) | Batch export/import, helpers |
 | 10 | [File I/O](10-file-io.md) | Parse/serialize, base URI, SHACL |
+| 11 | [Real-world patterns](11-real-world-patterns.md) | Multi-class load, Wikidata typing, `ref_field`, `gYear` |
+| 12 | [Datasets and named graphs](12-datasets-and-named-graphs.md) | `Rdf.graph_iri`, `Dataset`, TriG / N-Quads |
 
 **Next:** [Getting started →](01-getting-started.md) · Sphinx / Read the Docs navigation: [guides index](index.md)
