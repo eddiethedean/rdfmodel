@@ -36,6 +36,28 @@ def test_wheel_contains_py_typed() -> None:
     assert any(n.endswith("triplemodel/py.typed") for n in names)
 
 
+def test_sparql_helpers_importable_from_top_level() -> None:
+    """Names documented in guides/13-sparql-and-endpoints.md."""
+    import triplemodel
+
+    for name in (
+        "ask",
+        "apply_update",
+        "construct_models",
+        "select_models",
+        "load_sparql",
+        "open_sparql_graph",
+        "prepare_model_query",
+        "init_bindings_from_model",
+        "detect_query_form",
+        "run_sparql",
+        "init_ns_from_model",
+        "graph_from_construct_result",
+    ):
+        assert name in triplemodel.__all__
+        assert getattr(triplemodel, name) is not None
+
+
 def test_dataset_helpers_importable_from_top_level() -> None:
     """Names documented in guides/12-datasets-and-named-graphs.md."""
     import triplemodel

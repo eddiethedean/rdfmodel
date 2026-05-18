@@ -25,6 +25,7 @@ Nothing yet.
 - **`select_models`** — map subject URI bindings to `Rdf.id_field` via `id_from_subject_uri` even when the subject variable appears in `field_map`
 - **`init_bindings_from_model`** — bind `URIRef(subject_uri())` for `id_field` (not XSD string literals) so prepared-query `FILTER` works on in-memory graphs
 - **`load_sparql`** — infer query form from rdflib prepared `Query` objects (not only raw strings)
+- **`load_models`** — single-class path uses `parse()` instead of deprecated `parse_file()`
 
 ### Changed
 

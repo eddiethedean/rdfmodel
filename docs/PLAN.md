@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.6.0)
 
-**Released (beta) on PyPI:** Everything through **0.5.0** plus **0.6.0** SPARQL passthrough: `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query`, and {doc}`guides/13-sparql-and-endpoints`.
+**Release-ready (beta) on `main`:** PyPI latest is **0.5.0**; **0.6.0** publishes when tag `v0.6.0` is pushed. In-repo: SPARQL passthrough (`ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query`, `run_sparql`, …) and {doc}`guides/13-sparql-and-endpoints`.
 
 **Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_06.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_06.py) for CONSTRUCT → models.
 

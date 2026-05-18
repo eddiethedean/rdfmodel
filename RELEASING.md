@@ -2,6 +2,8 @@
 
 ## 0.6.0 release readiness (repo)
 
+Verified on `main` at commit `c6d022f` (prior tag: **v0.5.0**). PyPI latest before this release: **0.5.0**.
+
 | Item | Status |
 |------|--------|
 | Version `0.6.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
