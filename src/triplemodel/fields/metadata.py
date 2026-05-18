@@ -37,6 +37,11 @@ class IriId:
     """Mark ``id_field`` as a full IRI string (not appended to ``namespace``)."""
 
 
+@dataclass(frozen=True)
+class Transitive:
+    """On import, follow ``predicate`` transitively for multi-valued fields."""
+
+
 @overload
 def rdf_field(
     predicate: str,
@@ -60,6 +65,7 @@ def rdf_field(
     *,
     inverse: str | None = None,
     literal_datatype: str | None = None,
+    transitive: bool = False,
     default: _T | EllipsisType = ...,
     **field_kwargs: Unpack[RdfFieldKwargs],
 ) -> _T:
@@ -75,6 +81,8 @@ def rdf_field(
         merged_extra["rdf_inverse"] = inverse
     if literal_datatype is not None:
         merged_extra["rdf_literal_datatype"] = literal_datatype
+    if transitive:
+        merged_extra["rdf_transitive"] = True
     return cast(
         _T,
         Field(
@@ -198,6 +206,14 @@ def ref_field(
             **cast(Any, field_kwargs),
         ),
     )
+
+
+def transitive_for_field(field_info: FieldInfo) -> bool:
+    """True when the field expands objects transitively on import."""
+    extra = field_info.json_schema_extra
+    if isinstance(extra, dict):
+        return bool(cast(JsonSchemaExtra, extra).get("rdf_transitive"))
+    return any(isinstance(meta, Transitive) for meta in field_info.metadata)
 
 
 def ref_link_for_field(field_info: FieldInfo) -> bool:

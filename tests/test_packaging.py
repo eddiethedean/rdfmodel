@@ -58,6 +58,30 @@ def test_sparql_helpers_importable_from_top_level() -> None:
         assert getattr(triplemodel, name) is not None
 
 
+def test_graph_algorithms_helpers_importable_from_top_level() -> None:
+    """Names documented in guides/14-graph-algorithms-and-rdfs.md."""
+    import triplemodel
+
+    for name in (
+        "graphs_equal",
+        "graph_diff",
+        "model_diff",
+        "cbd_graph",
+        "cbd_model",
+        "hydrate_refs",
+        "model_join",
+        "resolve_model_class_with_rdfs",
+        "subject_type_closure",
+        "subclass_uris",
+        "transitive_objects",
+        "transitive_subjects",
+        "VocabularyRegistry",
+        "Transitive",
+    ):
+        assert name in triplemodel.__all__
+        assert getattr(triplemodel, name) is not None
+
+
 def test_dataset_helpers_importable_from_top_level() -> None:
     """Names documented in guides/12-datasets-and-named-graphs.md."""
     import triplemodel

@@ -25,7 +25,13 @@ from triplemodel.config import (
     id_from_subject_uri,
 )
 from triplemodel.embed.strategies import import_nested_value
-from triplemodel.fields.metadata import id_field_is_iri_id, inverse_for_field
+from triplemodel.fields.metadata import (
+    id_field_is_iri_id,
+    inverse_for_field,
+    predicate_for_field,
+    transitive_for_field,
+)
+from triplemodel.io.rdfs import transitive_objects
 from triplemodel.namespaces import resolve_predicate
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.metadata.cardinality import (
@@ -181,6 +187,21 @@ def import_field_value(
 
     if card == "set":
         py_type = scalar_python_type(field_info)
+        if transitive_for_field(field_info):
+            pred_uri = predicate_for_field(field_info) or predicate
+            object_uris = transitive_objects(graph, uri, pred_uri)
+            return {
+                _term_to_field(
+                    URIRef(o),
+                    py_type,
+                    field_name,
+                    pred_uri,
+                    uri,
+                    field_info=field_info,
+                    registry=registry,
+                )
+                for o in object_uris
+            }
         return {
             _term_to_field(
                 o,

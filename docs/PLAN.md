@@ -4,13 +4,13 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.6.0)
+## Current status (0.7.0)
 
-**Release-ready (beta) on `main`:** PyPI latest is **0.5.0**; **0.6.0** publishes when tag `v0.6.0` is pushed. In-repo: SPARQL passthrough (`ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query`, `run_sparql`, …) and {doc}`guides/13-sparql-and-endpoints`.
+**Release-ready (beta) on `main`:** PyPI latest is **0.6.0**; **0.7.0** publishes when tag `v0.7.0` is pushed. In-repo: graph comparison, CBD, RDFS subclass dispatch, `hydrate_refs`, `VocabularyRegistry`, transitive import helpers, and {doc}`guides/14-graph-algorithms-and-rdfs`.
 
-**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_06.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_06.py) for CONSTRUCT → models.
+**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md); [examples/exit_criteria_07.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_07.py) for CBD + subclass dispatch.
 
-**Next focus:** **0.7.0** — graph algorithms and RDFS helpers (`cbd`, `graphs_equal`, etc.).
+**Next focus:** **0.8.0** — stores, scale, optional OWL/RDFS codegen CLI (see {doc}`ROADMAP`).
 
 ---
 

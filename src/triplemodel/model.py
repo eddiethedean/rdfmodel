@@ -10,6 +10,7 @@ from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import Dataset, Graph
+from rdflib.term import Node
 
 from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel.io import (
@@ -712,6 +713,36 @@ class TripleModel(BaseModel):
             registry=registry,
             de_skolemize=de_skolemize,
             **kwargs,
+        )
+
+    @classmethod
+    def cbd(
+        cls,
+        graph: Graph,
+        uri: str | Node,
+        *,
+        dispatch: bool = False,
+        validate_type: bool = True,
+        on_duplicate: OnDuplicate = "warn",
+        resolver: PredicateResolver | None = None,
+        registry: LiteralRegistry = default_registry,
+        de_skolemize: bool | None = None,
+        include_reifications: bool = True,
+    ) -> Self:
+        """Load an instance from the concise bounded description around ``uri``."""
+        from triplemodel.io.cbd import cbd_model
+
+        return cbd_model(
+            cls,
+            graph,
+            uri,
+            dispatch=dispatch,
+            validate_type=validate_type,
+            on_duplicate=on_duplicate,
+            resolver=resolver,
+            registry=registry,
+            de_skolemize=de_skolemize,
+            include_reifications=include_reifications,
         )
 
     @classmethod

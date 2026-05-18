@@ -17,10 +17,18 @@ from triplemodel.config import (
     resolve_graph_iri,
     subject_base,
 )
-from triplemodel.fields import IriId, InverseOf, Predicate, rdf_field, ref_field
+from triplemodel.fields import (
+    IriId,
+    InverseOf,
+    Predicate,
+    Transitive,
+    rdf_field,
+    ref_field,
+)
 from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.terms.lang import Lang, LangString
 from triplemodel.terms.opaque import OpaqueLiteral
+from triplemodel.vocab_registry import VocabularyRegistry
 from triplemodel.io import (
     OnDuplicate,
     PreparedModelQuery,
@@ -57,18 +65,31 @@ from triplemodel.io import (
     quads_in_context,
     sync_to_dataset,
     sync_to_graph,
+    GraphDiff,
     apply_update,
     ask,
+    cbd_graph,
+    cbd_model,
     construct_models,
     detect_query_form,
+    graph_diff,
     graph_from_construct_result,
+    graphs_equal,
+    hydrate_refs,
     init_bindings_from_model,
     init_ns_from_model,
     load_sparql,
+    model_diff,
+    model_join,
     open_sparql_graph,
     prepare_model_query,
+    resolve_model_class_with_rdfs,
     run_sparql,
     select_models,
+    subject_type_closure,
+    subclass_uris,
+    transitive_objects,
+    transitive_subjects,
 )
 from triplemodel.io.ops import graph_set, graph_value, merge_graphs, objects_for_field
 from triplemodel.model import TripleModel
@@ -81,7 +102,7 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     "EmbedMode",
@@ -124,6 +145,8 @@ __all__ = [
     "OpaqueLiteral",
     "OnDuplicate",
     "Predicate",
+    "Transitive",
+    "VocabularyRegistry",
     "ResourceRef",
     "RDF",
     "RDFS",
@@ -154,17 +177,30 @@ __all__ = [
     "sync_to_graph",
     "PreparedModelQuery",
     "SparqlQueryForm",
+    "GraphDiff",
     "apply_update",
     "ask",
+    "cbd_graph",
+    "cbd_model",
     "construct_models",
     "detect_query_form",
+    "graph_diff",
     "graph_from_construct_result",
+    "graphs_equal",
+    "hydrate_refs",
     "init_bindings_from_model",
     "init_ns_from_model",
     "load_sparql",
+    "model_diff",
+    "model_join",
     "open_sparql_graph",
     "prepare_model_query",
+    "resolve_model_class_with_rdfs",
     "run_sparql",
     "select_models",
+    "subject_type_closure",
+    "subclass_uris",
+    "transitive_objects",
+    "transitive_subjects",
     "__version__",
 ]

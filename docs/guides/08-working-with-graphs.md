@@ -98,6 +98,7 @@ When `Rdf.skolemize_export` / `Rdf.skolemize_import` is enabled (or you pass `sk
 
 ## Related guides
 
+- [Graph algorithms and RDFS](14-graph-algorithms-and-rdfs.md) — `graphs_equal`, CBD, safe merge with separate parses
 - [Updating graphs](04-updating-graphs.md) — sync after batch load
 - [Namespaces and CURIEs](06-namespaces-and-curies.md) — prefixes on merged graphs
 - [Getting started](01-getting-started.md) — first model

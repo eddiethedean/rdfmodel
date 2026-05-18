@@ -7,10 +7,10 @@ from typing import Protocol, cast, runtime_checkable
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from rdflib import Graph, Literal, URIRef
+from rdflib import Graph, Literal
 from rdflib.term import Node
 
-from triplemodel.config import GraphMode, RDF_TYPE, RdfConfig, get_rdf_config
+from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel.terms.registry import LiteralRegistry as LiteralRegistryImpl
 
 _rdf_resource_classes: set[type] = set()
@@ -62,20 +62,18 @@ def _mro_depth(model_cls: type) -> int:
     return len(model_cls.__mro__)
 
 
-def resolve_model_class(graph: Graph, subject: Node) -> type[BaseModel]:
+def resolve_model_class(
+    graph: Graph,
+    subject: Node,
+    *,
+    use_subclass: bool | None = None,
+) -> type[BaseModel]:
     """Pick the most specific registered class for ``subject``'s ``rdf:type`` values."""
-    type_nodes = list(graph.objects(subject, URIRef(RDF_TYPE)))
-    candidates: list[type[BaseModel]] = []
-    for t in type_nodes:
-        cls = _type_uri_index.get(str(t))
-        if cls is not None:
-            candidates.append(cls)
-    if not candidates:
-        raise ValueError(
-            f"No registered TripleModel class for subject {subject!r} "
-            f"(rdf:types: {[str(t) for t in type_nodes]})."
-        )
-    return cast(type[BaseModel], max(candidates, key=_mro_depth))
+    if use_subclass is None:
+        use_subclass = True
+    from triplemodel.io.rdfs import resolve_model_class_with_rdfs
+
+    return resolve_model_class_with_rdfs(graph, subject, use_subclass=use_subclass)
 
 
 def is_rdf_resource_class(tp: type) -> bool:

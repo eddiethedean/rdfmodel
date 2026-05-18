@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from triplemodel import TripleModel, load_graph, rdf_field, ref_field
+from triplemodel import TripleModel, hydrate_refs, load_graph, rdf_field, ref_field
 from triplemodel.fields import IriId
 
 from _paths import data_file
@@ -56,7 +56,11 @@ class CapitalCity(TripleModel):
 def main() -> None:
     path = data_file("wikidata_capitals.ttl")
     graph = load_graph(source=path, bind_prefixes=WIKIDATA_PREFIXES)
-    cities = CapitalCity.all_from_graph(graph, validate_type=False)
+    cities = hydrate_refs(
+        CapitalCity.all_from_graph(graph, validate_type=False),
+        graph,
+        "country",
+    )
 
     assert CapitalCity.ask_sparql(
         graph,

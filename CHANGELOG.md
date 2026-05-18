@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.7.0] - 2026-05-18
+
+### Added
+
+- **Graph comparison** — `graphs_equal`, `graph_diff`, `model_diff`, `GraphDiff`
+- **CBD** — `cbd_graph`, `cbd_model`, `TripleModel.cbd`
+- **RDFS helpers** — `subject_type_closure`, `subclass_uris`, `resolve_model_class_with_rdfs`, `transitive_objects`, `transitive_subjects`
+- **Subclass dispatch** — `resolve_model_class` follows `rdfs:subClassOf` when `Rdf.resolve_subclass` is true (default)
+- **Batch hydration** — `hydrate_refs`, `model_join` for shared reference URIs
+- **Vocabulary registry** — `VocabularyRegistry` (`register`, `bind_vocab`, `model_for_subject`)
+- **Transitive import** — `Transitive` / `rdf_field(..., transitive=True)` expands multi-hop object URIs on import
+- **Guide** — `docs/guides/14-graph-algorithms-and-rdfs.md`
+- **Example** — `examples/exit_criteria_07.py` (CBD + RDFS subclass dispatch)
+
+### Changed
+
+- **Wikidata capitals** — `examples/realworld/wikidata_capitals.py` uses `hydrate_refs` for country labels
+- **Public exports** — graph algorithm and RDFS helpers on the `triplemodel` package root
+
+### Deferred
+
+- **OWL/RDFS codegen CLI** — planned for 0.8+ (see ROADMAP)
+
 ## [0.6.0] - 2026-05-18
 
 ### Added

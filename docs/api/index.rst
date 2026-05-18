@@ -22,6 +22,11 @@ Module reference
    embed
    registry
    graph_ops
+   compare
+   cbd
+   rdfs
+   hydrate
+   vocab_registry
    cardinality
    types
    protocols

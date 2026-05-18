@@ -4,10 +4,12 @@ from triplemodel.fields.metadata import (
     IriId,
     InverseOf,
     Predicate,
+    Transitive,
     id_field_is_iri_id,
     inverse_for_field,
     rdf_field,
     ref_field,
+    transitive_for_field,
 )
 from triplemodel.fields.metadata import (
     annotation_has_iri_id,
@@ -26,7 +28,9 @@ __all__ = [
     "IriId",
     "InverseOf",
     "Predicate",
+    "Transitive",
     "inverse_for_field",
+    "transitive_for_field",
     "annotation_has_iri_id",
     "default_resolver",
     "id_field_is_iri_id",

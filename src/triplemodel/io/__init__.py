@@ -12,12 +12,27 @@ from triplemodel.io.import_ import (
     graph_to_models,
     import_field_value,
 )
+from triplemodel.io.compare import (
+    GraphDiff,
+    graph_diff,
+    graphs_equal,
+    model_diff,
+)
+from triplemodel.io.cbd import cbd_graph, cbd_model
+from triplemodel.io.hydrate import hydrate_refs, model_join
 from triplemodel.io.ops import (
     graph_set,
     graph_set_many,
     graph_value,
     merge_graphs,
     objects_for_field,
+)
+from triplemodel.io.rdfs import (
+    resolve_model_class_with_rdfs,
+    subject_type_closure,
+    subclass_uris,
+    transitive_objects,
+    transitive_subjects,
 )
 from triplemodel.io.sync import sync_to_graph
 from triplemodel.io.files import (
@@ -77,7 +92,20 @@ __all__ = [
     "all_from_dataset",
     "all_from_dataset_dispatch",
     "all_from_graph_dispatch",
+    "GraphDiff",
+    "cbd_graph",
+    "cbd_model",
     "discover_subject_uris",
+    "graph_diff",
+    "graphs_equal",
+    "hydrate_refs",
+    "model_diff",
+    "model_join",
+    "resolve_model_class_with_rdfs",
+    "subject_type_closure",
+    "subclass_uris",
+    "transitive_objects",
+    "transitive_subjects",
     "discover_subjects_by_instance_of",
     "dump_dataset",
     "dump_graph",

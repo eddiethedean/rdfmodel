@@ -20,7 +20,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.6.0 is beta.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.7.0 is beta.** APIs may change before 1.0. See the [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md) and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 
@@ -81,6 +81,8 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **Package typing** | PEP 561 `py.typed` |
 
 | **SPARQL** | `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query` |
+| **Graph algorithms** | `graphs_equal`, `graph_diff`, `model_diff`, `cbd_graph` / `cbd_model`, `hydrate_refs`, `model_join` |
+| **RDFS** | Subclass-aware dispatch, `transitive_objects` / `transitive_subjects`, `VocabularyRegistry`, `Transitive` import |
 
 ### `list` vs `set`
 

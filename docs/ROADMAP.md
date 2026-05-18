@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.6.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.7.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -278,22 +278,22 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ---
 
-## 0.7.0 — Graph algorithms and RDFS
+## 0.7.0 — Graph algorithms and RDFS ✅
 
 **Theme:** rdflib **graph operations** that help modeling, not replace reasoners.
 
-- [ ] **`cbd` wrapper** — extract concise bounded description as nested `TripleModel`
-- [ ] **Transitive helpers** — optional field decorators using `transitiveClosure` / `transitive_subjects`
-- [ ] **`graphs_equal`** — `isomorphic` + term-normalized compare for tests
-- [ ] **`model_diff` / graph diff** — compare two instances or graphs for migration tests
-- [ ] **Safe graph merge** — guidance when combining graphs parsed separately (BNode identity)
-- [ ] **RDFS subclass import** — follow `rdfs:subClassOf` when choosing model class
-- [ ] **Vocabulary registry** — prefix ↔ model class ↔ `type_uri` registry
-- [ ] **Codegen (experimental)** — OWL/RDFS → stub `TripleModel` classes (CLI)
-- [ ] **`hydrate_refs` / `model.join`** — given `ResourceRef` or URI fields, batch-load related resources from the same graph (Wikidata country labels without manual dicts)
-- [ ] **Catalog & registry patterns** — cookbook recipes for DCAT portal graphs, Schema.org NGO registries, Nobel/VIAF-style biographical LOD
+- [x] **`cbd` wrapper** — `cbd_graph`, `cbd_model`, `TripleModel.cbd`
+- [x] **Transitive helpers** — `transitive_objects` / `transitive_subjects`; `Transitive` / `rdf_field(..., transitive=True)` on import
+- [x] **`graphs_equal`** — `isomorphic` + optional BNode normalization for tests
+- [x] **`model_diff` / graph diff** — `graph_diff`, `model_diff`, `GraphDiff`
+- [x] **Safe graph merge** — documented in {doc}`guides/14-graph-algorithms-and-rdfs` and {doc}`guides/08-working-with-graphs`
+- [x] **RDFS subclass import** — `resolve_model_class_with_rdfs`; `Rdf.resolve_subclass` (default true)
+- [x] **Vocabulary registry** — `VocabularyRegistry`
+- [ ] **Codegen (experimental)** — OWL/RDFS → stub `TripleModel` classes (CLI) — **deferred to 0.8+**
+- [x] **`hydrate_refs` / `model_join`** — batch-load shared ref URIs; Wikidata capitals example updated
+- [x] **Catalog & registry patterns** — doc pointers in guide 14 to `examples/realworld/`
 
-**Exit criteria:** Subclass graph imports into correct `Agent` vs `Person`; `cbd` example in cookbook; Wikidata capitals example uses `hydrate_refs` instead of hand-built `COUNTRY_QIDS` dicts.
+**Exit criteria:** ✅ `examples/exit_criteria_07.py` (subclass dispatch + CBD); Wikidata capitals uses `hydrate_refs`.
 
 ---
 
@@ -415,7 +415,7 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | **0.4.1** | Real-world ergonomics (multi-class load, Wikidata typing, XSD dates) | property typing, `load_models`, mapping validation | — |
 | 0.5.0 | Named graphs | `Dataset`, `quads`, `get_context` | SM-4 (if needed) |
 | 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
-| 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | — |
+| 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | ✅ |
 | 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | — |
 | 0.9.0 | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
 | **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `triplemodel` |

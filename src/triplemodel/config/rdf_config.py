@@ -74,6 +74,8 @@ class RdfConfig:
     """Default JSON-LD ``@context`` for parse/serialize when ``format`` is json-ld."""
     graph_iri: str | None = None
     """Named graph IRI for Dataset contexts; ``None`` uses the default graph."""
+    resolve_subclass: bool = True
+    """When dispatching, match ``rdfs:subClassOf`` ancestors of ``rdf:type``."""
 
     @property
     def prefixes_dict(self) -> dict[str, str]:
@@ -217,6 +219,7 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
             if graph_iri_raw is None:
                 graph_iri_raw = getattr(rdf, "graph", None)
             graph_iri = (str(graph_iri_raw).strip() if graph_iri_raw else None) or None
+            resolve_subclass = bool(getattr(rdf, "resolve_subclass", True))
             return RdfConfig(
                 namespace=getattr(rdf, "namespace", "") or "",
                 type_uri=getattr(rdf, "type_uri", None),
@@ -232,5 +235,6 @@ def get_rdf_config(model_cls: type) -> RdfConfig:
                 base_uri=str(base_uri) if base_uri else None,
                 jsonld_context=jsonld_context,
                 graph_iri=graph_iri,
+                resolve_subclass=resolve_subclass,
             )
     return RdfConfig()
