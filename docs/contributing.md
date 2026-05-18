@@ -33,6 +33,8 @@ python -m http.server -d docs/_build/html 8000
 
 Open `http://localhost:8000`. User guides are Markdown under `docs/guides/`; API reference is generated from docstrings via Sphinx autodoc.
 
+CI runs **HTML only** on each push/PR (fast). **Linkcheck** runs weekly and on demand via the Docs workflow (`workflow_dispatch`); run `sphinx-build -b linkcheck docs docs/_build/linkcheck -W` locally before large doc edits.
+
 ### Runnable examples in docs
 
 Snippets that show **Output** live under `examples/doc/snippets/` with checked-in stdout in `examples/doc/outputs/`. After changing a snippet:
