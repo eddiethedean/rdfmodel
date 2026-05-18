@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import runpy
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -12,7 +13,7 @@ REALWORLD = Path(__file__).resolve().parents[1] / "examples" / "realworld"
 
 
 @pytest.fixture
-def realworld_path() -> None:
+def realworld_path() -> Iterator[None]:
     root = str(REALWORLD)
     if root not in sys.path:
         sys.path.insert(0, root)

@@ -192,13 +192,13 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 
 **SparqlModel (SM-3):** `export_model` / file load paths call TripleModel; remove parallel format registry from SparqlModel.
 
-**Real-world validation (2026):** [`examples/realworld/`](../examples/realworld/) exercises Nobel linked data, DCAT catalogs, Wikidata excerpts, and Schema.org NGO records. The examples run offline in CI and surfaced gaps between “RDF works” and “feels Pythonic in application code.” See [Real-world ergonomics (0.4.1+)](#041--real-world-ergonomics) below.
+**Real-world validation (2026):** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) exercises Nobel linked data, DCAT catalogs, Wikidata excerpts, and Schema.org NGO records. The examples run offline in CI and surfaced gaps between “RDF works” and “feels Pythonic in application code.” See [Real-world ergonomics (0.4.1+)](#041--real-world-ergonomics) below.
 
 ---
 
 ## 0.4.1 — Real-world ergonomics
 
-**Theme:** Close the gap between **typed records** and **linked-data workflows**—without waiting for Dataset (0.5) or full SPARQL helpers (0.6). Informed by [`examples/realworld/`](../examples/realworld/) and integration friction (manual QID lists, triple `parse_file` per class, predicate URI footguns, flat foreign-key URIs).
+**Theme:** Close the gap between **typed records** and **linked-data workflows**—without waiting for Dataset (0.5) or full SPARQL helpers (0.6). Informed by [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) and integration friction (manual QID lists, triple `parse_file` per class, predicate URI footguns, flat foreign-key URIs).
 
 | Priority | Feature | Problem it solves | Planned API (sketch) |
 |----------|---------|-------------------|----------------------|
@@ -208,12 +208,26 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 | P1 | **Property-based typing** | Wikidata (and some LOV vocabularies) use `wdt:P31` / `dbo:type` instead of `rdf:type` for classification | `Rdf.instance_of: str \| list[str]` — URI(s) of type resource; `all_from_graph` / discovery filter subjects with `(?, instance_of, type_uri)`; complements empty `type_uri` + predicate discovery |
 | P1 | **Hydrate `ResourceRef` / URI FKs** | `country: str` holding `wd:Q142` forces manual join dicts (Wikidata capitals example) | `ResourceRef` or `ref_field(Predicate, model=Country)` hydrates nested model on import; optional `country: Country` via nested IRI embed when object is a full resource description |
 | P1 | **Linked object graphs in examples** | Laureate ↔ NobelPrize and DCAT catalog ↔ dataset are separate models with no predicate between them in Python | Document nested `NobelPrize \| None` on `Laureate` (inverse or forward predicate); DCAT `catalog: Dataset \| None` embed patterns in cookbook |
+| P1 | **Refactor in-repo examples** | New APIs ship without dogfooding; `examples/realworld/` still shows pre-0.4.1 workarounds | Update `examples/realworld/*` and affected `examples/` / doc snippets to use each shipped 0.4.1 feature; extend `tests/test_realworld_examples.py` assertions |
 | P2 | **Lang-tagged label defaults** | `rdfs:label@en` is ubiquitous; users must know `LangString` vs plain `str` | `Annotated[str, Lang("en")]` auto-import for configured fields; or `rdf_field(..., lang="en")` sugar |
 | P2 | **QID / slug conventions** | Wikidata IDs (`Q90`) vs full IRIs — `IriId` works but examples need boilerplate | `WikidataItem` recipe in cookbook; optional `Rdf.id_encoding = "qid"` when `namespace` is `wd:` entity base |
 | P2 | **Optional inverse export** | Import reads inverse; export is forward-only (by design) but some portals expect bidirectional edges | `Rdf.export_inverse: bool` or per-field `export_inverse=True` to emit `(remote, inv, subject)` on `to_graph` / sync |
 | P3 | **Refresh-from-endpoint recipe** | Wikidata excerpt maintenance via SPARQL CONSTRUCT | Document pattern until **0.6** `construct_models`; keep `examples/realworld/refresh_wikidata_capitals.py` as template |
 
 **Exit criteria:** Nobel + DCAT examples use **one** `parse`/`load_models` call per file; Wikidata capitals use `instance_of` or documented discovery without hard-coded QID loops; Schema.org NGOs import `foundingDate` without manual `str` workaround; invalid `rdf_predicate` in `rdf_field` fails at class definition with a clear error.
+
+**Example updates (ship with 0.4.1):** Each feature lands with corresponding example refactors—no “API only” release.
+
+| Example | After 0.4.1 |
+|---------|-------------|
+| `examples/realworld/nobel_laureates.py` | `load_models` (or single graph + multi-class load); optional nested `NobelPrize` on `Laureate` |
+| `examples/realworld/dcat_data_catalog.py` | One parse/load for catalog, dataset, distribution; nested catalog → dataset where data allows |
+| `examples/realworld/wikidata_capitals.py` | `Rdf.instance_of` / discovery instead of `COUNTRY_QIDS`; `ResourceRef` or `ref_field` for country |
+| `examples/realworld/schema_org_ngos.py` | Typed `foundingDate` via XSD `gYear` (not plain `str`) |
+| `examples/readme_examples.py`, `examples/doc/snippets/` | Touch only where a 0.4.1 API is demonstrated (mapping validation demo, `load_models`, etc.) |
+| `docs/examples.md`, cookbook drafts | Runnable commands match refactored scripts |
+
+CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdout smoke tests).
 
 **Not in 0.4.1 (later releases):** SPARQL SELECT/CONSTRUCT loaders (0.6), CBD for subgraph extract (0.7), named graphs (0.5), inverse export default-on (stay forward-only unless opted in).
 

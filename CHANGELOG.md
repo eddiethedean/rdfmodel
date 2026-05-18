@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-See [ROADMAP.md § 0.4.1 — Real-world ergonomics](docs/ROADMAP.md#041--real-world-ergonomics) and [PLAN.md § Real-world integration lessons](docs/PLAN.md#real-world-integration-lessons-04-evaluation): single-pass multi-class load, mapping validation, `Rdf.instance_of`, XSD partial dates, `ResourceRef` hydration, and cookbook updates from `examples/realworld/`.
+See [ROADMAP.md § 0.4.1 — Real-world ergonomics](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md#041--real-world-ergonomics) and [PLAN.md § Real-world integration lessons](https://github.com/eddiethedean/triplemodel/blob/main/docs/PLAN.md#real-world-integration-lessons-04-evaluation): single-pass multi-class load, mapping validation, `Rdf.instance_of`, XSD partial dates, `ResourceRef` hydration, refactor `examples/realworld/` (and related snippets/tests) to use each new API, and cookbook updates.
 
 ## [0.4.0] - 2026-05-17
 

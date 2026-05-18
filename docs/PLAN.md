@@ -8,7 +8,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 **Released (beta) on PyPI:** File `parse` / `serialize` (rdflib formats), `Rdf.base_uri`, JSON-LD context passthrough, subclass dispatch by `rdf:type`, inverse predicates on import, and optional SHACL via `triplemodel[shacl]`. Earlier releases add RDF lists, `LangString`, blank-node hardening, and graph sync. SparqlModel may pin `triplemodel>=0.4,<0.5` for SM-3 experiments. See {doc}`changelog` and the {doc}`user guides <guides/index>`.
 
-**Validated in-repo:** [`examples/realworld/`](../examples/realworld/) — Nobel linked data, DCAT catalog, Wikidata capitals excerpt, Schema.org NGOs (offline TTL + CI tests). These exercises informed **0.4.1** priorities in [ROADMAP.md § 0.4.1](ROADMAP.md#041--real-world-ergonomics).
+**Validated in-repo:** [examples/realworld](https://github.com/eddiethedean/triplemodel/blob/main/examples/realworld/README.md) — Nobel linked data, DCAT catalog, Wikidata capitals excerpt, Schema.org NGOs (offline TTL + CI tests). These exercises informed **0.4.1** priorities in [ROADMAP.md § 0.4.1](ROADMAP.md#041--real-world-ergonomics).
 
 **Not yet shipped:** Real-world ergonomics (**0.4.1**); Dataset/named graphs (**0.5**).
 
@@ -107,6 +107,7 @@ Exercises in `examples/realworld/` showed where TripleModel is already **Pythoni
 | Partial dates | `foundingDate` forced to `str` | XSD `gYear` in literal registry | **0.4.1** |
 | Mapping footguns | `RDFS_LABEL` = namespace base breaks import | Class-definition validation on predicate IRIs | **0.4.1** |
 | Object graphs in Python | Laureate and Prize are disconnected models | Nested embed + cookbook (inverse optional) | **0.4.1** docs; richer **0.7** CBD |
+| Dogfooding | Examples still teach workarounds after APIs ship | Refactor `examples/realworld/` (+ snippets) per feature; extend CI tests | **0.4.1** |
 | Live endpoint slices | CONSTRUCT refresh script is ad hoc | `construct_models` + documented refresh recipe | **0.6** |
 | App-level joins | Country labels need manual joins | `hydrate_refs` / batch load from graph | **0.7** |
 
@@ -193,6 +194,6 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 
 - **0.2:** SparqlModel can prototype `triplemodel` for `model_to_graph` / load without losing `put` semantics.
 - **0.4:** Load/save Turtle/JSON-LD without SparqlModel-only parsers.
-- **0.4.1:** Nobel + DCAT examples use a single graph load; Wikidata capitals avoid hard-coded QID loops; Schema.org `gYear` imports without `str` workarounds; invalid `rdf_predicate` fails at class definition.
+- **0.4.1:** Nobel + DCAT examples use a single graph load; Wikidata capitals avoid hard-coded QID loops; Schema.org `gYear` imports without `str` workarounds; invalid `rdf_predicate` fails at class definition; **in-repo examples updated** to match each shipped API (`examples/realworld/`, relevant snippets, `test_realworld_examples.py`).
 - **0.9:** SparqlModel pins released `triplemodel`; duplicate term code removed from SparqlModel.
 - **1.0:** Downstream apps choose **triplemodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.
