@@ -115,29 +115,34 @@ Exercises in `examples/realworld/` showed where TripleModel is already **Pythoni
 
 ## SparqlModel integration strategy
 
-SparqlModel today duplicates mapping logic (`graph.py`, `fields.py`, `serializers.py`). The plan is to **converge implementation**, not merge public APIs.
+SparqlModel **already pins** `triplemodel>=0.9,<2` on PyPI. **0.3** wired session I/O through an interim `_triple.py` dynamic adapter. **SparqlModel 0.4 (Option A)** adopts **`SPARQLModel(TripleModel)`** — one class, direct `sync_to_graph` / `from_graph`, delete the adapter.
 
-### Integration gates (when SparqlModel should pin `triplemodel`)
+### Integration gates (historical + next)
 
-| triplemodel release | Capability SparqlModel needs | SparqlModel action |
-|------------------|------------------------------|-------------------|
-| **0.2** | Multi-value fields; nested models; **sync/remove** on re-export; namespaces/`bind`; merge policies | Replace core of `graph.py` export/import; keep cascade in session |
-| **0.3** | Blank nodes / RDF lists (if embedding retained) | Align hydration with TripleModel loaders |
-| **0.4** | `parse` / `serialize`, base URI | Thin `serializers.py` → TripleModel |
-| **0.5** | `Dataset` / named graphs (if models use `@graph`) | Store layer uses TripleModel dataset helpers |
-| **≥0.9** | API freeze, `py.typed`, documented semver | `sparqlmodel` depends on `triplemodel~=1.0` (or `>=0.9,<2`) |
+| Milestone | triplemodel / SparqlModel | Outcome |
+|-----------|---------------------------|---------|
+| **SM-1–SM-5** | TripleModel **0.2–0.9** shipped | Mapping APIs available; SparqlModel pins `>=0.9,<2` |
+| **SM-6** | SparqlModel **0.4** (Option A) | `SPARQLModel` subclasses `TripleModel`; remove `_triple.py` |
+| **SparqlModel 0.5+** | Async, file I/O, query production | ORM-only; see [SparqlModel ROADMAP](https://github.com/eddiethedean/sqarqlmodel/blob/main/docs/ROADMAP.md) |
 
-Until **0.2** sync/remove ships, SparqlModel should **not** declare a required `triplemodel` dependency (local dev pin only).
-
-### API convergence (internal, not necessarily public)
+### API convergence (canonical: Option A)
 
 | SparqlModel (public) | TripleModel (implementation) |
 |----------------------|---------------------------|
-| `SPARQLModel` | Compose / subclass `TripleModel` |
-| `Field("schema:name")` | Predicate metadata + CURIE expand |
-| `__prefixes__` | `Rdf.prefixes` |
-| `id: IRI` | Explicit IRI id or `id_field` + namespace |
-| `session.put` | TripleModel `sync_to_graph` + SparqlModel cascade |
+| `SPARQLModel(TripleModel)` | Same instances call `sync_to_graph`, `from_graph`, `to_graph` |
+| `Field("schema:name")` | `rdf_field` / `Predicate` at class creation |
+| `__prefixes__` / `rdf_type` | nested `class Rdf` (`prefixes`, `type_uri`, `embed`, `IriId`) |
+| `id: IRI` | `IriId` / explicit IRI id field |
+| `session.put` | `sync_to_graph` + SparqlModel cascade (orchestration in `graph.py`) |
+
+### Integrator requirements (SM-6 / SparqlModel 0.4)
+
+TripleModel must support subclassing without breaking:
+
+- `register_rdf_resource` on `SPARQLModel` subclasses
+- Nested `embed='iri'` for composition (SparqlModel cascade policy wraps this)
+- `IriId` for explicit `id: IRI` fields
+- Stable `sync_to_graph` / `from_graph` on the subclass instance
 
 ### Contract tests (future)
 
@@ -193,5 +198,6 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 - **0.2:** SparqlModel can prototype `triplemodel` for `model_to_graph` / load without losing `put` semantics.
 - **0.4:** Load/save Turtle/JSON-LD without SparqlModel-only parsers.
 - **0.4.1:** Nobel + DCAT examples use a single graph load; Wikidata capitals avoid hard-coded QID loops; `Schema.org` `gYear` imports without `str` workarounds; invalid `rdf_predicate` fails at class definition; **in-repo examples updated** to match each shipped API (`examples/realworld/`, relevant snippets, `test_realworld_examples.py`).
-- **0.9:** SparqlModel pins released `triplemodel`; duplicate term code removed from SparqlModel.
+- **0.9:** SparqlModel pins released `triplemodel` (shipped).
+- **SM-6 / SparqlModel 0.4:** `SPARQLModel(TripleModel)`; interim adapter removed.
 - **1.0:** Downstream apps choose **triplemodel** for pipelines and **sparqlmodel** for apps — clear docs, no overlap confusion.

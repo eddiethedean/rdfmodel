@@ -4,7 +4,7 @@ Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**)
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
-**Ecosystem:** TripleModel is the **stateless mapping** layer (file parse/serialize from **0.4**). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer for applications. SparqlModel will **depend on TripleModel** once mapping APIs align (see [SparqlModel integration](#sparqlmodel-integration-milestones)). TripleModel must never depend on SparqlModel.
+**Ecosystem:** TripleModel is the **stateless mapping** layer (file parse/serialize from **0.4**). [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (`sparqlmodel`) is the **session, query, and ORM** layer and **already depends** on `triplemodel>=0.9,<2`. **SM-6** tracks SparqlModel **0.4** unified model (`SPARQLModel` subclasses `TripleModel`). TripleModel must never depend on SparqlModel.
 
 | Document | Purpose |
 |----------|---------|
@@ -22,16 +22,19 @@ Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**)
 
 ## SparqlModel integration milestones
 
-SparqlModel today implements its own `graph.py`, `fields.py`, and `serializers.py`. TripleModel should replace that **implementation** while SparqlModel keeps **session, compiler, and cascade policy**.
+SparqlModel **0.3** uses an interim `_triple.py` adapter; **0.4 (Option A)** makes `SPARQLModel` a **`TripleModel` subclass** and removes the adapter. TripleModel keeps **mapping**; SparqlModel keeps **session, compiler, and cascade policy**.
 
 | Milestone | triplemodel deliverable | SparqlModel outcome |
 |-----------|----------------------|---------------------|
-| **SM-0** (now) | 0.1.x mapping, subject IRI fixes | Optional dev pin; no PyPI dependency yet |
-| **SM-1** | **0.2** — sync/remove, nested models, multi-value, `Rdf.prefixes`, vocab | Replace export/import core; keep `put`/`delete` orchestration |
-| **SM-2** | **0.3** — blanks, RDF lists (if embed model kept) | Align hydration with TripleModel loaders |
-| **SM-3** | **0.4** — `parse` / `serialize`, base URI | Retire duplicate serializers |
+| **SM-0** | 0.1.x mapping, subject IRI fixes | Historical optional dev pin |
+| **SM-1** | **0.2** — sync/remove, nested models, multi-value, `Rdf.prefixes`, vocab | Interim adapter wiring |
+| **SM-2** | **0.3** — blanks, RDF lists | Hydration via TripleModel loaders |
+| **SM-3** | **0.4** — `parse` / `serialize`, base URI | Retire duplicate serializers (**SparqlModel 0.6**) |
 | **SM-4** | **0.5** — `Dataset` (if named graphs on models) | Store uses TripleModel dataset helpers |
-| **SM-5** | **0.9–1.0** — API freeze, `py.typed`, semver | `sparqlmodel` requires `triplemodel~=1.0` (exact range TBD) |
+| **SM-5** | **0.9–1.0** — API freeze, `py.typed`, semver | `sparqlmodel` requires `triplemodel>=0.9,<2` (**shipped**) |
+| **SM-6** | Subclass-safe mapping API (no SparqlModel code change required) | **SparqlModel 0.4** — `SPARQLModel(TripleModel)`; delete `_triple.py` |
+
+See [SparqlModel ROADMAP — 0.4 unified model](https://github.com/eddiethedean/sqarqlmodel/blob/main/docs/ROADMAP.md#04--unified-model-option-a).
 
 **TripleModel will not implement:** `SPARQLSession`, Python `where(Model.field == x)`, SPARQL expression compiler, identity map, FastAPI, or HTTP store — see [ECOSYSTEM.md](ECOSYSTEM.md).
 

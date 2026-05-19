@@ -34,15 +34,28 @@ Prefer root imports when a name is re-exported in `__all__`.
 - `triplemodel._typing`, private modules, and test-only code.
 - Undocumented attributes on `TripleModel` or rdflib objects.
 
+## Integrator tier (SparqlModel / Option A)
+
+APIs SparqlModel may call from a **`SPARQLModel(TripleModel)` subclass** without forking mapping logic:
+
+| API | Role |
+|-----|------|
+| `TripleModel`, `rdf_field`, `Predicate`, `IriId` | Model base and field metadata |
+| `sync_to_graph`, `from_graph`, `to_graph` | Session read/write |
+| `RdfConfig` / nested `class Rdf` | `type_uri`, prefixes, embed mode |
+| `register_rdf_resource` | Subclass registration (must work for `SPARQLModel`) |
+
+**Out of scope for integrators:** `SPARQLSession`, Python query DSL, cascade `put` policy — SparqlModel only.
+
 ## SparqlModel integration
 
-Recommended dependency range after **0.9.0**:
+Recommended dependency range after **0.9.0** (shipped in `sparqlmodel`):
 
 ```text
 triplemodel>=0.9,<2
 ```
 
-Tighten to `~=1.0` when TripleModel 1.0 ships. See [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) for stable entry points (`model_to_graph`, `sync_to_graph`, `load_models`, `register_predicate_resolver`, etc.).
+Tighten to `~=1.0` when TripleModel 1.0 ships. **SM-6 / SparqlModel 0.4** adopts Option A (`SPARQLModel` subclasses `TripleModel`). See [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) for module retirement and exit criteria.
 
 ## Historical versions
 

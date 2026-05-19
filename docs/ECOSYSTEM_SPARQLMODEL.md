@@ -10,14 +10,16 @@ Copy this file into the SparqlModel repo (e.g. `docs/ECOSYSTEM.md`). TripleModel
 sparqlmodel  →  triplemodel  →  rdflib · pydantic
 ```
 
-**Rules:** SparqlModel may depend on **`triplemodel`** (PyPI); `triplemodel` must never import `sparqlmodel`. Do not reimplement mapping in `graph.py` once upstream APIs exist.
+**Architecture (Option A):** `SPARQLModel` **subclasses** `TripleModel`. One class, one mapping path. Session I/O calls `sync_to_graph` / `from_graph` on the same instances.
+
+**Rules:** SparqlModel may depend on **`triplemodel`** (PyPI); `triplemodel` must never import `sparqlmodel`. Do not reimplement mapping in `graph.py`. Do not use dynamic shadow `TripleModel` classes (`exec`) after **0.4**.
 
 ---
 
 ## Division of labour
 
 | SparqlModel owns | TripleModel owns |
-|------------------|---------------|
+|------------------|------------------|
 | `SPARQLSession`, stores | `to_graph` / `from_graph`, sync/remove |
 | Query DSL + compiler | Terms, literals, subject IRIs |
 | `put`/`delete` cascade | `parse` / `serialize` |
@@ -26,50 +28,72 @@ sparqlmodel  →  triplemodel  →  rdflib · pydantic
 
 ---
 
-## Dependency gate
+## Dependency
 
-Pin `triplemodel` only after:
-
-| TripleModel | Unblocks |
-|----------|----------|
-| **0.2** (released) | Multi-value, nested models, sync/remove, prefixes — pin `triplemodel>=0.2,<0.3` |
-| **0.3** (released) | Blanks / RDF lists — pin `triplemodel>=0.3,<0.4` |
-| **0.4** (released) | File I/O, dispatch, inverse predicates — pin `triplemodel>=0.4,<0.5` |
-| **0.5** (released) | Named graphs — pin `triplemodel>=0.5,<0.6` |
-| **0.9** (released) | API freeze — pin `triplemodel>=0.9,<2` |
-| **1.0** (planned) | Production semver — pin `triplemodel~=1.0` (exact range TBD) |
-
-**Current recommendation (SM-5):**
+**Current (shipped):**
 
 ```toml
 dependencies = ["triplemodel>=0.9,<2"]
 ```
 
-### Stable TripleModel entry points
+Tighten to `~=1.0` when TripleModel 1.0 ships.
+
+---
+
+## Stable TripleModel entry points (integrator tier)
 
 Use these from SparqlModel instead of reimplementing mapping:
 
 | API | Role |
 |-----|------|
-| `TripleModel.to_graph` / `from_graph` | Core round-trip |
+| `TripleModel` (subclassed by `SPARQLModel`) | Core model base |
 | `sync_to_graph` / `sync_to_dataset` | Owned-triple sync (SparqlModel `put` builds on this) |
+| `from_graph` / `all_from_graph` | Load paths |
 | `model_to_graph`, `graph_to_model`, `load_models` | Batch I/O |
-| `register_predicate_resolver`, `register_literal_type` | Shared predicate/literal policy |
+| `rdf_field`, `Predicate`, nested `class Rdf` | Field metadata |
+| `IriId` | Explicit IRI `id` fields |
 | `Rdf.prefixes`, `bind_namespaces` | Namespace binding |
 | `parse` / `serialize`, `load_graph`, `dump_graph` | File and string I/O |
+| `register_predicate_resolver`, `register_literal_type` | Shared policy hooks |
 
 See [API_STABILITY.md](API_STABILITY.md) for semver rules.
 
 ---
 
-## Module retirement plan
+## Module plan (SparqlModel)
 
-| SparqlModel | Action |
-|-------------|--------|
-| `graph.py` | Delegate to TripleModel; keep cascade in `session.py` |
-| `serializers.py` | Wrap TripleModel 0.4+ |
-| `fields.py` | Adapter to TripleModel predicate metadata |
+| Module | Action |
+|--------|--------|
+| `_triple.py` | **Remove in 0.4** (interim 0.3 adapter) |
+| `model.py` | **`SPARQLModel(TripleModel)`** + query metaclass |
+| `fields.py` | Thin sugar → `rdf_field` / `Predicate` at class creation |
+| `graph.py` | **Keep** cascade/orphan policy only |
+| `serializers.py` | Wrap TripleModel (**0.6**) |
 | `compiler.py`, `query.py`, `stores/` | **Keep** |
+
+---
+
+## Integration milestones (SparqlModel versions)
+
+| SparqlModel | Theme | TripleModel |
+|-------------|--------|-------------|
+| **0.3** (shipped) | Session I/O via interim `_triple.py` | `sync_to_graph`, `from_graph` |
+| **0.4** (next) | **Option A** — unified model; delete `_triple.py` | Direct calls on `SPARQLModel` instances |
+| **0.5** | Async end-to-end | — |
+| **0.6** | Delegated file I/O | `parse` / `serialize` |
+| **1.2** | Production GA | Stable mapping substrate |
+
+TripleModel **SM-6** tracks SparqlModel **0.4** — see [ROADMAP.md](ROADMAP.md#sparqlmodel-integration-milestones).
+
+---
+
+## SparqlModel 0.4 exit criteria (Option A)
+
+- [ ] `class SPARQLModel(TripleModel)` with merged metaclass
+- [ ] `Field` / `Relationship` build TripleModel metadata (no `exec`)
+- [ ] `session.put` / `get` use `sync_to_graph` / `from_graph` on app instances
+- [ ] Delete `_triple.py`; contract tests updated
+- [ ] Public API unchanged: `Field`, `Relationship`, `session.put`
 
 ---
 
@@ -81,17 +105,9 @@ See [API_STABILITY.md](API_STABILITY.md) for semver rules.
 | Stale triple after `put` | TripleModel sync + SparqlModel policy |
 | `!=` filter semantics | SparqlModel |
 | Orphan embedded IRI | SparqlModel |
+| Metaclass / subclass validation order | SparqlModel + TripleModel coordination |
 
 Full tables: [ECOSYSTEM.md](ECOSYSTEM.md).
-
----
-
-## Integration checklist (SparqlModel repo)
-
-1. **Before 0.2:** Keep mapping in `graph.py`; optionally vendor or path-depend on TripleModel for comparison tests only.
-2. **At TripleModel 0.2:** Add `triplemodel` as optional extra or dev dependency; replace export/import core with `TripleModel.to_graph` / `from_graph` + TripleModel sync API; retain `session.put` / `delete` for cascade and orphans.
-3. **At 0.4:** Point `serializers.py` at TripleModel `parse` / `serialize`; delete duplicate format tables.
-4. **At 0.9+:** Require `triplemodel>=0.9,<2` in `pyproject.toml`; delegate mapping to stable APIs above; publish SparqlModel-side note for users who relied on duplicated `graph.py` mapping (not TripleModel version upgrades).
 
 ---
 
@@ -100,8 +116,9 @@ Full tables: [ECOSYSTEM.md](ECOSYSTEM.md).
 | Change | Open in |
 |--------|---------|
 | Predicate metadata, literals, subject URI | TripleModel |
-| New `Field()` CURIE sugar only | SparqlModel (thin wrapper) |
+| `Field()` / `Relationship()` sugar only | SparqlModel |
 | `where()` / compiler / `NOT EXISTS` | SparqlModel |
+| `SPARQLModel(TripleModel)` inheritance | SparqlModel (**0.4**) |
 | Turtle round-trip in unit tests | TripleModel (or SparqlModel integration test calling TripleModel) |
 
-Cross-package contract tests (optional): export `put(person)` triple set equals TripleModel `sync_to_graph` + SparqlModel-owned cascade rules.
+Cross-package contract tests: SparqlModel `put` triple set equals TripleModel `sync_to_graph` + SparqlModel-owned cascade rules.

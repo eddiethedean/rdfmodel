@@ -1,6 +1,6 @@
 # TripleModel and SparqlModel — separation of responsibilities
 
-Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel will depend on the `triplemodel` package** once the graph-mapping APIs are aligned. Until then, this document is the contract for what each package owns.
+Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel depends on `triplemodel>=0.9,<2`** (shipped). **SparqlModel 0.4 (Option A)** makes `SPARQLModel` a **`TripleModel` subclass** — one class, one mapping path. This document is the contract for what each package owns.
 
 **Naming:** PyPI/install name **`triplemodel`**; base class **`TripleModel`**; project title **TripleModel**.
 
@@ -17,7 +17,7 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 │  SparqlModel (sparqlmodel)               │
 │  ORM · session · queries · stores        │
 └────────────────────┬─────────────────────┘
-                     │ depends on (future)
+                     │ depends on (shipped >=0.9)
 ┌────────────────────▼─────────────────────┐
 │  triplemodel (PyPI)                      │
 │  TripleModel · Pydantic ↔ RDF · I/O      │
@@ -169,7 +169,7 @@ Today the two libraries use different surface names; convergence is intentional,
 
 | Concept | TripleModel | SparqlModel (current) | Notes |
 |---------|----------|------------------------|-------|
-| Base model | `TripleModel` | `SPARQLModel` | SparqlModel may subclass or compose `TripleModel` later |
+| Base model | `TripleModel` | `SPARQLModel(TripleModel)` | Option A target **SparqlModel 0.4**; 0.3 uses interim adapter |
 | RDF type | `Rdf.type_uri` | `rdf_type` (CURIE) | Unify via prefixes + expansion in TripleModel |
 | Predicates | `rdf_field(iri)` | `Field("curie")` | Same metadata; different constructors |
 | Subject id | `Rdf.id_field` + `namespace` | `id: IRI` | TripleModel may add explicit `IRI` id field support |
@@ -179,16 +179,13 @@ Today the two libraries use different surface names; convergence is intentional,
 
 ---
 
-## TripleModel APIs SparqlModel needs before a hard dependency
+## SparqlModel integration status
 
-Track these on the TripleModel roadmap; SparqlModel should not fork duplicate logic once they exist:
+**Shipped:** `sparqlmodel` requires `triplemodel>=0.9,<2`. Session I/O uses TripleModel `sync_to_graph` / `from_graph` (0.3 via interim `_triple.py` adapter).
 
-1. **0.2** — Multi-valued fields; nested embedded models; **remove/replace** triples on sync; namespace/`bind`; merge policies.
-2. **0.3** — Blank nodes and RDF lists (if SparqlModel keeps embedded graphs).
-3. **0.4** — `parse` / `serialize` and base URI.
-4. **0.5** — `Dataset` / named graphs (if SparqlModel names contexts per model).
+**Next (SM-6 / SparqlModel 0.4):** `SPARQLModel(TripleModel)` — delete dynamic adapter; `Field` / `Relationship` as sugar over `rdf_field` / `Predicate`.
 
-SparqlModel-specific behaviour (cascade, query compiler, session) stays in SparqlModel.
+SparqlModel-specific behaviour (cascade, query compiler, session, async stores) stays in SparqlModel.
 
 ---
 
