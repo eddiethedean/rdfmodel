@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import (
     Predicate,

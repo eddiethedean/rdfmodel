@@ -1,14 +1,12 @@
 # TripleModel project plan
 
-This document is the **strategic plan** for **TripleModel** (PyPI package **`triplemodel`**). [ROADMAP.md](ROADMAP.md) tracks **releases and rdflib parity** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
+This document is the **strategic plan** for **TripleModel** (PyPI package **`triplemodel`**). [ROADMAP.md](ROADMAP.md) tracks **releases and pyoxigraph coverage** (including **SM-*** SparqlModel integration milestones); [ECOSYSTEM.md](ECOSYSTEM.md) defines boundaries with [SparqlModel](https://github.com/eddiethedean/sqarqlmodel). SparqlModel maintainers should copy [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) into that repo.
 
 ---
 
-## Current status (0.9.0)
+## Current status (0.10.0)
 
-**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.9.0`** — rdflib matrix audit, API freeze (`docs/API_STABILITY.md`), full plugin passthrough (`register_parser` / `register_serializer` / `register_store`), cookbook, and compatibility CI (see {doc}`ROADMAP`).
-
-**Validated in-repo:** [examples/exit_criteria_09.py](https://github.com/eddiethedean/triplemodel/blob/main/examples/exit_criteria_09.py); [docs/cookbook/](cookbook/index.md); prior 0.8 exit criteria and real-world examples.
+**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.10.0`** — pyoxigraph engine swap, `Store` public type, disk stores, migration guide (`docs/MIGRATION_0.10.md`), API stability exception for graph types (see {doc}`ROADMAP`).
 
 **Next focus:** **1.0.0** — governance, security hardening for `parse_url`, production semver (see {doc}`ROADMAP`).
 
@@ -16,7 +14,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Mission
 
-**TripleModel** is the shared **typed Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models and rdflib feature coverage (file interchange from **0.4**) — without application session or query machinery.
+**TripleModel** is the shared **typed Pydantic ↔ RDF mapping** library for the ecosystem: correct triples from typed models and pyoxigraph-backed graph I/O (file interchange from **0.4**) — without application session or query machinery.
 
 **Not the mission:** ORM-style persistence, Python-to-SPARQL compilers, HTTP stores, or web frameworks. That is **SparqlModel**.
 
@@ -25,7 +23,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 ## Stack and dependency rule
 
 ```text
-sparqlmodel  →  triplemodel  →  rdflib, pydantic
+sparqlmodel  →  triplemodel  →  pyoxigraph, pydantic
                   ↑
             (never imports sparqlmodel)
 ```
@@ -33,18 +31,18 @@ sparqlmodel  →  triplemodel  →  rdflib, pydantic
 | Layer | Package | Stateful? |
 |-------|---------|-----------|
 | Application ORM | `sparqlmodel` | Yes (`SPARQLSession`) |
-| Mapping / I/O | `triplemodel` | No (explicit `Graph` in/out) |
-| RDF engine | `rdflib` | Varies |
+| Mapping / I/O | `triplemodel` | No (explicit `Store` in/out) |
+| RDF engine | `pyoxigraph` | Varies |
 
 ---
 
 ## Design principles
 
 1. **Library-first** — usable from ETL, tests, and SparqlModel without a global session.
-2. **Orchestrate rdflib** — do not reimplement parsers, stores, or SPARQL engines.
+2. **Orchestrate pyoxigraph** — do not reimplement parsers, stores, or SPARQL engines.
 3. **One mapping implementation** — term conversion and subject-IRI rules live here once; downstream packages must not fork them.
 4. **Explicit over magic** — `to_graph` / `from_graph` behavior is documented; merge and null semantics are testable.
-5. **Optional heaviness** — SHACL, SQLAlchemy/BerkeleyDB stores, JSON-LD extras are install extras, not core deps.
+5. **Optional heaviness** — SHACL (rdflib bridge), JSON-LD context extras are install extras, not core deps.
 6. **Stable mapping before ORM sugar** — prioritize releases that unblock SparqlModel’s `triplemodel` dependency over duplicating SparqlModel features in TripleModel.
 
 ---
@@ -54,10 +52,10 @@ sparqlmodel  →  triplemodel  →  rdflib, pydantic
 | Package | Role |
 |---------|------|
 | `pydantic` | Model validation and field metadata |
-| `rdflib` | Graphs, terms, parse/serialize, SPARQL passthrough |
+| `pyoxigraph` | Store, parse/serialize, SPARQL query/update |
 | `typing-extensions` | `Self` and typing on Python 3.10 |
 
-Runtime core stays **pydantic + rdflib + typing-extensions**. Everything else is optional extras or dev tooling.
+Runtime core stays **pydantic + pyoxigraph + typing-extensions**. Optional **`rdflib`** only in `[shacl]`.
 
 ---
 
@@ -67,7 +65,7 @@ Runtime core stays **pydantic + rdflib + typing-extensions**. Everything else is
 - Subject identity (namespace + id, percent-encoding, safe import)
 - Term conversion (XSD, lang tags, custom datatypes; **0.4.1:** `gYear` / partial dates)
 - Stateless graph I/O and sync (add / remove / merge policies)
-- Document formats via rdflib (`parse` / `serialize`)
+- Document formats via pyoxigraph (`parse` / `serialize`)
 - **Linked-data ergonomics (0.4.1):** one-parse multi-class load, `Rdf.instance_of` for non-`rdf:type` vocabularies, predicate-URI validation, URI FK → nested model hydration
 - Named graphs (`Dataset`) where models need contexts
 - Thin SPARQL **passthrough** (`graph.query`, optional helpers) — not a Python query DSL

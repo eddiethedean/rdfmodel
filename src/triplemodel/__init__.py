@@ -1,4 +1,4 @@
-"""TripleModel — Pydantic models backed by RDF graphs via rdflib.
+"""TripleModel — Pydantic models backed by RDF graphs via pyoxigraph.
 
 Install: ``pip install triplemodel``
 """
@@ -110,11 +110,14 @@ from triplemodel.protocols import (
 from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
-__version__ = "0.9.0"
+from triplemodel.store import Store
+
+__version__ = "0.10.0"
 
 __all__ = [
     "EmbedMode",
     "GraphMode",
+    "Store",
     "IriId",
     "InverseOf",
     "Lang",

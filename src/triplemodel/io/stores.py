@@ -1,24 +1,30 @@
-"""rdflib store factories and lifecycle helpers."""
+"""pyoxigraph store factories and lifecycle helpers."""
 
 from __future__ import annotations
 
 import contextlib
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
-from rdflib import Graph
+from pyoxigraph import Store as OxigraphStore
+
+from triplemodel.store import RdfGraph as Graph
 
 _STORE_ALIASES: dict[str, str] = {
-    "memory": "default",
-    "default": "default",
-    "sqlalchemy": "SQLAlchemy",
-    "berkeleydb": "BerkeleyDB",
-    "sparql": "sparql",
+    "memory": "memory",
+    "default": "memory",
+    "disk": "disk",
 }
 
 
 def _normalize_store_name(store: str) -> str:
     key = store.strip().lower()
+    if key in ("sqlalchemy", "berkeleydb", "sparql"):
+        raise ValueError(
+            f"Store {store!r} is not supported in TripleModel 0.10 (pyoxigraph). "
+            "Use store='memory' or store='disk' with a filesystem path as identifier."
+        )
     if key not in _STORE_ALIASES:
         supported = ", ".join(sorted(_STORE_ALIASES))
         raise ValueError(f"Unknown store {store!r}; supported: {supported}.")
@@ -33,76 +39,55 @@ def open_graph(
     read_only: bool = False,
     **kwargs: Any,
 ) -> Graph:
-    """Open an rdflib ``Graph`` backed by ``store``.
+    """Open an in-memory or on-disk graph backed by pyoxigraph.
 
-    ``store`` may be ``memory``, ``sqlalchemy``, ``berkeleydb``, or ``sparql``.
-    For ``sparql``, ``identifier`` is the endpoint URL (delegates to
-    :func:`triplemodel.io.sparql.open_sparql_graph`).
+    ``store`` may be ``memory`` / ``default`` or ``disk``. For ``disk``, ``identifier``
+    is a directory path passed to :class:`pyoxigraph.Store`.
     """
+    _ = create, read_only, kwargs
     normalized = _normalize_store_name(store)
-    if normalized == "sparql":
-        from triplemodel.io.sparql import open_sparql_graph
-
-        return open_sparql_graph(identifier, read_only=read_only, **kwargs)
-    if normalized == "default":
-        return Graph(identifier=identifier or None, **kwargs)
-    graph = Graph(store=normalized, identifier=identifier, **kwargs)
-    opened = getattr(graph.store, "open", None)
-    if callable(opened):
-        config = identifier if isinstance(identifier, str) else str(identifier)
-        opened(config, create=create)
-    return graph
+    if normalized == "memory":
+        return Graph()
+    path = Path(identifier)
+    if not identifier:
+        raise ValueError("disk store requires a non-empty identifier path.")
+    return Graph(store=OxigraphStore(str(path)))
 
 
 @contextlib.contextmanager
 def graph_store_session(graph: Graph) -> Iterator[Graph]:
-    """Call ``store.open()`` on enter and ``store.close()`` on exit when supported."""
-    store = graph.store
-    opened = getattr(store, "open", None)
-    closed = getattr(store, "close", None)
-    if callable(opened):
-        opened(graph.identifier)
-    try:
-        yield graph
-    finally:
-        if callable(closed):
-            closed()
+    """Yield ``graph`` (pyoxigraph handles persistence for on-disk stores)."""
+    yield graph
 
 
 def store_commit(graph: Graph) -> None:
-    """Commit the backing store when ``commit`` is available (no-op for memory)."""
-    commit = getattr(graph.store, "commit", None)
-    if callable(commit):
-        commit()
+    """Flush an on-disk store when supported."""
+    flush = getattr(graph.store, "flush", None)
+    if callable(flush):
+        flush()
 
 
 def store_rollback(graph: Graph) -> None:
-    """Rollback the backing store when ``rollback`` is available (no-op for memory)."""
-    rollback = getattr(graph.store, "rollback", None)
-    if callable(rollback):
-        rollback()
+    """No-op for pyoxigraph (transactions are not exposed on ``Store``)."""
+    _ = graph
 
 
 def destroy_store(
     identifier: str,
     *,
-    store: str = "sqlalchemy",
+    store: str = "disk",
     **kwargs: Any,
 ) -> None:
-    """Destroy an on-disk store when the backend supports ``destroy``."""
+    """Remove an on-disk store directory."""
+    _ = kwargs
     normalized = _normalize_store_name(store)
-    if normalized == "default":
-        raise ValueError("destroy_store does not apply to in-memory graphs.")
-    config = str(identifier)
-    graph = Graph(store=normalized, **kwargs)
-    backing = graph.store
-    destroy = getattr(backing, "destroy", None)
-    if destroy is None or not callable(destroy):
-        raise ValueError(f"Store {store!r} does not support destroy().")
-    opened = getattr(backing, "open", None)
-    if callable(opened):
-        opened(config, create=False)
-    destroy(config)
+    if normalized != "disk":
+        raise ValueError("destroy_store only applies to disk stores.")
+    import shutil
+
+    path = Path(identifier)
+    if path.exists():
+        shutil.rmtree(path)
 
 
 __all__ = [

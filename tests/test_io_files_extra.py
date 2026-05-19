@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import pytest
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, infer_format, rdf_field
 from triplemodel.io.files import (
@@ -100,10 +101,10 @@ def test_dump_graph_returns_string() -> None:
 
 def test_resolve_model_class_unknown() -> None:
     g = Graph()
-    from rdflib import URIRef
+    from pyoxigraph import NamedNode
 
     with pytest.raises(ValueError, match="No registered"):
-        resolve_model_class(g, URIRef(f"{EX}unknown"))
+        resolve_model_class(g, NamedNode(f"{EX}unknown"))
 
 
 def test_graph_to_model_dispatch() -> None:
@@ -111,7 +112,7 @@ def test_graph_to_model_dispatch() -> None:
     g = m.to_graph()
     from triplemodel.model import TripleModel as TM
 
-    loaded = graph_to_model_dispatch(g, URIRef(m.subject_uri()))
+    loaded = graph_to_model_dispatch(g, NamedNode(m.subject_uri()))
     assert isinstance(loaded, TM)
     assert getattr(loaded, "slug") == "d"
 

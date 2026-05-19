@@ -11,7 +11,7 @@ from __future__ import annotations
 import urllib.parse
 import urllib.request
 
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import __version__
 from triplemodel.io.files import dump_graph, parse_into_graph

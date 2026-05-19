@@ -15,7 +15,7 @@ help:
 	@echo "  make install         Editable install with dev+shacl+sqlalchemy+docs extras"
 	@echo "  make test            pytest (100% coverage)"
 	@echo "  make stores          Store-focused pytest subset (--no-cov, like CI)"
-	@echo "  make compat          pytest with min pydantic/rdflib pins (like CI compat job)"
+	@echo "  make compat          pytest with min pydantic/pyoxigraph pins (like CI compat job)"
 	@echo "  make lint            ruff check + ty"
 	@echo "  make format          ruff format (fix)"
 	@echo "  make format-check    ruff format --check (CI)"
@@ -27,7 +27,7 @@ help:
 	@echo "  make clean           remove build artifacts"
 
 install:
-	$(PIP) install -e ".[dev,shacl,sqlalchemy,docs]" build twine
+	$(PIP) install -e ".[dev,shacl,docs]" build twine
 
 test:
 	$(PYTHON) -m pytest
@@ -35,15 +35,15 @@ test:
 stores:
 	$(PYTHON) -m pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
 
-# pydantic 2.5 has no Python 3.13 wheels; on 3.13 use compat-rdflib instead.
+# pydantic 2.5 has no Python 3.13 wheels; on 3.13 use compat-pyoxigraph instead.
 compat:
-	$(PIP) install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
+	$(PIP) install "pydantic==2.5.0" "pyoxigraph==0.5.0" -e ".[dev,shacl]"
 	rm -rf dist
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest
 
-compat-rdflib:
-	$(PIP) install "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]"
+compat-pyoxigraph:
+	$(PIP) install "pyoxigraph==0.5.0" -e ".[dev,shacl]"
 	rm -rf dist
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, TypeVar, cast, overload
 
 from pydantic import BaseModel
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 from urllib.request import Request, urlopen
 
 from triplemodel.namespaces import bind_namespaces
@@ -456,7 +456,7 @@ def dump_graph(
 ) -> str | bytes | None:
     """Serialize ``graph`` to a string, bytes, or file."""
     ser_kwargs = merge_jsonld_kwargs(format, jsonld_context, dict(rdflib_kwargs))
-    return graph.serialize(  # ty: ignore[no-matching-overload]
+    return graph.serialize(
         destination=destination,
         format=format,
         **ser_kwargs,

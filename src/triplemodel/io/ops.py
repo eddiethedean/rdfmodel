@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import TypeVar, cast
 
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel.config import get_rdf_config
 from triplemodel.fields.resolver import default_resolver
@@ -47,7 +48,7 @@ def graph_value(
     resolved_pred = r.resolve_field_predicate(field_info, cfg.prefixes_dict)
     if resolved_pred is None:
         raise ValueError(f"Field {field_name!r} has no RDF predicate mapping.")
-    objects = list(graph.objects(URIRef(subject), URIRef(resolved_pred)))
+    objects = list(graph.objects(NamedNode(subject), NamedNode(resolved_pred)))
     if not objects:
         return None
     return cast(
@@ -64,8 +65,8 @@ def graph_set(
     registry: LiteralRegistry = default_registry,
 ) -> None:
     """Set objects for ``(subject, predicate)`` using remove-then-add semantics."""
-    subj = URIRef(subject)
-    pred = URIRef(predicate)
+    subj = NamedNode(subject)
+    pred = NamedNode(predicate)
     for obj in list(graph.objects(subj, pred)):
         graph.remove((subj, pred, obj))
     if value is not None:
@@ -81,7 +82,7 @@ def graph_set_many(
     registry: LiteralRegistry = default_registry,
 ) -> None:
     """Set multiple objects for ``(subject, predicate)`` (remove-then-add)."""
-    pred = URIRef(predicate)
+    pred = NamedNode(predicate)
     for obj in list(graph.objects(subject, pred)):
         graph.remove((subject, pred, obj))
     for value in values:
@@ -105,7 +106,7 @@ def objects_for_field(
     if pred is None:
         raise ValueError(f"Field {field_name!r} has no RDF predicate mapping.")
     py_type = scalar_python_type(field_info)
-    objects = list(graph.objects(URIRef(uri), URIRef(pred)))
+    objects = list(graph.objects(NamedNode(uri), NamedNode(pred)))
     if field_cardinality(field_info) == "list":
         if not objects:
             return []

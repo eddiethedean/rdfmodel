@@ -7,7 +7,8 @@ from enum import Enum
 from uuid import UUID
 
 from pydantic import ConfigDict
-from rdflib import Literal, XSD
+from pyoxigraph import Literal
+from triplemodel.store.namespaces import XSD
 
 from triplemodel import TripleModel, graph_to_model, rdf_field
 from triplemodel.terms import (
@@ -52,7 +53,7 @@ def test_register_custom_type():
     register_literal_type(
         Custom,
         lambda c: Literal(c.v, datatype=XSD.string),
-        lambda lit: Custom(str(lit)),
+        lambda lit: Custom(str(lit.value)),
     )
     assert converter_for_type(Custom) is not None
     lit = python_to_literal(Custom("x"), Custom)
@@ -74,7 +75,7 @@ def test_nested_import_uses_custom_registry():
     registry.register_literal_type(
         CustomAmount,
         lambda a: Literal(str(a.v), datatype=XSD.decimal),
-        lambda lit: CustomAmount(Decimal(str(lit))),
+        lambda lit: CustomAmount(Decimal(str(lit.value))),
         datatype=str(XSD.decimal),
     )
 

@@ -5,7 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -48,7 +49,7 @@ def test_graph_store_session_opens_when_supported():
 
 
 def test_destroy_store_rejects_memory():
-    with pytest.raises(ValueError, match="in-memory"):
+    with pytest.raises(ValueError, match="disk"):
         destroy_store("unused", store="memory")
 
 
@@ -68,7 +69,6 @@ def _sqlalchemy_store_available() -> bool:
         os.close(fd)
         ident = f"sqlite:///{path}"
         g = open_graph("sqlalchemy", ident)
-        g.close()
         os.unlink(path)
         return True
     except Exception:
@@ -83,9 +83,9 @@ def test_sqlalchemy_round_trip(tmp_path: Path) -> None:
     db = tmp_path / "test.sqlite"
     ident = f"sqlite:///{db}"
     g = open_graph("sqlalchemy", ident)
-    subj = URIRef(f"{EX}alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
-    g.add((subj, URIRef(f"{EX}name"), Literal("Alice")))
+    subj = NamedNode(f"{EX}alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    g.add((subj, NamedNode(f"{EX}name"), Literal("Alice")))
     store_commit(g)
     g2 = open_graph("sqlalchemy", ident)
     from triplemodel.io.import_ import graph_to_models

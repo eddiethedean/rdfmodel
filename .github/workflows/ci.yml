@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev,shacl,sqlalchemy]" build
+      - run: pip install -e ".[dev,shacl]" build
       - run: python -m build
       - run: pytest
       - run: ruff format --check src tests
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -e ".[dev,sqlalchemy]"
+      - run: pip install -e ".[dev]"
       - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
 
   compat:
@@ -51,11 +51,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install (min pydantic + rdflib)
+      - name: Install (min pydantic + pyoxigraph)
         if: matrix.min-pydantic
-        run: pip install "pydantic==2.5.0" "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]" build
-      - name: Install (min rdflib only)
+        run: pip install "pydantic==2.5.0" "pyoxigraph==0.5.0" -e ".[dev,shacl]" build
+      - name: Install (min pyoxigraph only)
         if: "!matrix.min-pydantic"
-        run: pip install "rdflib==7.0.0" -e ".[dev,shacl,sqlalchemy]" build
+        run: pip install "pyoxigraph==0.5.0" -e ".[dev,shacl]" build
       - run: python -m build
       - run: pytest

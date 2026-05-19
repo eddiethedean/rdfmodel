@@ -6,7 +6,8 @@ from typing import Annotated
 
 import pytest
 from pydantic import BaseModel, Field
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import (
     IriId,
@@ -36,6 +37,7 @@ class Leaf(TripleModel):
         namespace = EX
         type_uri = f"{EX}Leaf"
         id_field = "slug"
+        prefixes = {"ex": EX}
 
     slug: str
     parts: set[str] = rdf_field(PART, default_factory=set, transitive=True)
@@ -48,8 +50,8 @@ class Plain(BaseModel):
 def test_graphs_equal_without_skolemize():
     g1 = Graph()
     g2 = Graph()
-    g1.add((URIRef(f"{EX}a"), URIRef(f"{EX}p"), Literal(1)))
-    g2.add((URIRef(f"{EX}a"), URIRef(f"{EX}p"), Literal(1)))
+    g1.add((NamedNode(f"{EX}a"), NamedNode(f"{EX}p"), Literal(1)))
+    g2.add((NamedNode(f"{EX}a"), NamedNode(f"{EX}p"), Literal(1)))
     assert graphs_equal(g1, g2, normalize_bnodes=False)
 
 
@@ -85,9 +87,9 @@ def test_cbd_model_dispatch():
         name: str = rdf_field(f"{EX}name")
 
     g = Graph()
-    s = URIRef(f"{EX}a")
-    g.add((s, URIRef(RDF_TYPE), URIRef(f"{EX}P")))
-    g.add((s, URIRef(f"{EX}name"), Literal("A")))
+    s = NamedNode(f"{EX}a")
+    g.add((s, NamedNode(RDF_TYPE), NamedNode(f"{EX}P")))
+    g.add((s, NamedNode(f"{EX}name"), Literal("A")))
     inst = cbd_model(P, g, s, dispatch=True)
     assert inst.name == "A"
 
@@ -113,8 +115,8 @@ def test_hydrate_refs_resource_ref_and_empty_fields():
 
     g = Graph()
     c_uri = "http://example.org/c"
-    g.add((URIRef(c_uri), URIRef(RDF_TYPE), URIRef(f"{EX}Country")))
-    g.add((URIRef(c_uri), URIRef(f"{EX}label"), Literal("C")))
+    g.add((NamedNode(c_uri), NamedNode(RDF_TYPE), NamedNode(f"{EX}Country")))
+    g.add((NamedNode(c_uri), NamedNode(f"{EX}label"), Literal("C")))
     x = X(code="x", country=ResourceRef(c_uri))
     out = hydrate_refs([x], g, "country", spec={"country": Country})
     assert out[0].country is not None
@@ -149,8 +151,14 @@ def test_hydrate_refs_edge_cases():
     assert hydrate_refs([], Graph()) == []
     g = Graph()
     x = X(code="x", link="http://example.org/c")
-    g.add((URIRef("http://example.org/c"), URIRef(RDF_TYPE), URIRef(f"{EX}Country")))
-    g.add((URIRef("http://example.org/c"), URIRef(f"{EX}label"), Literal("C")))
+    g.add(
+        (
+            NamedNode("http://example.org/c"),
+            NamedNode(RDF_TYPE),
+            NamedNode(f"{EX}Country"),
+        )
+    )
+    g.add((NamedNode("http://example.org/c"), NamedNode(f"{EX}label"), Literal("C")))
     out = hydrate_refs([x], g, "link", spec={"link": Country})
     country = out[0].link
     assert isinstance(country, Country)
@@ -180,29 +188,33 @@ def test_ref_uri_subject_uri_and_resource_ref():
 
 def test_transitive_set_import():
     g = Graph()
-    root = URIRef(f"{EX}root")
-    a = URIRef(f"{EX}a")
-    b = URIRef(f"{EX}b")
-    g.add((root, URIRef(RDF_TYPE), URIRef(f"{EX}Leaf")))
-    g.add((root, URIRef(PART), a))
-    g.add((a, URIRef(PART), b))
+    root = NamedNode(f"{EX}root")
+    a = NamedNode(f"{EX}a")
+    b = NamedNode(f"{EX}b")
+    g.add((root, NamedNode(RDF_TYPE), NamedNode(f"{EX}Leaf")))
+    g.add((root, NamedNode(PART), a))
+    g.add((a, NamedNode(PART), b))
     m = graph_to_model(g, Leaf, root)
     assert PART in str(m.parts) or len(m.parts) >= 1
 
 
 def test_subclass_uris_and_transitive_subjects():
     g = Graph()
-    a, b = URIRef(f"{EX}a"), URIRef(f"{EX}b")
-    g.add((a, URIRef(f"{EX}partOf"), b))
-    assert str(b) in subclass_uris(g, str(a)) or str(a) in subclass_uris(g, str(a))
+    a, b = NamedNode(f"{EX}a"), NamedNode(f"{EX}b")
+    g.add((a, NamedNode(f"{EX}partOf"), b))
+    from triplemodel.store.terms import term_str
+
+    assert term_str(b) in subclass_uris(g, term_str(a)) or term_str(a) in subclass_uris(
+        g, term_str(a)
+    )
     subs = transitive_subjects(g, PART, b)
-    assert str(a) in subs
+    assert term_str(a) in subs
 
 
 def test_resolve_no_registered_type():
     g = Graph()
-    s = URIRef(f"{EX}unknown")
-    g.add((s, URIRef(RDF_TYPE), URIRef(f"{EX}Nothing")))
+    s = NamedNode(f"{EX}unknown")
+    g.add((s, NamedNode(RDF_TYPE), NamedNode(f"{EX}Nothing")))
     with pytest.raises(ValueError, match="No registered"):
         resolve_model_class_with_rdfs(g, s)
 
@@ -250,8 +262,8 @@ def test_rdfs_pick_most_specific_empty_typed():
 
 def test_rdfs_no_candidate_exact_type():
     g = Graph()
-    s = URIRef(f"{EX}orphan")
-    g.add((s, URIRef(RDF_TYPE), URIRef(f"{EX}Unregistered")))
+    s = NamedNode(f"{EX}orphan")
+    g.add((s, NamedNode(RDF_TYPE), NamedNode(f"{EX}Unregistered")))
     with pytest.raises(ValueError, match="No registered"):
         resolve_model_class_with_rdfs(g, s, use_subclass=False)
 

@@ -47,18 +47,20 @@ def test_set_skips_none_elements_on_export():
 
 
 def test_scalar_duplicate_still_warns():
-    from rdflib import Graph, Literal, URIRef
+    from pyoxigraph import Literal, NamedNode
+    from triplemodel.store import RdfGraph as Graph
+    from triplemodel.store.terms import term_str
 
     g = Graph()
-    subj = URIRef(EX + "a")
+    subj = NamedNode(EX + "a")
     g.add(
         (
             subj,
-            URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            URIRef(f"{FOAF}Person"),
+            NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            NamedNode(f"{FOAF}Person"),
         )
     )
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("A")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("B")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("A")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("B")))
     with pytest.warns(UserWarning, match="Multiple objects"):
-        Person.from_graph(g, str(subj), validate_type=False)
+        Person.from_graph(g, term_str(subj), validate_type=False)

@@ -10,7 +10,7 @@ ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 
 def test_roadmap_matrix_has_no_planned_cells():
     text = ROADMAP.read_text(encoding="utf-8")
-    start = text.index("## rdflib coverage matrix")
+    start = text.index("## Oxigraph / pyoxigraph coverage matrix")
     end = text.index("Before **1.0.0**", start)
     table = text[start:end]
     # Version column must not contain standalone "planned" targets.

@@ -6,11 +6,11 @@ from __future__ import annotations
 import sys
 import types
 
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 from rdflib.parser import InputSource, Parser
 from rdflib.plugin import get
 from rdflib.store import Store
-from rdflib.term import Literal, URIRef
+from pyoxigraph import Literal, NamedNode
 
 from triplemodel.plugins import register_parser, register_store
 
@@ -35,14 +35,18 @@ class _Exit09Parser(Parser):
         if o.startswith('"'):
             sink.add(
                 (
-                    URIRef(_strip_uri(s)),
-                    URIRef(_strip_uri(p)),
+                    NamedNode(_strip_uri(s)),
+                    NamedNode(_strip_uri(p)),
                     Literal(o.strip('"')),
                 )
             )
         else:
             sink.add(
-                (URIRef(_strip_uri(s)), URIRef(_strip_uri(p)), URIRef(_strip_uri(o)))
+                (
+                    NamedNode(_strip_uri(s)),
+                    NamedNode(_strip_uri(p)),
+                    NamedNode(_strip_uri(o)),
+                )
             )
 
 

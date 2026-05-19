@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://github.com/eddiethedean/triplemodel/blob/main/LICENSE)
 [![Documentation](https://readthedocs.org/projects/triplemodel/badge/?version=latest)](https://triplemodel.readthedocs.io/en/latest/?badge=latest)
 
-**Typed Pydantic models for RDF.** Declare fields once, get correct triples in and out of [rdflib](https://github.com/RDFLib/rdflib) `Graph` objects — no manual `graph.add` for every property.
+**Typed Pydantic models for RDF.** Declare fields once, get correct triples in and out of [pyoxigraph](https://github.com/oxigraph/pyoxigraph) `Store` objects — no manual quad writes for every property.
 
 | | |
 |--|--|
@@ -28,7 +28,7 @@ TripleModel is the **mapping layer** between Pydantic-shaped domain models and R
 pip install triplemodel
 ```
 
-**Requirements:** Python 3.10+, Pydantic 2, rdflib 7.
+**Requirements:** Python 3.10+, Pydantic 2, pyoxigraph 0.5+.
 
 ## Quick start
 
@@ -283,7 +283,7 @@ Full API: [Read the Docs API reference](https://triplemodel.readthedocs.io/en/la
 **Batch export**
 
 ```python
-from rdflib import Graph
+from triplemodel import Store
 from triplemodel import models_to_graph
 
 graph = models_to_graph([alice, bob])

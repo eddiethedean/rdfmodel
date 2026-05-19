@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from pydantic import BaseModel
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel.config import (
     GraphMode,

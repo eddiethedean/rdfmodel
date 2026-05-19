@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.10.0] - 2026-05-19
+
+### Breaking
+
+- **RDF engine** — rdflib replaced by **pyoxigraph**; import `Store` from `triplemodel` (or use `RdfGraph` internally). See [MIGRATION_0.10.md](MIGRATION_0.10.md).
+- **Removed** — `register_parser`, `register_serializer`, `register_store`; `open_sparql_graph`; `triplemodel[sqlalchemy]` extra.
+- **Formats** — `hext`, `longTurtle`, `trix` no longer supported (pyoxigraph limits).
+
+### Added
+
+- **`triplemodel.Store`** — public alias for the pyoxigraph-backed graph type.
+- **Disk store** — `open_graph("disk", path)` for on-disk `pyoxigraph.Store`.
+- **Migration guide** — [MIGRATION_0.10.md](MIGRATION_0.10.md).
+
+### Changed
+
+- **SHACL** — optional `rdflib` only in `[shacl]` extra (bridge for pyshacl).
+- **Docs / CI** — roadmap, plan, compat pins for pyoxigraph.
+
 ## [0.9.0] - 2026-05-18
 
 ### Added

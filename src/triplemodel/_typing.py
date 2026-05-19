@@ -20,7 +20,8 @@ from typing import (
 from uuid import UUID
 
 from pydantic import BaseModel
-from rdflib.term import Node
+
+from triplemodel.store.terms import RdfTerm
 
 OnDuplicate = Literal["ignore", "warn", "error"]
 
@@ -42,12 +43,12 @@ else:
 """Field values and term-conversion inputs beyond plain XSD scalars."""
 
 if TYPE_CHECKING:
-    PythonToTermInput: TypeAlias = RdfTermValue | Enum | Node
-    RdfValue: TypeAlias = RdfTermValue | Node | Enum
+    PythonToTermInput: TypeAlias = RdfTermValue | Enum | RdfTerm
+    RdfValue: TypeAlias = RdfTermValue | RdfTerm | Enum
     ModelFieldScalar: TypeAlias = RdfTermValue | str
 else:
-    PythonToTermInput: TypeAlias = Union[RdfScalar, Enum, Node]
-    RdfValue: TypeAlias = Union[RdfScalar, Node, Enum]
+    PythonToTermInput: TypeAlias = Union[RdfScalar, Enum, RdfTerm]
+    RdfValue: TypeAlias = Union[RdfScalar, RdfTerm, Enum]
     ModelFieldScalar: TypeAlias = Union[RdfScalar, str]
 
 """Values accepted by :func:`~triplemodel.terms.convert.python_to_term`."""
@@ -56,7 +57,7 @@ TripleObject: TypeAlias = PythonToTermInput | str
 
 """Object slot in pre-serialization triple rows (includes ``rdf:type`` IRIs)."""
 
-TripleRow: TypeAlias = tuple[str | Node, str, TripleObject]
+TripleRow: TypeAlias = tuple[str | RdfTerm, str, TripleObject]
 
 """Values produced by :func:`~triplemodel.terms.convert.term_to_python` for mapped fields."""
 

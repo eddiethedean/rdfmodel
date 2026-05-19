@@ -8,9 +8,11 @@ from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
-from rdflib import Graph, URIRef, XSD
-from rdflib import Literal as RdfLiteral
-from rdflib.term import Node
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.namespaces import XSD
+from pyoxigraph import Literal as RdfLiteral
+from triplemodel.store.terms import OxTerm, RdfTerm as Node, is_named, term_str
 
 from triplemodel._typing import (
     ModelFieldScalar,
@@ -50,6 +52,7 @@ from triplemodel.metadata.cardinality import (
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.collection import read_rdf_list
 from triplemodel.terms.convert import term_to_python
+from triplemodel.terms.iri import normalize_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 T = TypeVar("T", bound=BaseModel)
@@ -117,7 +120,7 @@ def _enforce_subject_predicates(
     owned = owned_predicates_for_class(model_cls, resolver=resolver, config=cfg)
     allowed = set(owned) | {RDF_TYPE}
     for _, pred, _ in graph.triples((subject, None, None)):
-        pred_str = str(pred)
+        pred_str = term_str(pred)
         if pred_str in allowed:
             continue
         msg = (
@@ -148,7 +151,7 @@ def _handle_forward_inverse_conflict(
         warnings.warn(msg, stacklevel=3)
 
 
-def _union_conversion_order(term: Node, members: tuple[type, ...]) -> tuple[type, ...]:
+def _union_conversion_order(term: OxTerm, members: tuple[type, ...]) -> tuple[type, ...]:
     """Prefer union members that match the literal datatype."""
     if not isinstance(term, RdfLiteral) or not members:
         return members
@@ -160,7 +163,7 @@ def _union_conversion_order(term: Node, members: tuple[type, ...]) -> tuple[type
 
 
 def _term_to_field(
-    term: Node,
+    term: OxTerm,
     py_type: type | None,
     field_name: str,
     predicate: str,
@@ -192,7 +195,7 @@ def _term_to_field(
 
 def import_field_value(
     graph: Graph,
-    objects: list[Node],
+    objects: list[OxTerm],
     field_info: FieldInfo,
     field_name: str,
     predicate: str,
@@ -220,7 +223,7 @@ def import_field_value(
             raise ValueError(f"Cannot import nested field {field_name!r} from {term!r}")
         nested_type = cast(type[BaseModel], nested_cls)
         if card == "ref":
-            if not isinstance(term, URIRef):
+            if not is_named(term):
                 raise ValueError(
                     f"Cannot import ref field {field_name!r} from term {term!r}; "
                     "expected a URI resource."
@@ -256,7 +259,7 @@ def import_field_value(
             object_uris = transitive_objects(graph, uri, pred_uri)
             return {
                 _term_to_field(
-                    URIRef(o),
+                    NamedNode(o),
                     py_type,
                     field_name,
                     pred_uri,
@@ -315,12 +318,12 @@ def graph_to_model(
     graph = apply_de_skolemize(graph, de_skolemize=do_de)
     r = resolver or default_resolver
     prefixes = cfg.prefixes_dict
-    subject: Node = uri if isinstance(uri, Node) else URIRef(uri)
-    uri_str = str(uri)
+    subject: Node = uri if isinstance(uri, Node) else NamedNode(normalize_iri(uri))
+    uri_str = term_str(subject)
 
     if validate_type and cfg.type_uri:
-        type_ref = URIRef(cfg.type_uri)
-        if (subject, URIRef(RDF_TYPE), type_ref) not in graph:
+        type_ref = NamedNode(cfg.type_uri)
+        if (subject, NamedNode(RDF_TYPE), type_ref) not in graph:
             raise ValueError(
                 f"Subject {uri_str!r} does not have rdf:type {cfg.type_uri!r} required by "
                 f"{model_cls.__name__}."
@@ -330,10 +333,10 @@ def graph_to_model(
         type_uris = cfg.instance_type_uris
         matched = False
         for pred_raw in cfg.instance_of_predicates:
-            pred_ref = URIRef(resolve_predicate(pred_raw, prefixes))
+            pred_ref = NamedNode(resolve_predicate(pred_raw, prefixes))
             if type_uris:
                 for type_raw in type_uris:
-                    type_ref = URIRef(resolve_predicate(type_raw, prefixes))
+                    type_ref = NamedNode(resolve_predicate(type_raw, prefixes))
                     if (subject, pred_ref, type_ref) in graph:
                         matched = True
                         break
@@ -366,8 +369,11 @@ def graph_to_model(
         field_info = model_cls.model_fields[name]
         raise_if_nested_collection(field_info)
         raise_if_inverse_collection(field_info)
-        pred_ref = URIRef(predicate)
-        forward_objects = list(graph.objects(subject, pred_ref))
+        pred_ref = NamedNode(predicate)
+        forward_objects = sorted(
+            graph.objects(subject, pred_ref),
+            key=lambda o: term_str(o),
+        )
         inv_raw = inverse_for_field(field_info)
         inverse_objects: list[Node] = []
         inv_predicate: str | None = None
@@ -376,7 +382,7 @@ def graph_to_model(
             inverse_objects = cast(
                 list[Node],
                 sorted(
-                    graph.subjects(URIRef(inv_predicate), subject),
+                    graph.subjects(NamedNode(inv_predicate), subject),
                     key=str,
                 ),
             )
@@ -397,7 +403,7 @@ def graph_to_model(
             continue
         data[name] = import_field_value(
             graph,
-            objects,
+            cast(list[OxTerm], objects),
             field_info,
             name,
             predicate,
@@ -443,9 +449,9 @@ def _subject_uris_for_model(
     rdf_type = type_uri if type_uri is not None else cfg.type_uri
     if rdf_type:
         return sorted(
-            str(s)
-            for s in graph.subjects(URIRef(RDF_TYPE), URIRef(rdf_type))
-            if isinstance(s, URIRef)
+            term_str(s)
+            for s in graph.subjects(NamedNode(RDF_TYPE), NamedNode(rdf_type))
+            if isinstance(s, NamedNode)
         )
     if cfg.instance_of_predicates:
         return discover_subjects_by_instance_of(graph, cfg)

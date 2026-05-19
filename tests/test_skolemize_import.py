@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import RDFS
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.config.constants import RDFS
 
 from triplemodel import TripleModel, hydrate_refs, rdf_field, ref_field
 from triplemodel.config import RDF_TYPE
@@ -50,13 +51,13 @@ def test_nested_ref_import_de_skolemize_once(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr("triplemodel.io.skolem.apply_de_skolemize", track)
 
     g = Graph()
-    fr = URIRef(f"{EX}country/fr")
-    paris = URIRef(f"{EX}city/paris")
-    g.add((fr, URIRef(RDF_TYPE), URIRef(f"{EX}Country")))
-    g.add((fr, URIRef(f"{EX}label"), Literal("France")))
-    g.add((paris, URIRef(RDF_TYPE), URIRef(f"{EX}City")))
-    g.add((paris, URIRef(f"{EX}inCountry"), fr))
-    g.add((paris, URIRef(f"{FOAF_NS}name"), Literal("Paris")))
+    fr = NamedNode(f"{EX}country/fr")
+    paris = NamedNode(f"{EX}city/paris")
+    g.add((fr, NamedNode(RDF_TYPE), NamedNode(f"{EX}Country")))
+    g.add((fr, NamedNode(f"{EX}label"), Literal("France")))
+    g.add((paris, NamedNode(RDF_TYPE), NamedNode(f"{EX}City")))
+    g.add((paris, NamedNode(f"{EX}inCountry"), fr))
+    g.add((paris, NamedNode(f"{FOAF_NS}name"), Literal("Paris")))
 
     graph_to_model(
         g,
@@ -78,15 +79,15 @@ def test_hydrate_refs_de_skolemize_once(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setattr("triplemodel.io.skolem.apply_de_skolemize", track)
 
     g = Graph()
-    fr = URIRef(f"{EX}country/fr")
-    paris = URIRef(f"{EX}city/paris")
-    london = URIRef(f"{EX}city/london")
+    fr = NamedNode(f"{EX}country/fr")
+    paris = NamedNode(f"{EX}city/paris")
+    london = NamedNode(f"{EX}city/london")
     for city_uri, name in ((paris, "Paris"), (london, "London")):
-        g.add((city_uri, URIRef(RDF_TYPE), URIRef(f"{EX}City")))
-        g.add((city_uri, URIRef(f"{FOAF_NS}name"), Literal(name)))
-        g.add((city_uri, URIRef(f"{EX}inCountry"), fr))
-    g.add((fr, URIRef(RDF_TYPE), URIRef(f"{EX}Country")))
-    g.add((fr, URIRef(f"{EX}label"), Literal("France")))
+        g.add((city_uri, NamedNode(RDF_TYPE), NamedNode(f"{EX}City")))
+        g.add((city_uri, NamedNode(f"{FOAF_NS}name"), Literal(name)))
+        g.add((city_uri, NamedNode(f"{EX}inCountry"), fr))
+    g.add((fr, NamedNode(RDF_TYPE), NamedNode(f"{EX}Country")))
+    g.add((fr, NamedNode(f"{EX}label"), Literal("France")))
 
     cities = [
         SkolemCity(
@@ -125,9 +126,9 @@ def test_all_from_graph_dispatch_de_skolemize_once(
 
     g = Graph()
     for slug, name in (("a", "A"), ("b", "B")):
-        subj = URIRef(f"{EX}{slug}")
-        g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
-        g.add((subj, URIRef(f"{FOAF_NS}name"), Literal(name)))
+        subj = NamedNode(f"{EX}{slug}")
+        g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+        g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal(name)))
 
     all_from_graph_dispatch(g)
     assert calls[0] is True
@@ -146,9 +147,9 @@ def test_all_from_graph_dispatch_explicit_de_skolemize_false(
     monkeypatch.setattr("triplemodel.io.skolem.apply_de_skolemize", track)
 
     g = Graph()
-    subj = URIRef(f"{EX}only")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
-    g.add((subj, URIRef(f"{FOAF_NS}name"), Literal("Only")))
+    subj = NamedNode(f"{EX}only")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("Only")))
 
     class One(TripleModel):
         class Rdf:
@@ -173,8 +174,8 @@ def test_resolve_model_class_skips_missing_registration(
     from triplemodel.protocols import resolve_model_class
 
     g = Graph()
-    alice = URIRef(f"{EX}alice")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
+    alice = NamedNode(f"{EX}alice")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
 
     with (
         patch(
@@ -208,11 +209,11 @@ def test_all_from_graph_dispatch_finds_subclass_typed_subject() -> None:
         slug: str
 
     g = Graph()
-    worker_t = URIRef(f"{EX}Worker")
-    base_t = URIRef(f"{EX}Base")
-    bob = URIRef(f"{EX}bob")
-    g.add((worker_t, RDFS.subClassOf, base_t))
-    g.add((bob, URIRef(RDF_TYPE), worker_t))
+    worker_t = NamedNode(f"{EX}Worker")
+    base_t = NamedNode(f"{EX}Base")
+    bob = NamedNode(f"{EX}bob")
+    g.add((worker_t, NamedNode(f"{RDFS}subClassOf"), base_t))
+    g.add((bob, NamedNode(RDF_TYPE), worker_t))
 
     loaded = all_from_graph_dispatch(g)
     assert len(loaded) == 1
@@ -253,8 +254,8 @@ def test_resolve_model_class_with_rdfs_no_types_raises() -> None:
     from triplemodel.io.rdfs import resolve_model_class_with_rdfs
 
     g = Graph()
-    orphan = URIRef(f"{EX}orphan")
-    g.add((orphan, URIRef(f"{FOAF_NS}name"), Literal("orphan")))
+    orphan = NamedNode(f"{EX}orphan")
+    g.add((orphan, NamedNode(f"{FOAF_NS}name"), Literal("orphan")))
 
     with pytest.raises(ValueError, match="rdf:types: \\[\\]"):
         resolve_model_class_with_rdfs(g, orphan)
@@ -278,8 +279,8 @@ def test_all_from_dataset_dispatch_skips_empty_matching(
 
     ds = DsOrphan(slug="o").to_dataset()
     ctx = get_graph_context(ds, f"{EX}graph/orphan")
-    subj = URIRef(f"{EX}ghost")
-    ctx.add((subj, URIRef(f"{FOAF_NS}name"), Literal("ghost")))
+    subj = NamedNode(f"{EX}ghost")
+    ctx.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("ghost")))
 
     monkeypatch.setattr(
         "triplemodel.io.dispatch._contexts_for_subject",
@@ -304,8 +305,8 @@ def test_all_from_dataset_dispatch_skips_unresolvable_subject() -> None:
 
     ds = DsUntyped(slug="typed").to_dataset()
     ctx = get_graph_context(ds, f"{EX}graph/unresolved")
-    subj = URIRef(f"{EX}untyped")
-    ctx.add((subj, URIRef(f"{FOAF_NS}name"), Literal("no type")))
+    subj = NamedNode(f"{EX}untyped")
+    ctx.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("no type")))
 
     loaded = all_from_dataset_dispatch(ds)
     assert len(loaded) == 1

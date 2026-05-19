@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import TypeVar, cast
 
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
-from triplemodel._rdflib_compat import graph_cbd
+from triplemodel.store.cbd import cbd_subgraph as graph_cbd
 from triplemodel.io.import_ import OnDuplicate, graph_to_model
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.registry import LiteralRegistry, default_registry
@@ -24,7 +25,7 @@ def cbd_graph(
     include_reifications: bool = True,
 ) -> Graph:
     """Return the concise bounded description of ``subject`` in ``graph``."""
-    subj = subject if isinstance(subject, Node) else URIRef(subject)
+    subj = subject if isinstance(subject, Node) else NamedNode(subject)
     return graph_cbd(
         graph,
         subj,
@@ -47,7 +48,7 @@ def cbd_model(
     include_reifications: bool = True,
 ) -> T:
     """Load a model instance from the CBD subgraph around ``uri``."""
-    sub = uri if isinstance(uri, Node) else URIRef(uri)
+    sub = uri if isinstance(uri, Node) else NamedNode(uri)
     sub_graph = cbd_graph(graph, sub, include_reifications=include_reifications)
     if dispatch:
         from triplemodel.io.dispatch import graph_to_model_dispatch

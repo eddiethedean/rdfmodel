@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Annotated
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import term_str
 
 from triplemodel import (
     IriId,
@@ -117,8 +119,8 @@ def test_foaf_exit_criteria_roundtrip_and_sync_clear_age():
 
     alice.age = None
     sync_to_graph(alice, g, mode="replace")
-    subj = URIRef(alice.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF_NS}age"))) == []
+    subj = NamedNode(alice.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF_NS}age"))) == []
 
 
 def test_exit_criteria_03_example_script():
@@ -185,23 +187,23 @@ def test_set_import_dedupes_duplicate_objects():
         tag: set[str] = rdf_field("http://example.org/tag", default_factory=set)
 
     g = Graph()
-    subj = URIRef(EX + "a")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
-    g.add((subj, URIRef("http://example.org/tag"), Literal("x")))
-    g.add((subj, URIRef("http://example.org/tag"), Literal("x")))
-    g.add((subj, URIRef(f"{FOAF_NS}name"), Literal("A")))
-    restored = Tagged.from_graph(g, str(subj), validate_type=False)
+    subj = NamedNode(EX + "a")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode("http://example.org/tag"), Literal("x")))
+    g.add((subj, NamedNode("http://example.org/tag"), Literal("x")))
+    g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("A")))
+    restored = Tagged.from_graph(g, term_str(subj), validate_type=False)
     assert restored.tag == {"x"}
 
 
 def test_scalar_duplicate_raises_when_configured():
     g = Graph()
-    subj = URIRef(EX + "a")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
-    g.add((subj, URIRef(f"{FOAF_NS}name"), Literal("A")))
-    g.add((subj, URIRef(f"{FOAF_NS}name"), Literal("B")))
+    subj = NamedNode(EX + "a")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("A")))
+    g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("B")))
     with pytest.raises(ValueError, match="Multiple objects"):
-        Person.from_graph(g, str(subj), validate_type=False, on_duplicate="error")
+        Person.from_graph(g, term_str(subj), validate_type=False, on_duplicate="error")
 
 
 # --- Sync modes ---
@@ -212,8 +214,8 @@ def test_replace_updates_scalar_and_removes_old_value():
     g = p.to_graph()
     updated = Person(slug="a", name="Alicia", age=30)
     sync_to_graph(updated, g, mode="replace")
-    subj = URIRef(p.subject_uri())
-    names = [str(o) for o in g.objects(subj, URIRef(f"{FOAF_NS}name"))]
+    subj = NamedNode(p.subject_uri())
+    names = [term_str(o) for o in g.objects(subj, NamedNode(f"{FOAF_NS}name"))]
     assert names == ["Alicia"]
 
 
@@ -222,20 +224,22 @@ def test_patch_empty_list_clears_nick_only():
     g = p.to_graph()
     cleared = Person(slug="a", name="A", nick=[], age=20)
     sync_to_graph(cleared, g, mode="patch")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF_NS}nick"))) == []
-    assert any(str(o) == "A" for o in g.objects(subj, URIRef(f"{FOAF_NS}name")))
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF_NS}nick"))) == []
+    from triplemodel.store.terms import term_str
+
+    assert any(term_str(o) == "A" for o in g.objects(subj, NamedNode(f"{FOAF_NS}name")))
 
 
 def test_replace_preserves_unowned_triples_on_subject():
     p = Person(slug="a", name="A", age=30)
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
+    subj = NamedNode(p.subject_uri())
     note = Literal("external note")
-    g.add((subj, URIRef(ANNOTATION), note))
+    g.add((subj, NamedNode(ANNOTATION), note))
     sync_to_graph(Person(slug="a", name="Renamed", age=None), g, mode="replace")
-    assert (subj, URIRef(ANNOTATION), note) in g
-    assert list(g.objects(subj, URIRef(f"{FOAF_NS}age"))) == []
+    assert (subj, NamedNode(ANNOTATION), note) in g
+    assert list(g.objects(subj, NamedNode(f"{FOAF_NS}age"))) == []
 
 
 def test_to_graph_replace_mode_matches_sync_replace():
@@ -243,8 +247,8 @@ def test_to_graph_replace_mode_matches_sync_replace():
     g = p.to_graph()
     p.age = None
     p.to_graph(g, mode="replace")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF_NS}age"))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF_NS}age"))) == []
 
 
 def test_replace_clears_nested_mbox_link_on_parent():
@@ -252,11 +256,11 @@ def test_replace_clears_nested_mbox_link_on_parent():
     p = Person(slug="a", name="A", mbox=mbox)
     g = p.to_graph()
     child_uri = mbox.subject_uri()
-    assert len(list(g.triples((URIRef(child_uri), None, None)))) >= 1
+    assert len(list(g.triples((NamedNode(child_uri), None, None)))) >= 1
     sync_to_graph(Person(slug="a", name="A", mbox=None), g, mode="replace")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF_NS}mbox"))) == []
-    assert list(g.triples((URIRef(child_uri), None, None))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF_NS}mbox"))) == []
+    assert list(g.triples((NamedNode(child_uri), None, None))) == []
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is None
 
@@ -267,10 +271,10 @@ def test_shared_graph_two_subjects_independent_sync():
     g = models_to_graph([alice, bob])
     bob.age = None
     sync_to_graph(bob, g, mode="replace")
-    alice_subj = URIRef(alice.subject_uri())
-    bob_subj = URIRef(bob.subject_uri())
-    assert len(list(g.objects(alice_subj, URIRef(f"{FOAF_NS}age")))) == 1
-    assert list(g.objects(bob_subj, URIRef(f"{FOAF_NS}age"))) == []
+    alice_subj = NamedNode(alice.subject_uri())
+    bob_subj = NamedNode(bob.subject_uri())
+    assert len(list(g.objects(alice_subj, NamedNode(f"{FOAF_NS}age")))) == 1
+    assert list(g.objects(bob_subj, NamedNode(f"{FOAF_NS}age"))) == []
 
 
 # --- Nested embed + batch load ---

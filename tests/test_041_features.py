@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
-from rdflib import BNode, Graph, Literal, URIRef
-from rdflib.namespace import RDF as RDF_NS
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.config.constants import RDF_TYPE
 
 from triplemodel import (
     TripleModel,
@@ -25,7 +26,7 @@ REALWORLD_SCRIPTS = ROOT / "examples" / "realworld"
 
 
 def test_gmonth_and_gmonthday_import() -> None:
-    from rdflib.namespace import XSD as RdfXSD
+    from triplemodel.store.namespaces import XSD as RdfXSD
 
     class Event(TripleModel):
         class Rdf:
@@ -34,22 +35,28 @@ def test_gmonth_and_gmonthday_import() -> None:
             id_field = "slug"
 
         slug: str
-        month: str = rdf_field("http://ex/month", literal_datatype=str(RdfXSD.gMonth))
-        day: str = rdf_field("http://ex/day", literal_datatype=str(RdfXSD.gMonthDay))
+        month: str = rdf_field(
+            "http://ex/month", literal_datatype=str(RdfXSD.gMonth.value)
+        )
+        day: str = rdf_field(
+            "http://ex/day", literal_datatype=str(RdfXSD.gMonthDay.value)
+        )
 
     g = Graph()
-    g.add((URIRef("http://ex/e1"), URIRef(RDF_NS.type), URIRef("http://ex/Event")))
+    g.add(
+        (NamedNode("http://ex/e1"), NamedNode(RDF_TYPE), NamedNode("http://ex/Event"))
+    )
     g.add(
         (
-            URIRef("http://ex/e1"),
-            URIRef("http://ex/month"),
+            NamedNode("http://ex/e1"),
+            NamedNode("http://ex/month"),
             Literal("--05", datatype=RdfXSD.gMonth),
         )
     )
     g.add(
         (
-            URIRef("http://ex/e1"),
-            URIRef("http://ex/day"),
+            NamedNode("http://ex/e1"),
+            NamedNode("http://ex/day"),
             Literal("--05-17", datatype=RdfXSD.gMonthDay),
         )
     )
@@ -603,14 +610,15 @@ def test_predicate_curie_without_local_name_raises() -> None:
 
 
 def test_gyear_export_literal_datatype() -> None:
-    from rdflib.namespace import XSD as RdfXSD
+    from triplemodel.config.constants import XSD as XSD_IRI
+    from triplemodel.store.namespaces import XSD as RdfXSD
 
     class Org(TripleModel):
         class Rdf:
             namespace = "https://example.org/org/"
             type_uri = "https://schema.org/NGO"
             id_field = "slug"
-            prefixes = {"xsd": str(RdfXSD)}
+            prefixes = {"xsd": XSD_IRI}
 
         slug: str
         year: int = rdf_field(

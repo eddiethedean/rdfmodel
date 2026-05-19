@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel
-from rdflib import Dataset, Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfDataset as Dataset, RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel.config import (
     GraphMode,
@@ -118,7 +119,7 @@ def dump_dataset(
 ) -> str | bytes | None:
     """Serialize ``dataset`` to a string, bytes, or file."""
     ser_kwargs = merge_jsonld_kwargs(format, jsonld_context, dict(rdflib_kwargs))
-    return dataset.serialize(  # ty: ignore[no-matching-overload]
+    return dataset.serialize(
         destination=destination,
         format=format,
         **ser_kwargs,
@@ -320,7 +321,7 @@ def quads_in_context(
             Iterator[tuple[Node, Node, Node, Node]],
             dataset.quads((None, None, None, None)),
         )
-    context = dataset.graph(URIRef(graph_iri))
+    context = dataset.graph(NamedNode(graph_iri))
     return cast(
         Iterator[tuple[Node, Node, Node, Node]],
         dataset.quads((None, None, None, context)),

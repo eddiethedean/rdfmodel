@@ -10,7 +10,7 @@ from typing import Any, Literal, Protocol
 from urllib.parse import quote, unquote
 
 from pydantic import BaseModel
-from rdflib import Dataset, Graph, URIRef
+from triplemodel.store import RdfDataset as Dataset, RdfGraph as Graph
 
 EmbedMode = Literal["iri", "bnode"]
 GraphMode = Literal["add", "replace", "patch"]
@@ -179,12 +179,10 @@ def get_graph_context(
         return container
     dataset = container
     if graph_iri is None:
-        from triplemodel._rdflib_compat import dataset_default_graph
-
-        return dataset_default_graph(dataset)
+        return dataset.default_graph
     normalized = _normalize_graph_iri(graph_iri)
     assert normalized is not None
-    return dataset.graph(URIRef(normalized))
+    return dataset.graph(normalized)
 
 
 def get_rdf_config(model_cls: type) -> RdfConfig:

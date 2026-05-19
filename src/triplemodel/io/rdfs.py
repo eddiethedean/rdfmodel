@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import cast
 
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node, term_str
 
 from triplemodel.config import RDFS, RDF_TYPE, get_rdf_config
 from triplemodel.protocols import (
@@ -15,24 +16,27 @@ from triplemodel.protocols import (
     model_class_for_type_uri,
 )
 
-RDFS_SUBCLASS = URIRef(f"{RDFS}subClassOf")
+RDFS_SUBCLASS = NamedNode(f"{RDFS}subClassOf")
 
 
 def subject_type_closure(graph: Graph, subject: Node) -> frozenset[str]:
     """Return ``rdf:type`` IRIs for ``subject`` plus ``rdfs:subClassOf`` ancestors."""
     closure: set[str] = set()
-    for direct in graph.objects(subject, URIRef(RDF_TYPE)):
-        closure.add(str(direct))
+    for direct in graph.objects(subject, NamedNode(RDF_TYPE)):
+        closure.add(term_str(direct))
         for ancestor in graph.transitive_objects(direct, RDFS_SUBCLASS):
-            closure.add(str(ancestor))
+            closure.add(term_str(ancestor))
     return frozenset(closure)
 
 
 def subclass_uris(graph: Graph, type_uri: str) -> frozenset[str]:
     """Return ``type_uri`` and all superclasses via ``rdfs:subClassOf``."""
-    term = URIRef(type_uri)
+    term = NamedNode(type_uri)
     return frozenset(
-        {type_uri, *(str(o) for o in graph.transitive_objects(term, RDFS_SUBCLASS))}
+        {
+            type_uri,
+            *(term_str(o) for o in graph.transitive_objects(term, RDFS_SUBCLASS)),
+        }
     )
 
 
@@ -42,9 +46,9 @@ def transitive_objects(
     predicate: str,
 ) -> list[str]:
     """Return object IRIs reachable from ``subject`` along ``predicate`` (transitive)."""
-    subj = subject if isinstance(subject, Node) else URIRef(subject)
-    pred = URIRef(predicate)
-    return [str(o) for o in graph.transitive_objects(subj, pred)]
+    subj = subject if isinstance(subject, Node) else NamedNode(subject)
+    pred = NamedNode(predicate)
+    return [term_str(o) for o in graph.transitive_objects(subj, pred)]
 
 
 def transitive_subjects(
@@ -53,14 +57,16 @@ def transitive_subjects(
     obj: str | Node,
 ) -> list[str]:
     """Return subject IRIs that reach ``obj`` along ``predicate`` (transitive)."""
-    object_node = obj if isinstance(obj, Node) else URIRef(obj)
-    pred = URIRef(predicate)
-    return [str(s) for s in graph.transitive_subjects(pred, object_node)]
+    object_node = obj if isinstance(obj, Node) else NamedNode(obj)
+    pred = NamedNode(predicate)
+    return [term_str(s) for s in graph.transitive_subjects(pred, object_node)]
 
 
 def _is_more_specific(graph: Graph, sub_uri: str, super_uri: str) -> bool:
     """True when ``sub_uri`` is a subclass of ``super_uri`` in ``graph``."""
-    return URIRef(super_uri) in graph.transitive_objects(URIRef(sub_uri), RDFS_SUBCLASS)
+    return NamedNode(super_uri) in graph.transitive_objects(
+        NamedNode(sub_uri), RDFS_SUBCLASS
+    )
 
 
 def _pick_most_specific(
@@ -99,7 +105,7 @@ def resolve_model_class_with_rdfs(
     use_subclass: bool = True,
 ) -> type[BaseModel]:
     """Pick the most specific registered class for ``subject``'s types."""
-    type_nodes = list(graph.objects(subject, URIRef(RDF_TYPE)))
+    type_nodes = list(graph.objects(subject, NamedNode(RDF_TYPE)))
     if not type_nodes:
         raise ValueError(
             f"No registered TripleModel class for subject {subject!r} (rdf:types: [])."
@@ -107,13 +113,13 @@ def resolve_model_class_with_rdfs(
     if not use_subclass:
         candidates: list[type[BaseModel]] = []
         for t in type_nodes:
-            cls = model_class_for_type_uri(str(t))
+            cls = model_class_for_type_uri(term_str(t))
             if cls is not None:
                 candidates.append(cls)
         if not candidates:
             raise ValueError(
                 f"No registered TripleModel class for subject {subject!r} "
-                f"(rdf:types: {[str(t) for t in type_nodes]})."
+                f"(rdf:types: {[term_str(t) for t in type_nodes]})."
             )
         return _pick_most_specific(graph, candidates)
 

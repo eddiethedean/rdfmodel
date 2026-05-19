@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import URIRef
+from pyoxigraph import NamedNode
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 from triplemodel.terms.collection import remove_rdf_list
@@ -69,7 +69,7 @@ def test_patch_updates_nested_iri_list():
     holder = TagHolder(tags=["one"])
     p = PersonIri(slug="alice", name="Alice", holder=holder)
     g = p.to_graph()
-    child_uri = URIRef(holder.subject_uri())
+    child_uri = NamedNode(holder.subject_uri())
 
     updated = PersonIri(
         slug="alice",
@@ -84,18 +84,19 @@ def test_patch_updates_nested_iri_list():
 
 
 def test_remove_rdf_list_clears_non_list_bnode_subgraph():
-    from rdflib import BNode, Graph, Literal
+    from pyoxigraph import BlankNode as BNode, Literal, NamedNode
+    from triplemodel.store import RdfGraph as Graph
 
     g = Graph()
     b = BNode()
-    g.add((URIRef(EX + "alice"), URIRef("http://example.org/tags"), b))
-    g.add((b, URIRef("http://example.org/tag"), Literal("orphan")))
-    remove_rdf_list(g, URIRef(EX + "alice"), "http://example.org/tags")
+    g.add((NamedNode(EX + "alice"), NamedNode("http://example.org/tags"), b))
+    g.add((b, NamedNode("http://example.org/tag"), Literal("orphan")))
+    remove_rdf_list(g, NamedNode(EX + "alice"), "http://example.org/tags")
     assert len(g) == 0
 
 
 def test_list_subject_from_embed_rows_helpers():
-    from rdflib import BNode
+    from pyoxigraph import BlankNode as BNode
 
     from triplemodel.config import get_rdf_config
     from triplemodel.embed.strategies import export_nested_triples
@@ -266,8 +267,8 @@ def test_patch_clears_nested_iri_optional_scalar():
     mbox = Mailbox(slug="m1", address="a@example.org", phone="+1")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child = URIRef(mbox.subject_uri())
-    assert any(g.triples((child, URIRef(PHONE), None)))
+    child = NamedNode(mbox.subject_uri())
+    assert any(g.triples((child, NamedNode(PHONE), None)))
 
     updated = Person(
         slug="alice",
@@ -275,7 +276,7 @@ def test_patch_clears_nested_iri_optional_scalar():
         mbox=Mailbox(slug="m1", address="a@example.org", phone=None),
     )
     sync_to_graph(updated, g, mode="patch")
-    assert list(g.triples((child, URIRef(PHONE), None))) == []
+    assert list(g.triples((child, NamedNode(PHONE), None))) == []
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is not None
     assert restored.mbox.phone is None

@@ -6,7 +6,10 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from rdflib import Dataset, Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store import RdfDataset as Dataset
+from triplemodel.store.terms import term_str
 
 from triplemodel import (
     TripleModel,
@@ -180,23 +183,21 @@ def test_all_from_dataset_scoped(tmp_path: Path) -> None:
     other = Graph()
     other.add(
         (
-            URIRef("http://example.org/people/eve"),
-            URIRef(f"{FOAF_NS}name"),
+            NamedNode("http://example.org/people/eve"),
+            NamedNode(f"{FOAF_NS}name"),
             Literal("Eve"),
         )
     )
     other.add(
         (
-            URIRef("http://example.org/people/eve"),
-            URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            URIRef(f"{FOAF_NS}Person"),
+            NamedNode("http://example.org/people/eve"),
+            NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            NamedNode(f"{FOAF_NS}Person"),
         )
     )
     ds = models_to_dataset([Person(slug="alice", name="Alice")])
     for t in other:
-        from triplemodel._rdflib_compat import dataset_default_graph
-
-        dataset_default_graph(ds).add(t)
+        ds.default_graph.add(t)
     people = Person.all_from_dataset(ds)
     assert len(people) == 1
     assert people[0].slug == "alice"
@@ -215,8 +216,8 @@ def test_sync_to_dataset_replace(tmp_path: Path) -> None:
     ctx = get_graph_context(ds, PEOPLE_GRAPH)
     p.name = "B"
     sync_to_dataset(p, ds, mode="replace")
-    obj = list(ctx.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF_NS}name")))[0]
-    assert str(obj) == "B"
+    obj = list(ctx.objects(NamedNode(p.subject_uri()), NamedNode(f"{FOAF_NS}name")))[0]
+    assert term_str(obj) == "B"
 
 
 def test_models_to_dataset_groups_graphs() -> None:
@@ -226,7 +227,7 @@ def test_models_to_dataset_groups_graphs() -> None:
             Catalog(slug="c", title="C"),
         ]
     )
-    graph_ids = {str(g.identifier) for g in ds.graphs()}
+    graph_ids = {str(g.identifier) for g in ds.graphs}
     assert PEOPLE_GRAPH in graph_ids
     assert CATALOG_GRAPH in graph_ids
 
@@ -345,13 +346,13 @@ def test_dispatch_from_dataset_prefers_class_graph_context() -> None:
     from triplemodel.protocols import register_rdf_resource
 
     register_rdf_resource(PlainPerson)
-    uri = URIRef("http://example.org/plain/ambiguous")
+    uri = NamedNode("http://example.org/plain/ambiguous")
     ds = Dataset()
     people_ctx = get_graph_context(ds, PEOPLE_GRAPH)
     default_ctx = get_graph_context(ds, None)
     for ctx in (people_ctx, default_ctx):
-        ctx.add((uri, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
-        ctx.add((uri, URIRef(f"{FOAF_NS}name"), Literal("Plain")))
+        ctx.add((uri, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+        ctx.add((uri, NamedNode(f"{FOAF_NS}name"), Literal("Plain")))
     m = graph_to_model_dispatch_from_dataset(ds, uri)
     assert isinstance(m, PlainPerson)
     assert m.name == "Plain"
@@ -362,13 +363,13 @@ def test_dispatch_from_dataset_ambiguous_graph_raises() -> None:
     from triplemodel.protocols import register_rdf_resource
 
     register_rdf_resource(Catalog)
-    uri = URIRef("http://example.org/catalog/ambiguous")
+    uri = NamedNode("http://example.org/catalog/ambiguous")
     ds = Dataset()
     people_ctx = get_graph_context(ds, PEOPLE_GRAPH)
     default_ctx = get_graph_context(ds, None)
     for ctx in (people_ctx, default_ctx):
-        ctx.add((uri, URIRef(RDF_TYPE), URIRef(f"{DCAT_NS}Catalog")))
-        ctx.add((uri, URIRef(f"{DCAT_NS}title"), Literal("X")))
+        ctx.add((uri, NamedNode(RDF_TYPE), NamedNode(f"{DCAT_NS}Catalog")))
+        ctx.add((uri, NamedNode(f"{DCAT_NS}title"), Literal("X")))
     with pytest.raises(ValueError, match="multiple dataset graphs"):
         graph_to_model_dispatch_from_dataset(ds, uri)
 
@@ -421,7 +422,11 @@ def test_sync_to_dataset_instance_method() -> None:
     p.sync_to_dataset(ds, mode="replace")
     ctx = get_graph_context(ds, PEOPLE_GRAPH)
     assert (
-        str(list(ctx.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF_NS}name")))[0])
+        term_str(
+            list(ctx.objects(NamedNode(p.subject_uri()), NamedNode(f"{FOAF_NS}name")))[
+                0
+            ]
+        )
         == "Z"
     )
 
@@ -453,8 +458,8 @@ def test_parse_url_into_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
     from triplemodel.io import dataset as dataset_mod
 
     trig = (
+        f"@prefix foaf: <{FOAF_NS}> .\n"
         f"GRAPH <{PEOPLE_GRAPH}> {{\n"
-        f"  @prefix foaf: <{FOAF_NS}> .\n"
         f'  <http://example.org/people/a> a foaf:Person ; foaf:name "Ann" .\n'
         f"}}\n"
     )
@@ -470,8 +475,8 @@ def test_parse_url_dataset_path(monkeypatch: pytest.MonkeyPatch) -> None:
     from triplemodel.io import dataset as dataset_mod
 
     trig = (
+        f"@prefix foaf: <{FOAF_NS}> .\n"
         f"GRAPH <{PEOPLE_GRAPH}> {{\n"
-        f"  @prefix foaf: <{FOAF_NS}> .\n"
         f'  <http://example.org/people/u> a foaf:Person ; foaf:name "U" .\n'
         f"}}\n"
     )

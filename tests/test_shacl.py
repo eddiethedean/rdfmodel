@@ -5,7 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -62,8 +63,8 @@ def test_shacl_validate_fails() -> None:
         format="turtle",
     )
     g = Graph()
-    subj = URIRef(f"{EX}things/bad")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Thing")))
+    subj = NamedNode(f"{EX}things/bad")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Thing")))
     with pytest.raises(ValueError, match="SHACL"):
         validate_graph(g, shapes)
 

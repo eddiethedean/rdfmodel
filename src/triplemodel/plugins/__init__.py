@@ -1,13 +1,9 @@
-"""Extension hooks for custom literals, resources, predicate resolution, and rdflib plugins."""
+"""Extension hooks for custom literals, resources, and predicate resolution."""
 
 from __future__ import annotations
 
+import warnings
 from typing import Callable, TypeVar, cast
-
-from rdflib.parser import Parser
-from rdflib.plugin import register as _rdflib_register
-from rdflib.serializer import Serializer
-from rdflib.store import Store
 
 from triplemodel.fields.resolver import FieldPredicateResolver, default_resolver
 from triplemodel.protocols import PredicateResolver, register_rdf_resource
@@ -43,19 +39,30 @@ def register_predicate_resolver(
     return instance
 
 
+def _removed_plugin_api(name: str, *_args: object, **_kwargs: object) -> None:
+    warnings.warn(
+        f"triplemodel.plugins.{name} was removed in 0.10.0 (pyoxigraph has no rdflib plugin registry).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    raise NotImplementedError(
+        f"{name} is not available with the pyoxigraph engine (removed in TripleModel 0.10.0)."
+    )
+
+
 def register_parser(name: str, module_path: str, class_name: str) -> None:
-    """Register a custom rdflib :class:`~rdflib.parser.Parser` (passthrough to ``rdflib.plugin.register``)."""
-    _rdflib_register(name, Parser, module_path, class_name)
+    """Removed in 0.10.0 — pyoxigraph does not use rdflib parser plugins."""
+    _removed_plugin_api("register_parser", name, module_path, class_name)
 
 
 def register_serializer(name: str, module_path: str, class_name: str) -> None:
-    """Register a custom rdflib :class:`~rdflib.serializer.Serializer`."""
-    _rdflib_register(name, Serializer, module_path, class_name)
+    """Removed in 0.10.0 — pyoxigraph does not use rdflib serializer plugins."""
+    _removed_plugin_api("register_serializer", name, module_path, class_name)
 
 
 def register_store(name: str, module_path: str, class_name: str) -> None:
-    """Register a custom rdflib :class:`~rdflib.store.Store`."""
-    _rdflib_register(name, Store, module_path, class_name)
+    """Removed in 0.10.0 — use :class:`pyoxigraph.Store` directly."""
+    _removed_plugin_api("register_store", name, module_path, class_name)
 
 
 __all__ = [

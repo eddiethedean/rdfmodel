@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, graph_to_model, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -35,11 +36,11 @@ class WarnPerson(TripleModel):
 
 def _person_graph(extra_pred: str | None = None) -> Graph:
     g = Graph()
-    subj = URIRef(f"{EX}alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
-    g.add((subj, URIRef(f"{EX}name"), Literal("Alice")))
+    subj = NamedNode(f"{EX}alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    g.add((subj, NamedNode(f"{EX}name"), Literal("Alice")))
     if extra_pred:
-        g.add((subj, URIRef(extra_pred), Literal("extra")))
+        g.add((subj, NamedNode(extra_pred), Literal("extra")))
     return g
 
 

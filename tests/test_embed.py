@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 
@@ -38,8 +39,10 @@ def test_nested_import_honors_parent_on_duplicate_error():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
-    g.add((subj, URIRef(f"{FOAF}mbox"), URIRef("http://example.org/mailbox/other")))
+    subj = NamedNode(p.subject_uri())
+    g.add(
+        (subj, NamedNode(f"{FOAF}mbox"), NamedNode("http://example.org/mailbox/other"))
+    )
     with pytest.raises(ValueError, match="Multiple objects"):
         Person.from_graph(g, p.subject_uri(), on_duplicate="error")
 
@@ -68,8 +71,8 @@ def test_replace_updates_nested_child_owned_triples():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child = URIRef(mbox.subject_uri())
-    assert len(list(g.objects(child, URIRef(ADDRESS)))) == 1
+    child = NamedNode(mbox.subject_uri())
+    assert len(list(g.objects(child, NamedNode(ADDRESS)))) == 1
 
     updated = Person(
         slug="alice",
@@ -77,7 +80,9 @@ def test_replace_updates_nested_child_owned_triples():
         mbox=Mailbox(slug="m1", address="bob@example.org"),
     )
     sync_to_graph(updated, g, mode="replace")
-    addresses = [str(o) for o in g.objects(child, URIRef(ADDRESS))]
+    from triplemodel.store.terms import term_str
+
+    addresses = [term_str(o) for o in g.objects(child, NamedNode(ADDRESS))]
     assert addresses == ["bob@example.org"]
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is not None
@@ -88,7 +93,7 @@ def test_to_graph_replace_updates_nested_child_owned_triples():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child = URIRef(mbox.subject_uri())
+    child = NamedNode(mbox.subject_uri())
 
     updated = Person(
         slug="alice",
@@ -96,7 +101,9 @@ def test_to_graph_replace_updates_nested_child_owned_triples():
         mbox=Mailbox(slug="m1", address="bob@example.org"),
     )
     updated.to_graph(g, mode="replace")
-    addresses = [str(o) for o in g.objects(child, URIRef(ADDRESS))]
+    from triplemodel.store.terms import term_str
+
+    addresses = [term_str(o) for o in g.objects(child, NamedNode(ADDRESS))]
     assert addresses == ["bob@example.org"]
 
 
@@ -158,15 +165,15 @@ def test_clear_nested_iri_children_skips_unresolved_nested_cls():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child = URIRef(mbox.subject_uri())
-    assert len(list(g.objects(child, URIRef(ADDRESS)))) == 1
+    child = NamedNode(mbox.subject_uri())
+    assert len(list(g.objects(child, NamedNode(ADDRESS)))) == 1
     cfg = get_rdf_config(Person)
     with patch(
         "triplemodel.io.sync.nested_cleanup.nested_model_type",
         return_value=None,
     ):
         clear_nested_iri_children(p, g, config=cfg)
-    assert len(list(g.objects(child, URIRef(ADDRESS)))) == 1
+    assert len(list(g.objects(child, NamedNode(ADDRESS)))) == 1
 
 
 def test_nested_bnode_embed_roundtrip():
@@ -182,12 +189,12 @@ def test_replace_removes_orphan_nested_child_when_slug_changes():
     m1 = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=m1)
     g = p.to_graph()
-    old_child = URIRef(m1.subject_uri())
-    assert len(list(g.objects(old_child, URIRef(ADDRESS)))) == 1
+    old_child = NamedNode(m1.subject_uri())
+    assert len(list(g.objects(old_child, NamedNode(ADDRESS)))) == 1
 
     m2 = Mailbox(slug="m2", address="bob@example.org")
     sync_to_graph(Person(slug="alice", name="Alice", mbox=m2), g, mode="replace")
-    assert list(g.objects(old_child, URIRef(ADDRESS))) == []
+    assert list(g.objects(old_child, NamedNode(ADDRESS))) == []
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is not None
     assert restored.mbox.slug == "m2"
@@ -197,24 +204,24 @@ def test_replace_removes_child_triples_when_mbox_cleared():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child_uri = URIRef(mbox.subject_uri())
+    child_uri = NamedNode(mbox.subject_uri())
     assert len(list(g.triples((child_uri, None, None)))) >= 1
 
     sync_to_graph(Person(slug="alice", name="Alice", mbox=None), g, mode="replace")
     assert list(g.triples((child_uri, None, None))) == []
-    assert list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}mbox"))) == []
+    assert list(g.objects(NamedNode(p.subject_uri()), NamedNode(f"{FOAF}mbox"))) == []
 
 
 def test_patch_removes_child_triples_when_mbox_cleared():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child_uri = URIRef(mbox.subject_uri())
+    child_uri = NamedNode(mbox.subject_uri())
     assert len(list(g.triples((child_uri, None, None)))) >= 1
 
     sync_to_graph(Person(slug="alice", name="Alice", mbox=None), g, mode="patch")
     assert list(g.triples((child_uri, None, None))) == []
-    assert list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}mbox"))) == []
+    assert list(g.objects(NamedNode(p.subject_uri()), NamedNode(f"{FOAF}mbox"))) == []
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is None
 
@@ -223,11 +230,11 @@ def test_to_graph_patch_removes_child_triples_when_mbox_cleared():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child_uri = URIRef(mbox.subject_uri())
+    child_uri = NamedNode(mbox.subject_uri())
 
     Person(slug="alice", name="Alice", mbox=None).to_graph(g, mode="patch")
     assert list(g.triples((child_uri, None, None))) == []
-    assert list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}mbox"))) == []
+    assert list(g.objects(NamedNode(p.subject_uri()), NamedNode(f"{FOAF}mbox"))) == []
     restored = Person.from_graph(g, p.subject_uri())
     assert restored.mbox is None
 
@@ -236,7 +243,7 @@ def test_patch_updates_nested_child_scalar():
     mbox = Mailbox(slug="m1", address="alice@example.org")
     p = Person(slug="alice", name="Alice", mbox=mbox)
     g = p.to_graph()
-    child = URIRef(mbox.subject_uri())
+    child = NamedNode(mbox.subject_uri())
 
     updated = Person(
         slug="alice",
@@ -244,7 +251,9 @@ def test_patch_updates_nested_child_scalar():
         mbox=Mailbox(slug="m1", address="bob@example.org"),
     )
     sync_to_graph(updated, g, mode="patch")
-    addresses = [str(o) for o in g.objects(child, URIRef(ADDRESS))]
+    from triplemodel.store.terms import term_str
+
+    addresses = [term_str(o) for o in g.objects(child, NamedNode(ADDRESS))]
     assert addresses == ["bob@example.org"]
 
 

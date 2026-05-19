@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import OxTerm, RdfTerm as Node
 
 from triplemodel.config import RdfConfig, get_rdf_config
 from triplemodel.fields.metadata import inverse_for_field
@@ -19,11 +20,11 @@ from triplemodel.terms.iri import subject_ref
 
 def _walk_embed_instances(
     model: BaseModel,
-    subject: Node,
+    subject: OxTerm,
     cfg: RdfConfig,
     graph: Graph,
     resolver: PredicateResolverProtocol,
-) -> Iterator[tuple[BaseModel, Node, RdfConfig]]:
+) -> Iterator[tuple[BaseModel, OxTerm, RdfConfig]]:
     """Yield root and nested embed instances without traversing ``list`` embed exports."""
     yield model, subject, cfg
     prefixes = cfg.prefixes_dict
@@ -38,12 +39,12 @@ def _walk_embed_instances(
             continue
         nested_cfg = get_rdf_config(type(nested))
         if cfg.embed == "iri":
-            nested_subj: Node = subject_ref(nested_cfg.subject_uri(nested))
+            nested_subj: OxTerm = subject_ref(nested_cfg.subject_uri(nested))
             yield from _walk_embed_instances(
                 nested, nested_subj, nested_cfg, graph, resolver
             )
         else:
-            pred_ref = URIRef(predicate)
+            pred_ref = NamedNode(predicate)
             for obj in graph.objects(subject, pred_ref):
                 yield from _walk_embed_instances(
                     nested, obj, nested_cfg, graph, resolver
@@ -52,7 +53,7 @@ def _walk_embed_instances(
 
 def clear_inverse_links_to_subject(
     graph: Graph,
-    subject: str | Node,
+    subject: str | OxTerm,
     model_cls: type[BaseModel],
     *,
     config: RdfConfig | None = None,
@@ -60,7 +61,7 @@ def clear_inverse_links_to_subject(
 ) -> None:
     """Remove all ``(?, inverse_predicate, subject)`` for inverse fields on ``model_cls``."""
     cfg = config or get_rdf_config(model_cls)
-    subj_node = subject if isinstance(subject, Node) else subject_ref(subject)
+    subj_node = subject_ref(subject) if isinstance(subject, str) else subject
     prefixes = cfg.prefixes_dict
     id_field = cfg.id_field
     for name, field_info in model_cls.model_fields.items():
@@ -69,7 +70,7 @@ def clear_inverse_links_to_subject(
         inv_raw = inverse_for_field(field_info)
         if inv_raw is None:
             continue
-        inv_pred = URIRef(resolve_predicate(inv_raw, prefixes))
+        inv_pred = NamedNode(resolve_predicate(inv_raw, prefixes))
         for remote in list(graph.subjects(inv_pred, subj_node)):
             graph.remove((remote, inv_pred, subj_node))
 

@@ -6,8 +6,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 
 from pydantic import BaseModel
-from rdflib import Graph
-from rdflib.term import Node
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel._typing import TripleObject
 from triplemodel.config import GraphMode, RdfConfig

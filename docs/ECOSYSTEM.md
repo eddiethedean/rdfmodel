@@ -1,13 +1,13 @@
 # TripleModel and SparqlModel — separation of responsibilities
 
-Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a long-term direction: **SparqlModel depends on `triplemodel>=0.9,<2`** (shipped). **SparqlModel 0.4 (Option A)** makes `SPARQLModel` a **`TripleModel` subclass** — one class, one mapping path. This document is the contract for what each package owns.
+Both projects wrap **Pydantic** and **pyoxigraph** (TripleModel 0.10+). They share a maintainer and a long-term direction: **SparqlModel depends on `triplemodel>=0.9,<2`** today; adopt **`>=0.10,<2`** when ready (**SM-7**). **SparqlModel 0.4 (Option A)** makes `SPARQLModel` a **`TripleModel` subclass** — one class, one mapping path. This document is the contract for what each package owns.
 
 **Naming:** PyPI/install name **`triplemodel`**; base class **`TripleModel`**; project title **TripleModel**.
 
 | Doc | Purpose |
 |-----|---------|
 | [PLAN.md](PLAN.md) | Strategy, priorities, integration gates |
-| [ROADMAP.md](ROADMAP.md) | Releases, rdflib matrix, **SM-*** milestones |
+| [ROADMAP.md](ROADMAP.md) | Releases, pyoxigraph matrix, **SM-*** milestones |
 | [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | SparqlModel maintainer guide (copy into SparqlModel repo) |
 
 **SparqlModel maintainers:** start with [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) for module retirement and PR boundaries.
@@ -24,7 +24,7 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 └────────────────────┬─────────────────────┘
                      │
 ┌────────────────────▼─────────────────────┐
-│  rdflib · pydantic                       │
+│  pyoxigraph · pydantic                   │
 └──────────────────────────────────────────┘
 ```
 
@@ -50,7 +50,7 @@ Both projects wrap **Pydantic** and **rdflib**. They share a maintainer and a lo
 | **Namespaces** | Prefixes, CURIE expansion, `Graph.bind` integration (roadmap) |
 | **Document I/O** | `parse` / `serialize`, formats (Turtle, JSON-LD, …), base URI (roadmap) |
 | **Named graphs** | `Dataset`, graph context on models (roadmap) |
-| **rdflib parity** | Coverage matrix in [ROADMAP.md](ROADMAP.md) for features that map to typed models |
+| **RDF engine coverage** | Matrix in [ROADMAP.md](ROADMAP.md) for features that map to typed models |
 
 ### Does not own
 

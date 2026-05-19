@@ -7,8 +7,9 @@ from typing import Protocol, cast, runtime_checkable
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from rdflib import Graph, Literal, URIRef
-from rdflib.term import Node
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel.config import GraphMode, RDF_TYPE, RdfConfig, get_rdf_config
 from triplemodel.terms.registry import LiteralRegistry as LiteralRegistryImpl
@@ -78,7 +79,9 @@ def resolve_model_class(
         subject_type_closure,
     )
 
-    direct_types = {str(t) for t in graph.objects(subject, URIRef(RDF_TYPE))}
+    from triplemodel.store.terms import term_str
+
+    direct_types = {term_str(t) for t in graph.objects(subject, NamedNode(RDF_TYPE))}
     closure = subject_type_closure(graph, subject)
     candidates: list[type[BaseModel]] = []
     for type_uri in iter_registered_type_uris():

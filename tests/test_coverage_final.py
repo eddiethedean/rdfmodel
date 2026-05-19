@@ -6,7 +6,8 @@ from enum import Enum
 from typing import Any, Optional, cast
 
 import pytest
-from rdflib import BNode, Graph, Literal, URIRef
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
 from triplemodel.metadata.cardinality import scalar_python_type
@@ -16,7 +17,6 @@ from triplemodel.namespaces import bind_namespaces, resolve_predicate
 from triplemodel.terms import literal_to_python, register_literal_type
 from triplemodel.io.sync import predicates_to_patch
 from triplemodel.terms import python_to_term
-from rdflib import Literal as RdfLiteral
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -33,17 +33,18 @@ def test_resolve_predicate_without_colon():
 
 def test_bind_namespaces_rdflib_strategy():
     g = Graph()
-    setattr(g, "bind_namespaces", lambda: None)
     bind_namespaces(g, {"ex": EX}, strategy="rdflib")
+    assert ("ex", EX) in list(g.namespaces())
 
 
 def test_literal_to_python_none_type():
-    assert literal_to_python(RdfLiteral("x"), None) is None
+    assert literal_to_python(Literal("x"), None) is None
 
 
 def test_python_to_term_fallback_bytes():
     term = python_to_term(cast(Any, b"bytes"))
-    assert isinstance(term, RdfLiteral)
+    assert isinstance(term, Literal)
+    assert str(term.value) == "bytes"
 
 
 def test_enum_uses_registry_when_registered():
@@ -52,11 +53,11 @@ def test_enum_uses_registry_when_registered():
 
     register_literal_type(
         Color,
-        lambda c: RdfLiteral(c.value),
+        lambda c: Literal(c.value),
         lambda lit: Color(str(lit)),
     )
     term = python_to_term(Color.RED)
-    assert isinstance(term, RdfLiteral)
+    assert isinstance(term, Literal)
 
 
 def test_scalar_python_type_nested_returns_none():
@@ -81,12 +82,12 @@ def test_import_empty_list_and_set():
         tag: set[str] = rdf_field("http://example.org/t", default_factory=set)
 
     g = Graph()
-    subj = URIRef(EX + "a")
+    subj = NamedNode(EX + "a")
     g.add(
         (
             subj,
-            URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            URIRef(f"{FOAF}Person"),
+            NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            NamedNode(f"{FOAF}Person"),
         )
     )
     empty = graph_to_model(g, P, str(subj), validate_type=False)
@@ -96,8 +97,8 @@ def test_import_empty_list_and_set():
     g2.add(
         (
             subj,
-            URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            URIRef(f"{FOAF}Person"),
+            NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            NamedNode(f"{FOAF}Person"),
         )
     )
     only = graph_to_model(g2, P, str(subj), validate_type=False)
@@ -146,8 +147,8 @@ def test_nested_import_invalid_term_type():
         box: Box | None = rdf_field("http://example.org/box", default=None)
 
     g = Graph()
-    subj = URIRef(EX + "p")
-    g.add((subj, URIRef("http://example.org/box"), Literal("not-node")))
+    subj = NamedNode(EX + "p")
+    g.add((subj, NamedNode("http://example.org/box"), Literal("not-node")))
     with pytest.raises(ValueError, match="Cannot import nested"):
         graph_to_model(g, P, str(subj), validate_type=False)
 
@@ -160,7 +161,10 @@ def test_nested_duplicate_warn():
 
     fi = FieldInfo(annotation=cast(Any, Optional[Box]))
     g = Graph()
-    u1, u2 = URIRef("http://example.org/box/1"), URIRef("http://example.org/box/2")
+    u1, u2 = (
+        NamedNode("http://example.org/box/1"),
+        NamedNode("http://example.org/box/2"),
+    )
     with pytest.warns(UserWarning, match="Multiple objects"):
         import_field_value(
             g,
@@ -336,7 +340,7 @@ def test_bnode_embed_import_rejects_uri_ref():
     g = Child(slug="c").to_graph()
     with pytest.raises(ValueError, match="embed='bnode'"):
         BnodeEmbedStrategy().import_value(
-            g, URIRef(Child(slug="c").subject_uri()), Child
+            g, NamedNode(Child(slug="c").subject_uri()), Child
         )
 
 

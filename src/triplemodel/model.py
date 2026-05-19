@@ -9,8 +9,8 @@ from typing import Any, cast
 from typing_extensions import Self
 
 from pydantic import BaseModel, ConfigDict
-from rdflib import Dataset, Graph
-from rdflib.term import Node
+from triplemodel.store import RdfDataset as Dataset, RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel.config import GraphMode, RdfConfig, get_rdf_config
 from triplemodel.io import (
@@ -106,7 +106,7 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
-        shacl_shapes: Graph | str | Path | None = None,
+        shacl_shapes: Graph | str | Path | Any | None = None,
     ) -> Graph:
         """Serialize this instance into an rdflib ``Graph``.
 
@@ -137,9 +137,9 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
-        shacl_shapes: Graph | str | Path | None = None,
+        shacl_shapes: Graph | str | Path | Any | None = None,
     ) -> Dataset:
-        """Serialize this instance into an rdflib ``Dataset`` named graph."""
+        """Serialize this instance into a named-graph dataset."""
         result = model_to_dataset(
             self,
             dataset,
@@ -172,7 +172,7 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
-        shacl_shapes: Graph | str | Path | None = None,
+        shacl_shapes: Graph | str | Path | Any | None = None,
         **rdflib_kwargs: Any,
     ) -> str | bytes | None:
         """Serialize this instance to an RDF document string or file."""
@@ -270,7 +270,7 @@ class TripleModel(BaseModel):
     def from_graph(
         cls,
         graph: Graph,
-        uri: str,
+        uri: str | Node,
         *,
         validate_type: bool = True,
         on_duplicate: OnDuplicate = "warn",
@@ -278,7 +278,7 @@ class TripleModel(BaseModel):
         registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
     ) -> Self:
-        """Construct an instance from triples about ``uri``."""
+        """Construct an instance from triples about ``uri`` (IRI string or term)."""
         return graph_to_model(
             graph,
             cls,

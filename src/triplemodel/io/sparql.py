@@ -8,11 +8,14 @@ from dataclasses import dataclass
 from typing import Any, Literal, TypeVar, cast, overload
 
 from pydantic import BaseModel
-from rdflib import Graph, Namespace, URIRef
-from rdflib.plugins.sparql import prepareQuery
-from rdflib.plugins.sparql.sparql import Query
-from rdflib.query import Result
-from rdflib.term import Node, Variable
+from pyoxigraph import BlankNode, Literal as OxLiteral, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.sparql_result import (
+    SparqlResult,
+    Variable,
+    bindings_to_substitutions,
+)
+from triplemodel.store.terms import RdfTerm as Node, term_str
 
 from triplemodel.config import get_rdf_config, id_from_subject_uri
 from triplemodel.fields.metadata import id_field_is_iri_id
@@ -21,6 +24,7 @@ from triplemodel.metadata.cardinality import scalar_python_type, union_member_ty
 from triplemodel.namespaces import bind_namespaces
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.convert import python_to_term, term_to_python
+from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.terms.iri import looks_like_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -43,15 +47,15 @@ _BINDINGS_RESULT_TYPES = frozenset({"SELECT", "bindings"})
 _GRAPH_RESULT_TYPES = frozenset({"CONSTRUCT", "DESCRIBE", "graph"})
 
 
-def _is_boolean_result(result: Result) -> bool:
+def _is_boolean_result(result: SparqlResult) -> bool:
     return result.type in _BOOLEAN_RESULT_TYPES
 
 
-def _is_bindings_result(result: Result) -> bool:
+def _is_bindings_result(result: SparqlResult) -> bool:
     return result.type in _BINDINGS_RESULT_TYPES
 
 
-def _is_graph_result(result: Result) -> bool:
+def _is_graph_result(result: SparqlResult) -> bool:
     return result.type in _GRAPH_RESULT_TYPES
 
 
@@ -65,6 +69,8 @@ _COMMENT_BLOCK_RE = re.compile(r"/\*.*?\*/", re.DOTALL)
 
 def detect_query_form(query: str) -> SparqlQueryForm:
     """Return the first SPARQL query form keyword in ``query``."""
+    if not isinstance(query, str):
+        raise TypeError("detect_query_form expects a SPARQL query string.")
     text = _COMMENT_BLOCK_RE.sub("", query)
     text = _COMMENT_LINE_RE.sub("", text)
     match = _QUERY_FORM_RE.search(text)
@@ -73,25 +79,39 @@ def detect_query_form(query: str) -> SparqlQueryForm:
     return cast(SparqlQueryForm, match.group(1).lower())
 
 
-def _query_form_from_prepared(query: Query) -> SparqlQueryForm:
-    """Infer SPARQL query form from a rdflib prepared ``Query`` algebra."""
-    algebra = getattr(query, "algebra", None)
-    if algebra is None:
-        return "unknown"
-    algebra_name = getattr(algebra, "name", None) or ""
-    form_map: dict[str, SparqlQueryForm] = {
-        "SelectQuery": "select",
-        "ConstructQuery": "construct",
-        "AskQuery": "ask",
-        "DescribeQuery": "describe",
-    }
-    return form_map.get(algebra_name, "unknown")
+def init_ns_from_model(model_cls: type[BaseModel]) -> dict[str, str]:
+    """Build prefix map for SPARQL from ``model_cls`` ``Rdf.prefixes``."""
+    return dict(get_rdf_config(model_cls).prefixes_dict)
 
 
-def init_ns_from_model(model_cls: type[BaseModel]) -> dict[str, Namespace]:
-    """Build ``initNs`` for SPARQL from ``model_cls`` ``Rdf.prefixes``."""
-    prefixes = get_rdf_config(model_cls).prefixes_dict
-    return {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
+def _sparql_term_for_inline(term: Node) -> str:
+    if isinstance(term, NamedNode):
+        return f"<{term.value}>"
+    if isinstance(term, BlankNode):
+        return f"_:{term}"
+    if isinstance(term, OxLiteral):
+        if term.language:
+            return f'"{term.value}"@{term.language}'
+        if term.datatype is not None:
+            return f'"{term.value}"^^{term.datatype}'
+        return f'"{term.value}"'  # pragma: no cover
+    return str(term)
+
+
+def _inline_init_bindings(
+    query: str,
+    bindings: Mapping[Variable, Node],
+) -> str:
+    """Replace ``?var`` with bound RDF terms (pyoxigraph ASK lacks substitutions)."""
+    out = query
+    for var, term in bindings.items():
+        name = str(var).lstrip("?")
+        out = re.sub(
+            rf"\?{re.escape(name)}\b",
+            _sparql_term_for_inline(term),
+            out,
+        )
+    return out
 
 
 def init_bindings_from_model(
@@ -110,7 +130,7 @@ def init_bindings_from_model(
         if field_name == cfg.id_field and cfg.id_field:
             subject_uri_fn = getattr(instance, "subject_uri", None)
             if callable(subject_uri_fn):
-                bindings[var] = URIRef(subject_uri_fn())
+                bindings[var] = NamedNode(subject_uri_fn())
                 continue
         value = getattr(instance, field_name)
         bindings[var] = python_to_term(value)
@@ -118,7 +138,7 @@ def init_bindings_from_model(
 
 
 def graph_from_construct_result(
-    result: Result,
+    result: SparqlResult,
     graph_out: Graph | None = None,
 ) -> Graph:
     """Merge a CONSTRUCT/DESCRIBE ``Result`` graph into ``graph_out`` or a new graph."""
@@ -129,39 +149,67 @@ def graph_from_construct_result(
         )
     target = graph_out or Graph()
     if result.graph is not None:
-        for triple in result.graph:
-            target.add(triple)
+        for s, p, o in result.graph:
+            target.add((s, p, o))
     return target
+
+
+def _coerce_init_bindings(
+    bindings: Mapping[Variable, Node] | Mapping[str, Node] | None,
+) -> dict[Variable, Node] | None:
+    if bindings is None:
+        return None
+    out: dict[Variable, Node] = {}
+    for key, value in bindings.items():
+        var = key if isinstance(key, Variable) else Variable(str(key).lstrip("?"))
+        out[var] = value
+    return out
 
 
 def run_sparql(
     graph: Graph,
-    query: str | Query,
+    query: str,
     *,
     model_cls: type[BaseModel] | None = None,
     initNs: Mapping[str, Any] | None = None,  # noqa: N803
-    initBindings: Mapping[str, Node] | None = None,  # noqa: N803
+    initBindings: Mapping[Variable, Node] | Mapping[str, Node] | None = None,  # noqa: N803
     use_store_provided: bool = True,
     **kwargs: Any,
-) -> Result:
-    """Run ``graph.query`` with optional namespace binding from ``model_cls``."""
-    resolved_init_ns = initNs
-    if resolved_init_ns is None and model_cls is not None:
-        resolved_init_ns = init_ns_from_model(model_cls)
-    if model_cls is not None:
-        bind_namespaces(graph, get_rdf_config(model_cls).prefixes_dict)
-    return graph.query(
-        query,
-        initNs=resolved_init_ns,
-        initBindings=initBindings,  # ty: ignore[invalid-argument-type]
-        use_store_provided=use_store_provided,
-        **kwargs,
+) -> SparqlResult:
+    """Run SPARQL on ``graph.store`` with optional prefixes and bindings."""
+    _ = use_store_provided
+    _ = kwargs
+    if not isinstance(query, str):
+        raise TypeError("run_sparql expects a SPARQL query string in TripleModel 0.10.")
+    resolved_bindings = _coerce_init_bindings(initBindings)
+    resolved_prefixes: dict[str, str] | None = None
+    if initNs is not None:
+        resolved_prefixes = {str(k): str(v) for k, v in initNs.items()}
+    elif model_cls is not None:
+        resolved_prefixes = dict(init_ns_from_model(model_cls))
+    if resolved_prefixes is None and graph._prefixes:
+        resolved_prefixes = dict(graph._prefixes)
+    elif resolved_prefixes is not None and graph._prefixes:
+        resolved_prefixes = {**graph._prefixes, **resolved_prefixes}
+    if resolved_prefixes and model_cls is not None:
+        bind_namespaces(graph, resolved_prefixes)
+    form = detect_query_form(query)
+    resolved_query = query
+    substitutions = bindings_to_substitutions(resolved_bindings)
+    if resolved_bindings and form == "ask":
+        resolved_query = _inline_init_bindings(query, resolved_bindings)
+        substitutions = None
+    raw = graph.store.query(
+        resolved_query,
+        prefixes=resolved_prefixes,
+        substitutions=substitutions,
     )
+    return SparqlResult.from_pyoxigraph(raw, form=form)
 
 
 def ask(
     graph: Graph,
-    query: str | Query,
+    query: str,
     *,
     model_cls: type[BaseModel] | None = None,
     initNs: Mapping[str, Any] | None = None,  # noqa: N803
@@ -187,7 +235,7 @@ def ask(
 def construct_models(
     model_cls: type[T],
     graph: Graph,
-    query: str | Query,
+    query: str,
     *,
     dispatch: bool = False,
     graph_out: Graph | None = None,
@@ -264,7 +312,10 @@ def _term_for_field(
                 return term_to_python(term, member, registry=registry)
             except (TypeError, ValueError):
                 continue
-    return term_to_python(term, registry=registry)
+    value = term_to_python(term, registry=registry)
+    if isinstance(value, OpaqueLiteral):
+        return value.value
+    return value
 
 
 def _projection_value_for_field(
@@ -280,9 +331,9 @@ def _projection_value_for_field(
     if (
         field_name == cfg.id_field
         and cfg.id_field
-        and (isinstance(term, URIRef) or looks_like_iri(str(term)))
+        and (isinstance(term, NamedNode) or looks_like_iri(term_str(term)))
     ):
-        _, id_value = _subject_id_from_uri(model_cls, str(term))
+        _, id_value = _subject_id_from_uri(model_cls, term_str(term))
         return id_value
     return _term_for_field(term, field_info, registry=registry)
 
@@ -303,17 +354,25 @@ def _subject_id_from_uri(model_cls: type[BaseModel], uri: str) -> tuple[str, obj
     return id_field, uri
 
 
-def _default_field_map(result: Result) -> dict[str, str]:
+def _default_field_map(
+    result: SparqlResult,
+    *,
+    exclude: str | None = None,
+) -> dict[str, str]:
     vars_ = result.vars or []
-    return {
-        _normalize_var_name(str(var)): _normalize_var_name(str(var)) for var in vars_
-    }
+    out: dict[str, str] = {}
+    for var in vars_:
+        name = _normalize_var_name(str(var))
+        if exclude is not None and name == exclude:
+            continue
+        out[name] = name
+    return out
 
 
 def select_models(
     model_cls: type[T],
     graph: Graph,
-    query: str | Query,
+    query: str,
     *,
     field_map: Mapping[str, str] | None = None,
     subject_var: str | None = None,
@@ -365,7 +424,7 @@ def select_models(
 def _select_models_hydrate(
     model_cls: type[T],
     graph: Graph,
-    query: str | Query,
+    query: str,
     *,
     subject_var: str,
     validate_type: bool,
@@ -395,7 +454,7 @@ def _select_models_hydrate(
         term = _binding_value(cast("Mapping[Variable, Node]", row), subject_var)
         if term is None:
             continue
-        uri = str(term)
+        uri = term_str(term)
         if uri in seen:
             continue
         seen.add(uri)
@@ -417,7 +476,7 @@ def _select_models_hydrate(
 def _select_models_projection(
     model_cls: type[T],
     graph: Graph,
-    query: str | Query,
+    query: str,
     *,
     field_map: Mapping[str, str] | None,
     subject_var: str | None,
@@ -438,7 +497,12 @@ def _select_models_projection(
     )
     if not _is_bindings_result(result):
         raise TypeError(f"Expected SELECT (bindings) result, got {result.type!r}.")
-    mapping = dict(field_map) if field_map is not None else _default_field_map(result)
+    subject_key = _normalize_var_name(subject_var) if subject_var else None
+    mapping = (
+        dict(field_map)
+        if field_map is not None
+        else _default_field_map(result, exclude=subject_key)
+    )
     for var_name, field_name in mapping.items():
         if field_name not in model_cls.model_fields:
             raise ValueError(
@@ -446,14 +510,13 @@ def _select_models_projection(
                 f"(SPARQL variable {var_name!r})."
             )
     instances: list[T] = []
-    subject_key = _normalize_var_name(subject_var) if subject_var else None
     for row in result:
         row_map = cast("Mapping[Variable, Node]", row)
         data: dict[str, object] = {}
         if subject_key and subject_key not in mapping:
             term = _binding_value(row_map, subject_key)
             if term is not None:
-                id_field, id_value = _subject_id_from_uri(model_cls, str(term))
+                id_field, id_value = _subject_id_from_uri(model_cls, term_str(term))
                 data[id_field] = id_value
         for var_name, field_name in mapping.items():
             term = _binding_value(row_map, var_name)
@@ -487,12 +550,11 @@ def apply_update(
         resolved_init_ns = init_ns_from_model(model_cls)
     if model_cls is not None:
         bind_namespaces(graph, get_rdf_config(model_cls).prefixes_dict)
-    graph.update(
+    graph.store.update(
         update,
-        initNs=resolved_init_ns,
-        initBindings=initBindings,  # ty: ignore[invalid-argument-type]
-        use_store_provided=use_store_provided,
-        **kwargs,
+        prefixes={str(k): str(v) for k, v in resolved_init_ns.items()}
+        if resolved_init_ns
+        else None,
     )
 
 
@@ -501,53 +563,55 @@ class PreparedModelQuery:
     """Prepared SPARQL query with namespaces from a model's ``Rdf.prefixes``."""
 
     model_cls: type[BaseModel]
-    prepared: Query
+    query_str: str
+
+    @property
+    def prepared(self) -> str:
+        return self.query_str
 
     def execute(
         self,
         graph: Graph,
         *,
-        initBindings: Mapping[str, Node] | None = None,  # noqa: N803
+        initBindings: Mapping[Variable, Node] | None = None,  # noqa: N803
         use_store_provided: bool = True,
         **kwargs: Any,
-    ) -> Result:
+    ) -> SparqlResult:
         """Run the prepared query on ``graph``."""
         return run_sparql(
             graph,
-            self.prepared,
+            self.query_str,
             model_cls=self.model_cls,
             initBindings=initBindings,
             use_store_provided=use_store_provided,
             **kwargs,
         )
 
-    def as_result(self, graph: Graph, **kwargs: Any) -> Result:
+    def as_result(self, graph: Graph, **kwargs: Any) -> SparqlResult:
         """Alias for :meth:`execute`."""
         return self.execute(graph, **kwargs)
 
 
 def prepare_model_query(model_cls: type[BaseModel], query: str) -> PreparedModelQuery:
-    """Prepare ``query`` with ``initNs`` from ``model_cls`` ``Rdf.prefixes``."""
-    prepared = prepareQuery(query, initNs=init_ns_from_model(model_cls))
-    return PreparedModelQuery(model_cls=model_cls, prepared=prepared)
+    """Prepare ``query`` (prefixes applied at execution from ``model_cls``)."""
+    return PreparedModelQuery(model_cls=model_cls, query_str=query)
 
 
 def open_sparql_graph(endpoint: str, *, read_only: bool = True) -> Graph:
-    """Open a remote SPARQL endpoint as an rdflib ``Graph``."""
-    if read_only:
-        from rdflib.plugins.stores.sparqlstore import SPARQLStore
-
-        return Graph(store=SPARQLStore(endpoint))
-    from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
-
-    return Graph(store=SPARQLUpdateStore(endpoint))
+    """Remote SPARQL endpoints are not supported in TripleModel 0.10 (pyoxigraph)."""
+    _ = endpoint, read_only
+    raise NotImplementedError(
+        "open_sparql_graph is not available with the pyoxigraph engine in 0.10.0. "
+        "Query a remote endpoint with your HTTP/SPARQL client and load quads into a "
+        "local pyoxigraph.Store, or use SparqlModel for session-level remote stores."
+    )
 
 
 @overload
 def load_sparql(
     model_cls: type[T],
     endpoint: str,
-    query: str | Query,
+    query: str,
     *,
     query_form: SparqlQueryForm,
     read_only: bool = True,
@@ -560,7 +624,7 @@ def load_sparql(
 def load_sparql(
     model_cls: type[T],
     endpoint: str,
-    query: str | Query,
+    query: str,
     *,
     read_only: bool = True,
     dispatch: bool = False,
@@ -571,7 +635,7 @@ def load_sparql(
 def load_sparql(
     model_cls: type[T],
     endpoint: str,
-    query: str | Query,
+    query: str,
     *,
     query_form: SparqlQueryForm | None = None,
     read_only: bool = True,
@@ -588,14 +652,14 @@ def load_sparql(
     **kwargs: Any,
 ) -> list[T]:
     """Query a remote SPARQL endpoint and return model instances."""
+    if not isinstance(query, str):
+        raise ValueError(
+            f"Cannot load models from SPARQL query {query!r}; "
+            "use CONSTRUCT, DESCRIBE, or SELECT."
+        )
     form = query_form
     if form is None:
-        if isinstance(query, str):
-            form = detect_query_form(query)
-        elif isinstance(query, Query):
-            form = _query_form_from_prepared(query)
-        else:
-            form = "unknown"
+        form = detect_query_form(query)
     if form == "ask":
         raise TypeError(
             "ASK queries do not return models; use ask(open_sparql_graph(endpoint), query)."

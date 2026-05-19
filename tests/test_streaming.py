@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 
 from triplemodel import TripleModel, load_models_streaming, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -38,53 +37,15 @@ def test_load_models_streaming_memory_nt(tmp_path: Path) -> None:
     assert len(people) == 3
 
 
-def _sqlalchemy_store_available() -> bool:
-    try:
-        from rdflib import Graph
-
-        Graph(store="SQLAlchemy", identifier="sqlite:///:memory:").close()
-        return True
-    except Exception:
-        return False
-
-
-@pytest.mark.skipif(
-    not _sqlalchemy_store_available(),
-    reason="rdflib-sqlalchemy store plugin not installed",
-)
-def test_load_models_streaming_removes_ephemeral_store(
-    tmp_path: Path, monkeypatch
-) -> None:
-    import os
-    import tempfile
-
-    path = tmp_path / "people.nt"
-    _write_nt(path, 1)
-    db_path = tmp_path / "ephemeral.sqlite"
-
-    def fake_mkstemp(*, suffix: str = ".sqlite"):
-        fd = os.open(db_path, os.O_CREAT | os.O_RDWR)
-        return fd, str(db_path)
-
-    monkeypatch.setattr(tempfile, "mkstemp", fake_mkstemp)
-    people = load_models_streaming(path, StreamPerson, store="sqlalchemy")
-    assert len(people) == 1
-    assert not db_path.exists()
-
-
-@pytest.mark.skipif(
-    not _sqlalchemy_store_available(),
-    reason="rdflib-sqlalchemy store plugin not installed",
-)
-def test_load_models_streaming_sqlalchemy_store(tmp_path: Path) -> None:
+def test_load_models_streaming_disk_store(tmp_path: Path) -> None:
     path = tmp_path / "people.nt"
     _write_nt(path, 2)
-    db = tmp_path / "store.sqlite"
+    store_dir = tmp_path / "oxstore"
     people = load_models_streaming(
         path,
         StreamPerson,
-        store="sqlalchemy",
-        store_identifier=f"sqlite:///{db}",
+        store="disk",
+        store_identifier=str(store_dir),
         chunk_size=1,
     )
     assert len(people) == 2

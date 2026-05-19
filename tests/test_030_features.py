@@ -7,7 +7,10 @@ from typing import Annotated, Any
 
 import pytest
 from pydantic import ValidationError
-from rdflib import BNode, Graph, Literal, RDF, URIRef, XSD
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode
+from triplemodel.config.constants import RDF, RDF_HTML, RDF_TYPE
+from triplemodel.store.namespaces import XSD
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 from triplemodel.config import get_rdf_config
@@ -98,8 +101,8 @@ def test_stable_bnode_same_id_when_nested_content_unchanged():
     mbox = Mailbox(address="a@example.org")
     p = PersonBnodeStable(slug="x", mbox=mbox)
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
-    pred = URIRef(f"{FOAF}mbox")
+    subj = NamedNode(p.subject_uri())
+    pred = NamedNode(f"{FOAF}mbox")
     first = next(iter(g.objects(subj, pred)))
     sync_to_graph(PersonBnodeStable(slug="x", mbox=mbox), g, mode="replace")
     second = next(iter(g.objects(subj, pred)))
@@ -118,11 +121,11 @@ def test_clear_stale_bnode_when_mbox_cleared():
 def test_patch_skolemize_clears_stale_bnode_before_skolemizing():
     p = PersonBnodeStable(slug="x", mbox=Mailbox(address="a@example.org"))
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
-    pred = URIRef(f"{FOAF}mbox")
+    subj = NamedNode(p.subject_uri())
+    pred = NamedNode(f"{FOAF}mbox")
     stale = BNode()
     g.add((subj, pred, stale))
-    g.add((stale, RDF.type, URIRef("http://example.org/Mailbox")))
+    g.add((stale, RDF_TYPE, NamedNode("http://example.org/Mailbox")))
     sync_to_graph(
         PersonBnodeStable(slug="x", mbox=None), g, mode="patch", skolemize=True
     )
@@ -191,7 +194,7 @@ def test_patch_skolemize_runs_after_export(monkeypatch: pytest.MonkeyPatch) -> N
 def test_skolemize_and_de_skolemize():
     g = Graph()
     b = BNode()
-    g.add((b, RDF.type, URIRef(f"{FOAF}Person")))
+    g.add((b, RDF_TYPE, NamedNode(f"{FOAF}Person")))
     sk = apply_skolemize(g, skolemize=True)
     assert apply_skolemize(g, skolemize=False) is g
     de = apply_de_skolemize(sk, de_skolemize=True)
@@ -218,11 +221,11 @@ def test_resource_ref_validation():
         "http://example.org/other"
     )
     term = python_to_term(ResourceRef("http://example.org/r"))
-    assert isinstance(term, URIRef)
+    assert isinstance(term, NamedNode)
 
 
 def test_opaque_literal_roundtrip():
-    lit = Literal("payload", datatype=URIRef("http://example.org/customType"))
+    lit = Literal("payload", datatype=NamedNode("http://example.org/customType"))
     opaque = OpaqueLiteral.from_literal(lit)
     assert opaque.datatype == "http://example.org/customType"
     assert OpaqueHolder(slug="a", data=opaque).data.value == "payload"
@@ -234,17 +237,17 @@ def test_opaque_literal_roundtrip():
 
 
 def test_unknown_datatype_preserved_without_target_type():
-    lit = Literal("x", datatype=URIRef("http://example.org/unknown"))
+    lit = Literal("x", datatype=NamedNode("http://example.org/unknown"))
     result = term_to_python(lit, None)
     assert isinstance(result, OpaqueLiteral)
 
 
 def test_html_xml_literal_as_str():
-    html = Literal("<p>x</p>", datatype=RDF.HTML)
+    html = Literal("<p>x</p>", datatype=NamedNode(RDF_HTML))
     html_str = term_to_python(html, str)
     assert isinstance(html_str, str)
     assert "x" in html_str
-    xml = Literal("<r/>", datatype=RDF.XMLLiteral)
+    xml = Literal("<r/>", datatype=NamedNode(f"{RDF}XMLLiteral"))
     assert term_to_python(xml, str) == "<r/>"
 
 
@@ -259,10 +262,8 @@ def test_lang_metadata_on_field():
 
     d = Doc(slug="d", title="Bonjour")
     g = d.to_graph()
-    from rdflib import Literal as RdfLiteral
-
-    lit = list(g.objects(URIRef(d.subject_uri()), URIRef(f"{DC}title")))[0]
-    assert isinstance(lit, RdfLiteral)
+    lit = list(g.objects(NamedNode(d.subject_uri()), NamedNode(f"{DC}title")))[0]
+    assert isinstance(lit, Literal)
     assert lit.language == "fr"
 
 
@@ -270,7 +271,7 @@ def test_bnode_helpers():
     node = stable_bnode("key")
     assert stable_bnode("key") == node
     g = Graph()
-    g.add((node, RDF.type, URIRef("http://example.org/T")))
+    g.add((node, RDF_TYPE, NamedNode("http://example.org/T")))
     remove_bnode_subgraph(g, node)
     assert len(g) == 0
     assert nested_bnode_key("s", "p", object())  # noqa: B008
@@ -300,7 +301,8 @@ def test_term_to_field_union_failure():
 
 def test_opaque_literal_without_datatype():
     plain = OpaqueLiteral("text", None)
-    assert plain.to_literal().datatype is None
+    assert plain.datatype is None
+    assert str(plain.to_literal().value) == "text"
 
 
 def test_langstring_without_lang_tag():
@@ -310,13 +312,13 @@ def test_langstring_without_lang_tag():
 
 
 def test_term_to_python_unknown_datatype_no_target():
-    lit = Literal("v", datatype=URIRef("http://example.org/custom"))
+    lit = Literal("v", datatype=NamedNode("http://example.org/custom"))
     out = term_to_python(lit, None)
     assert isinstance(out, OpaqueLiteral)
 
 
 def test_term_to_python_unknown_datatype_with_exotic_target():
-    lit = Literal("v", datatype=URIRef("http://example.org/custom"))
+    lit = Literal("v", datatype=NamedNode("http://example.org/custom"))
 
     class Exotic:
         pass
@@ -325,17 +327,17 @@ def test_term_to_python_unknown_datatype_with_exotic_target():
 
 
 def test_python_to_term_opaque_and_resource_ref():
-    opaque = OpaqueLiteral("x", str(XSD.string))
+    opaque = OpaqueLiteral("x", str(XSD.string.value))
     assert isinstance(python_to_term(opaque), Literal)
-    assert python_to_term(ResourceRef("http://example.org/r")) == URIRef(
+    assert python_to_term(ResourceRef("http://example.org/r")) == NamedNode(
         "http://example.org/r"
     )
 
 
 def test_term_to_python_resource_ref_target():
-    assert term_to_python(URIRef("http://example.org/r"), ResourceRef) == ResourceRef(
-        "http://example.org/r"
-    )
+    assert term_to_python(
+        NamedNode("http://example.org/r"), ResourceRef
+    ) == ResourceRef("http://example.org/r")
     assert term_to_python(Literal("http://example.org/r"), ResourceRef) == ResourceRef(
         "http://example.org/r"
     )

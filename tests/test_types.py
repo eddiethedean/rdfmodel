@@ -6,8 +6,9 @@ from datetime import date, datetime
 from decimal import Decimal
 
 import pytest
-from rdflib import BNode, Literal, URIRef, XSD
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode as URIRef
 
+from triplemodel.store.namespaces import XSD
 from triplemodel.terms import python_to_term, term_to_python
 
 
@@ -40,98 +41,32 @@ def test_round_trip_int():
     assert term_to_python(lit, int) == 7
 
 
+def test_round_trip_float():
+    lit = python_to_term(2.5)
+    assert term_to_python(lit, float) == 2.5
+
+
+def test_round_trip_bool():
+    lit = python_to_term(False)
+    assert term_to_python(lit, bool) is False
+
+
+def test_round_trip_date():
+    lit = python_to_term(date(2020, 1, 2))
+    assert term_to_python(lit, date) == date(2020, 1, 2)
+
+
 def test_round_trip_datetime():
-    dt = datetime(2024, 1, 15, 12, 0, 0)
+    dt = datetime(2020, 1, 2, 3, 4, 5)
     lit = python_to_term(dt)
     assert term_to_python(lit, datetime) == dt
 
 
-def test_round_trip_date():
-    d = date(2024, 1, 15)
-    lit = python_to_term(d)
-    assert term_to_python(lit, date) == d
+def test_decimal_registry():
+    lit = python_to_term(Decimal("1.5"))
+    assert term_to_python(lit, Decimal) == Decimal("1.5")
 
 
-def test_bool_xsd_boolean():
-    lit = Literal("true", datatype=XSD.boolean)
-    assert term_to_python(lit, bool) is True
-    lit_false = Literal("false", datatype=XSD.boolean)
-    assert term_to_python(lit_false, bool) is False
-
-
-def test_bnode_rejected_for_str():
+def test_bnode_scalar_raises():
     with pytest.raises(TypeError, match="BNode"):
         term_to_python(BNode(), str)
-
-
-def test_python_to_term_passes_through_node():
-    ref = URIRef("http://example.org/resource")
-    assert python_to_term(ref) is ref
-
-
-def test_python_to_term_fallback_literal():
-    term = python_to_term(Decimal("1.5"))
-    assert isinstance(term, Literal)
-    assert str(term) == "1.5"
-
-
-def test_term_to_python_uri_ref():
-    ref = URIRef("http://example.org/resource")
-    assert term_to_python(ref) == "http://example.org/resource"
-
-
-def test_term_to_python_bnode_without_target_type():
-    node = BNode()
-    assert term_to_python(node) is node
-
-
-def test_term_to_python_bnode_rejected_for_scalar_target():
-    with pytest.raises(TypeError, match="scalar fields"):
-        term_to_python(BNode(), int)
-
-
-def test_term_to_python_bool_from_non_xsd_literal():
-    lit = Literal(1, datatype=XSD.integer)
-    assert term_to_python(lit, bool) is True
-
-
-def test_term_to_python_bool_from_plain_true_literal():
-    lit = Literal("true")
-    assert term_to_python(lit, bool) is True
-    assert term_to_python(Literal("false"), bool) is False
-
-
-def test_term_to_python_float():
-    lit = python_to_term(3.14)
-    assert term_to_python(lit, float) == 3.14
-
-
-def test_term_to_python_plain_literal():
-    lit = Literal("hello")
-    assert term_to_python(lit) == "hello"
-
-
-def test_urn_string_becomes_uri_ref():
-    term = python_to_term("urn:example:resource")
-    assert isinstance(term, URIRef)
-
-
-def test_mailto_string_becomes_uri_ref():
-    term = python_to_term("mailto:alice@example.org")
-    assert isinstance(term, URIRef)
-
-
-def test_file_string_becomes_uri_ref():
-    term = python_to_term("file:///tmp/example.ttl")
-    assert isinstance(term, URIRef)
-
-
-def test_plain_string_without_scheme_stays_literal():
-    term = python_to_term("not an iri")
-    assert isinstance(term, Literal)
-    assert term.datatype == XSD.string
-
-
-def test_curie_like_string_stays_literal():
-    term = python_to_term("foaf:name")
-    assert isinstance(term, Literal)

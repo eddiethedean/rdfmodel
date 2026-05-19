@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import TypeVar
 
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import term_str
 
 from triplemodel.config import RDF_TYPE, RdfConfig
 from triplemodel.fields.metadata import inverse_for_field
@@ -37,9 +39,9 @@ def discover_subject_uris(
         return []
     subjects: set[str] = set()
     for pred in predicates:
-        for subj in graph.subjects(predicate=URIRef(pred)):
-            if isinstance(subj, URIRef):
-                subjects.add(str(subj))
+        for subj in graph.subjects(predicate=NamedNode(pred)):
+            if isinstance(subj, NamedNode):
+                subjects.add(term_str(subj))
     return sorted(subjects)
 
 
@@ -55,15 +57,15 @@ def discover_subjects_by_instance_of(
     type_uris = cfg.instance_type_uris
     subjects: set[str] = set()
     for pred_raw in preds:
-        pred_uri = URIRef(resolve_predicate(pred_raw, prefixes))
+        pred_uri = NamedNode(resolve_predicate(pred_raw, prefixes))
         if type_uris:
             for type_raw in type_uris:
-                type_uri = URIRef(resolve_predicate(type_raw, prefixes))
+                type_uri = NamedNode(resolve_predicate(type_raw, prefixes))
                 for subj in graph.subjects(pred_uri, type_uri):
-                    if isinstance(subj, URIRef):
-                        subjects.add(str(subj))
+                    if isinstance(subj, NamedNode):
+                        subjects.add(term_str(subj))
         else:
             for subj in graph.subjects(pred_uri, None):
-                if isinstance(subj, URIRef):
-                    subjects.add(str(subj))
+                if isinstance(subj, NamedNode):
+                    subjects.add(term_str(subj))
     return sorted(subjects)

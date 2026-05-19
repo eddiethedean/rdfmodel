@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import warnings
 
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import term_str
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 from triplemodel.config import RDF_TYPE
@@ -29,17 +31,17 @@ class Employee(TripleModel):
 
 def test_import_via_inverse_predicate() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
-    bob_model = Employee.from_graph(g, str(bob))
+    bob_model = Employee.from_graph(g, term_str(bob))
     assert bob_model.slug == "bob"
 
-    alice_model = Employee.from_graph(g, str(alice))
-    assert alice_model.manager == str(bob)
+    alice_model = Employee.from_graph(g, term_str(alice))
+    assert alice_model.manager == term_str(bob)
 
 
 def test_owned_predicates_includes_inverse() -> None:
@@ -49,32 +51,32 @@ def test_owned_predicates_includes_inverse() -> None:
 
 def test_sync_replace_clears_inverse_links() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     alice_model = Employee(slug="alice", manager=None)
     sync_to_graph(alice_model, g, mode="replace")
 
-    assert Employee.from_graph(g, str(alice)).manager is None
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert Employee.from_graph(g, term_str(alice)).manager is None
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
 
 
 def test_sync_patch_clears_inverse_links() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     alice_model = Employee(slug="alice", manager=None)
     sync_to_graph(alice_model, g, mode="patch")
 
-    assert Employee.from_graph(g, str(alice)).manager is None
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
+    assert Employee.from_graph(g, term_str(alice)).manager is None
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
 
 
 class Team(TripleModel):
@@ -117,12 +119,12 @@ def test_sync_replace_clears_inverse_on_stale_nested_iri() -> None:
     team = Team(slug="eng")
     dept = Department(slug="d1", team=team)
     g = dept.to_graph()
-    team_uri = URIRef(team.subject_uri())
-    lead = URIRef(f"{EX}emp/lead")
-    g.add((lead, URIRef(f"{EX}leadsTeam"), team_uri))
+    team_uri = NamedNode(team.subject_uri())
+    lead = NamedNode(f"{EX}emp/lead")
+    g.add((lead, NamedNode(f"{EX}leadsTeam"), team_uri))
 
     sync_to_graph(Department(slug="d1", team=None), g, mode="replace")
-    assert (lead, URIRef(f"{EX}leadsTeam"), team_uri) not in g
+    assert (lead, NamedNode(f"{EX}leadsTeam"), team_uri) not in g
 
 
 def test_sync_replace_clears_inverse_on_stale_nested_bnode() -> None:
@@ -131,14 +133,14 @@ def test_sync_replace_clears_inverse_on_stale_nested_bnode() -> None:
     g = dept.to_graph()
     team_bnode = next(
         o
-        for o in g.objects(URIRef(dept.subject_uri()), URIRef(f"{EX}hasTeam"))
-        if not isinstance(o, URIRef)
+        for o in g.objects(NamedNode(dept.subject_uri()), NamedNode(f"{EX}hasTeam"))
+        if not isinstance(o, NamedNode)
     )
-    lead = URIRef(f"{EX}emp/lead")
-    g.add((lead, URIRef(f"{EX}leadsTeam"), team_bnode))
+    lead = NamedNode(f"{EX}emp/lead")
+    g.add((lead, NamedNode(f"{EX}leadsTeam"), team_bnode))
 
     sync_to_graph(DepartmentBnode(slug="d1", team=None), g, mode="replace")
-    assert (lead, URIRef(f"{EX}leadsTeam"), team_bnode) not in g
+    assert (lead, NamedNode(f"{EX}leadsTeam"), team_bnode) not in g
 
 
 def test_sync_patch_clears_inverse_on_stale_nested_bnode() -> None:
@@ -147,102 +149,102 @@ def test_sync_patch_clears_inverse_on_stale_nested_bnode() -> None:
     g = dept.to_graph()
     team_bnode = next(
         o
-        for o in g.objects(URIRef(dept.subject_uri()), URIRef(f"{EX}hasTeam"))
-        if not isinstance(o, URIRef)
+        for o in g.objects(NamedNode(dept.subject_uri()), NamedNode(f"{EX}hasTeam"))
+        if not isinstance(o, NamedNode)
     )
-    lead = URIRef(f"{EX}emp/lead")
-    g.add((lead, URIRef(f"{EX}leadsTeam"), team_bnode))
+    lead = NamedNode(f"{EX}emp/lead")
+    g.add((lead, NamedNode(f"{EX}leadsTeam"), team_bnode))
 
     sync_to_graph(DepartmentBnode(slug="d1", team=None), g, mode="patch")
-    assert (lead, URIRef(f"{EX}leadsTeam"), team_bnode) not in g
+    assert (lead, NamedNode(f"{EX}leadsTeam"), team_bnode) not in g
 
 
 def test_sync_replace_clears_stale_inverse_on_manager_change() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    carol = URIRef(f"{EX}emp/carol")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((carol, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    carol = NamedNode(f"{EX}emp/carol")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((carol, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     sync_to_graph(Employee(slug="alice", manager=str(carol)), g, mode="replace")
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
-    assert (alice, URIRef(f"{EX}hasManager"), carol) in g
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
+    assert (alice, NamedNode(f"{EX}hasManager"), carol) in g
 
 
 def test_sync_patch_clears_stale_inverse_on_manager_change() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    carol = URIRef(f"{EX}emp/carol")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((carol, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    carol = NamedNode(f"{EX}emp/carol")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((carol, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     sync_to_graph(Employee(slug="alice", manager=str(carol)), g, mode="patch")
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
-    assert (alice, URIRef(f"{EX}hasManager"), carol) in g
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
+    assert (alice, NamedNode(f"{EX}hasManager"), carol) in g
 
 
 def test_sync_add_clears_inverse_when_field_set() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     alice_model = Employee(slug="alice", manager=str(bob))
     sync_to_graph(alice_model, g, mode="add")
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
-    assert (alice, URIRef(f"{EX}hasManager"), bob) in g
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
+    assert (alice, NamedNode(f"{EX}hasManager"), bob) in g
 
 
 def test_sync_add_clears_stale_inverse_on_manager_change() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    carol = URIRef(f"{EX}emp/carol")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((carol, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    carol = NamedNode(f"{EX}emp/carol")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((carol, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     sync_to_graph(Employee(slug="alice", manager=str(carol)), g, mode="add")
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
-    assert (alice, URIRef(f"{EX}hasManager"), carol) in g
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
+    assert (alice, NamedNode(f"{EX}hasManager"), carol) in g
 
 
 def test_sync_patch_clears_inverse_on_stale_nested_iri() -> None:
     team = Team(slug="eng")
     dept = Department(slug="d1", team=team)
     g = dept.to_graph()
-    team_uri = URIRef(team.subject_uri())
-    lead = URIRef(f"{EX}emp/lead")
-    g.add((lead, URIRef(f"{EX}leadsTeam"), team_uri))
+    team_uri = NamedNode(team.subject_uri())
+    lead = NamedNode(f"{EX}emp/lead")
+    g.add((lead, NamedNode(f"{EX}leadsTeam"), team_uri))
 
     sync_to_graph(Department(slug="d1", team=None), g, mode="patch")
-    assert (lead, URIRef(f"{EX}leadsTeam"), team_uri) not in g
+    assert (lead, NamedNode(f"{EX}leadsTeam"), team_uri) not in g
 
 
 def test_import_forward_and_inverse_conflict_warns() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    carol = URIRef(f"{EX}emp/carol")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((alice, URIRef(f"{EX}hasManager"), bob))
-    g.add((carol, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    carol = NamedNode(f"{EX}emp/carol")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((alice, NamedNode(f"{EX}hasManager"), bob))
+    g.add((carol, NamedNode(f"{EX}manages"), alice))
 
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        model = Employee.from_graph(g, str(alice))
+        model = Employee.from_graph(g, term_str(alice))
     assert len(w) == 1
     assert "forward predicate" in str(w[0].message).lower()
-    assert model.manager == str(bob)
+    assert model.manager == term_str(bob)
 
 
 def test_walk_embed_follows_bnode_link_in_graph() -> None:
@@ -273,7 +275,7 @@ def test_walk_embed_follows_bnode_link_in_graph() -> None:
     cfg = get_rdf_config(Outer)
     walked = list(
         _walk_embed_instances(
-            outer, URIRef(outer.subject_uri()), cfg, g, default_resolver
+            outer, NamedNode(outer.subject_uri()), cfg, g, default_resolver
         )
     )
     assert len(walked) == 2
@@ -371,31 +373,31 @@ def test_clear_inverse_walk_skips_missing_bnode_link() -> None:
 
 def test_import_forward_inverse_conflict_raises() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    carol = URIRef(f"{EX}emp/carol")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((alice, URIRef(f"{EX}hasManager"), bob))
-    g.add((carol, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    carol = NamedNode(f"{EX}emp/carol")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((alice, NamedNode(f"{EX}hasManager"), bob))
+    g.add((carol, NamedNode(f"{EX}manages"), alice))
 
     import pytest
 
     with pytest.raises(ValueError, match="forward predicate"):
-        Employee.from_graph(g, str(alice), on_duplicate="error")
+        Employee.from_graph(g, term_str(alice), on_duplicate="error")
 
 
 def test_sync_replace_clears_inverse_when_field_set() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
 
     alice_model = Employee(slug="alice", manager=str(bob))
     sync_to_graph(alice_model, g, mode="replace")
-    assert (bob, URIRef(f"{EX}manages"), alice) not in g
-    assert (alice, URIRef(f"{EX}hasManager"), bob) in g
+    assert (bob, NamedNode(f"{EX}manages"), alice) not in g
+    assert (alice, NamedNode(f"{EX}hasManager"), bob) in g
 
 
 def test_inverse_on_list_field_rejected_at_class_definition() -> None:
@@ -418,15 +420,15 @@ def test_inverse_on_list_field_rejected_at_class_definition() -> None:
 
 def test_import_multiple_inverse_subjects_warns() -> None:
     g = Graph()
-    alice = URIRef(f"{EX}emp/alice")
-    bob = URIRef(f"{EX}emp/bob")
-    carol = URIRef(f"{EX}emp/carol")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Employee")))
-    g.add((bob, URIRef(f"{EX}manages"), alice))
-    g.add((carol, URIRef(f"{EX}manages"), alice))
+    alice = NamedNode(f"{EX}emp/alice")
+    bob = NamedNode(f"{EX}emp/bob")
+    carol = NamedNode(f"{EX}emp/carol")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Employee")))
+    g.add((bob, NamedNode(f"{EX}manages"), alice))
+    g.add((carol, NamedNode(f"{EX}manages"), alice))
 
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        model = Employee.from_graph(g, str(alice))
+        model = Employee.from_graph(g, term_str(alice))
     assert any("Multiple objects" in str(x.message) for x in w)
-    assert model.manager == str(bob)
+    assert model.manager == term_str(bob)

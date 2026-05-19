@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -26,9 +27,9 @@ class Person(TripleModel):
 def main() -> None:
     graph = Graph()
     graph.bind("foaf", FOAF)
-    alice = URIRef(f"{EX}alice")
-    graph.add((alice, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    graph.add((alice, URIRef(f"{FOAF}name"), Literal("Alice")))
+    alice = NamedNode(f"{EX}alice")
+    graph.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    graph.add((alice, NamedNode(f"{FOAF}name"), Literal("Alice")))
 
     people = Person.construct_from_sparql(
         graph,

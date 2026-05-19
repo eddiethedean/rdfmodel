@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import cast
 
 from pydantic import BaseModel
-from rdflib import BNode, Graph, URIRef
+from pyoxigraph import BlankNode as BNode, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel.config import RdfConfig, get_rdf_config
 from triplemodel.fields.resolver import default_resolver
@@ -48,11 +49,11 @@ def clear_stale_nested_iri_children(
         if nested_cls is None:
             continue
         nested_cfg = get_rdf_config(nested_cls)
-        pred_ref = URIRef(pred)
+        pred_ref = NamedNode(pred)
         in_graph = {
             str(obj)
             for obj in graph.objects(parent_ref, pred_ref)
-            if isinstance(obj, URIRef)
+            if isinstance(obj, NamedNode)
         }
         value = getattr(model, name)
         keep = {nested_cfg.subject_uri(value)} if value is not None else set()
@@ -134,7 +135,7 @@ def clear_stale_nested_bnode_children(
         if nested_cls is None:
             continue
         nested_cfg = get_rdf_config(nested_cls)
-        pred_ref = URIRef(pred)
+        pred_ref = NamedNode(pred)
         in_graph = {
             obj for obj in graph.objects(parent_ref, pred_ref) if isinstance(obj, BNode)
         }
@@ -179,7 +180,7 @@ def clear_nested_bnode_children(
         pred = r.resolve_field_predicate(field_info, prefixes)
         if pred is None:
             continue
-        pred_ref = URIRef(pred)
+        pred_ref = NamedNode(pred)
         for bnode in list(graph.objects(parent_ref, pred_ref)):
             if isinstance(bnode, BNode):
                 remove_bnode_subgraph(graph, bnode)

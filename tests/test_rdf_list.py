@@ -5,8 +5,9 @@ from __future__ import annotations
 import warnings
 
 import pytest
-from rdflib import BNode, Graph, URIRef
-from rdflib.namespace import RDF
+from pyoxigraph import BlankNode as BNode, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.namespaces import RDF_FIRST as RDF_FIRST_URI
 
 from triplemodel import TripleModel, objects_for_field, rdf_field, sync_to_graph
 from triplemodel.io.list_fields import clear_model_rdf_lists
@@ -36,16 +37,16 @@ def test_patch_clears_empty_rdf_list():
     p = Person(slug="a", nick=["x"])
     g = p.to_graph()
     sync_to_graph(Person(slug="a", nick=[]), g, mode="patch")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}nick"))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}nick"))) == []
 
 
 def test_clear_model_rdf_lists():
     p = Person(slug="a", nick=["x"])
     g = p.to_graph()
     clear_model_rdf_lists(g, Person, p.subject_uri())
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}nick"))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}nick"))) == []
 
 
 def test_clear_model_rdf_lists_skips_id_field():
@@ -79,9 +80,13 @@ def test_clear_model_skips_non_list_fields():
     p = Mixed(slug="a", nick=["x"], tag={"t"})
     g = p.to_graph()
     clear_model_rdf_lists(g, Mixed, p.subject_uri())
+    from triplemodel.store.terms import term_str
+
     assert {
-        str(o)
-        for o in g.objects(URIRef(p.subject_uri()), URIRef("http://example.org/tag"))
+        term_str(o)
+        for o in g.objects(
+            NamedNode(p.subject_uri()), NamedNode("http://example.org/tag")
+        )
     } == {"t"}
 
 
@@ -100,8 +105,12 @@ def test_set_multi_object_predicate():
 
     p = Tagged(slug="a", tag={"a", "b"})
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
-    assert {str(o) for o in g.objects(subj, URIRef("http://example.org/tag"))} == {
+    subj = NamedNode(p.subject_uri())
+    from triplemodel.store.terms import term_str
+
+    assert {
+        term_str(o) for o in g.objects(subj, NamedNode("http://example.org/tag"))
+    } == {
         "a",
         "b",
     }
@@ -127,7 +136,7 @@ def test_write_rdf_list_all_none_terms():
 def test_list_field_duplicate_warns():
     from unittest.mock import patch
 
-    from rdflib import BNode
+    from pyoxigraph import BlankNode as BNode
 
     from triplemodel.io.import_ import import_field_value
 
@@ -192,14 +201,14 @@ def test_objects_for_field_empty_list():
 def test_read_rdf_list_direct():
     p = Person(slug="a", nick=["x", "y"])
     g = p.to_graph()
-    head = list(g.objects(URIRef(p.subject_uri()), URIRef(f"{FOAF}nick")))[0]
+    head = list(g.objects(NamedNode(p.subject_uri()), NamedNode(f"{FOAF}nick")))[0]
     assert read_rdf_list(g, head, str) == ["x", "y"]
 
 
 def test_read_rdf_list_malformed_head_raises():
     g = Graph()
     head = BNode("not-a-list")
-    g.add((URIRef(EX + "a"), URIRef(f"{FOAF}nick"), head))
+    g.add((NamedNode(EX + "a"), NamedNode(f"{FOAF}nick"), head))
     with pytest.raises(ValueError, match="not an rdf:List head"):
         read_rdf_list(g, head, str)
 
@@ -207,12 +216,20 @@ def test_read_rdf_list_malformed_head_raises():
 def test_from_graph_duplicate_list_heads_warns():
     p = Person(slug="a", nick=["x"])
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
-    g.add((subj, URIRef(f"{FOAF}nick"), BNode("second-list")))
-    g.add((BNode("second-list"), RDF.first, URIRef("http://example.org/extra")))
+    subj = NamedNode(p.subject_uri())
+    g.add((subj, NamedNode(f"{FOAF}nick"), BNode("second-list")))
+    g.add(
+        (
+            BNode("second-list"),
+            NamedNode(RDF_FIRST_URI),
+            NamedNode("http://example.org/extra"),
+        )
+    )
 
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
-        restored = Person.from_graph(g, str(subj), on_duplicate="warn")
+        from triplemodel.store.terms import term_str
+
+        restored = Person.from_graph(g, term_str(subj), on_duplicate="warn")
     assert any("Multiple objects" in str(x.message) for x in w)
     assert restored.nick == ["x"]

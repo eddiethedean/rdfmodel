@@ -5,7 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 import tempfile
 
-from triplemodel import TripleModel, load_models_from_dataset, models_to_dataset, rdf_field
+from triplemodel import (
+    TripleModel,
+    load_models_from_dataset,
+    models_to_dataset,
+    rdf_field,
+)
 from triplemodel.io.dataset import dump_dataset, parse_into_dataset
 from triplemodel.vocab import FOAF
 

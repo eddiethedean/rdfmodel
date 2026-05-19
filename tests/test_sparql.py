@@ -6,8 +6,9 @@ from typing import Annotated, Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
-from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import FOAF as FOAF_NS
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.vocab import FOAF as FOAF_NS
 
 from triplemodel import IriId, TripleModel, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -56,13 +57,13 @@ class PersonIriId(TripleModel):
 def _foaf_graph() -> Graph:
     g = Graph()
     g.bind("foaf", FOAF_NS)
-    alice = URIRef(f"{EX}alice")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((alice, URIRef(f"{FOAF}name"), Literal("Alice")))
-    g.add((alice, URIRef(f"{FOAF}age"), Literal(30)))
-    bob = URIRef(f"{EX}bob")
-    g.add((bob, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((bob, URIRef(f"{FOAF}name"), Literal("Bob")))
+    alice = NamedNode(f"{EX}alice")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((alice, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    g.add((alice, NamedNode(f"{FOAF}age"), Literal(30)))
+    bob = NamedNode(f"{EX}bob")
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((bob, NamedNode(f"{FOAF}name"), Literal("Bob")))
     return g
 
 
@@ -86,10 +87,10 @@ def test_init_bindings_from_model():
     p = Person(slug="alice", name="Alice", age=30)
     bindings = init_bindings_from_model(p, {"slug": "slug", "n": "name"})
     assert len(bindings) == 2
-    from rdflib.term import Variable as V
+    from triplemodel.store.sparql_result import Variable as V
 
-    assert bindings[V("slug")] == URIRef(f"{EX}alice")
-    assert str(bindings[V("n")]) == "Alice"
+    assert bindings[V("slug")] == NamedNode(f"{EX}alice")
+    assert str(bindings[V("n")].value) == "Alice"
     with pytest.raises(ValueError, match="Unknown model field"):
         init_bindings_from_model(p, {"x": "missing"})
 
@@ -303,36 +304,23 @@ def test_run_sparql_without_model_cls():
 
 
 def test_open_sparql_graph_read_only() -> None:
-    """Smoke test: SPARQLStore-backed graph is constructible (no HTTP)."""
-    from rdflib.plugins.stores.sparqlstore import SPARQLStore
-
-    store = SPARQLStore("http://example.invalid/sparql")
-    g = Graph(store=store)
-    assert g.store is store
+    with pytest.raises(NotImplementedError, match="open_sparql_graph"):
+        open_sparql_graph("http://example.invalid/sparql", read_only=True)
 
 
 def test_open_sparql_graph_read_write() -> None:
-    from rdflib.plugins.stores.sparqlstore import SPARQLUpdateStore
-
-    store = SPARQLUpdateStore("http://example.invalid/sparql")
-    g = Graph(store=store)
-    assert g.store is store
+    with pytest.raises(NotImplementedError, match="open_sparql_graph"):
+        open_sparql_graph("http://example.invalid/sparql", read_only=False)
 
 
 def test_open_sparql_graph_helpers() -> None:
-    g_read = open_sparql_graph("http://example.invalid/sparql", read_only=True)
-    g_write = open_sparql_graph("http://example.invalid/sparql", read_only=False)
-    assert g_read.store is not g_write.store
+    with pytest.raises(NotImplementedError):
+        open_sparql_graph("http://example.invalid/sparql", read_only=True)
 
 
 @patch("triplemodel.io.sparql.open_sparql_graph")
 def test_load_sparql_construct(mock_open: MagicMock) -> None:
-    inner = _foaf_graph()
-    remote = MagicMock()
-    remote.query.return_value = inner.query(
-        "CONSTRUCT { ?s ?p ?o } WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> . ?s ?p ?o . }"
-    )
-    mock_open.return_value = remote
+    mock_open.return_value = _foaf_graph()
     people = load_sparql(
         Person,
         "http://example.org/sparql",
@@ -343,22 +331,12 @@ def test_load_sparql_construct(mock_open: MagicMock) -> None:
 
 @patch("triplemodel.io.sparql.open_sparql_graph")
 def test_load_sparql_select(mock_open: MagicMock) -> None:
-    inner = _foaf_graph()
-    remote = MagicMock()
-    remote.query.return_value = inner.query(
-        """
-        SELECT ?slug ?name WHERE {
-          ?s a <http://xmlns.com/foaf/0.1/Person> .
-          ?s <http://xmlns.com/foaf/0.1/name> ?name .
-          BIND(REPLACE(STR(?s), "http://example.org/people/", "") AS ?slug)
-        }
-        """
-    )
-    mock_open.return_value = remote
+    mock_open.return_value = _foaf_graph()
     rows = load_sparql(
         Person,
         "http://example.org/sparql",
-        "SELECT ?slug ?name WHERE { ?s foaf:name ?name }",
+        "SELECT ?s ?name WHERE { ?s a foaf:Person . ?s foaf:name ?name }",
+        subject_var="s",
     )
     assert len(rows) == 2
 
@@ -391,12 +369,7 @@ def test_load_sparql_unsupported_query_object(mock_open: MagicMock) -> None:
 
 @patch("triplemodel.io.sparql.open_sparql_graph")
 def test_load_sparql_classmethod(mock_open: MagicMock) -> None:
-    inner = _foaf_graph()
-    remote = MagicMock()
-    remote.query.return_value = inner.query(
-        "CONSTRUCT { ?s ?p ?o } WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> . ?s ?p ?o . }"
-    )
-    mock_open.return_value = remote
+    mock_open.return_value = _foaf_graph()
     people = Person.load_sparql(
         "http://example.org/sparql",
         "CONSTRUCT { ?s ?p ?o } WHERE { ?s a foaf:Person . ?s ?p ?o . }",
@@ -445,10 +418,10 @@ def test_select_models_optional_binding_missing():
 def test_select_models_hydrate_skips_missing_and_duplicates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from rdflib.term import Variable as V
+    from triplemodel.store.sparql_result import Variable as V
 
     g = _foaf_graph()
-    alice = URIRef(f"{EX}alice")
+    alice = NamedNode(f"{EX}alice")
     fake_result = MagicMock()
     fake_result.type = "SELECT"
     fake_result.__iter__ = MagicMock(
@@ -491,28 +464,10 @@ def test_load_sparql_prepared_query_select():
     assert len(rows) == 2
 
 
-def test_query_form_from_prepared():
-    from rdflib.plugins.sparql.sparql import Query
-
-    from triplemodel.io.sparql import _query_form_from_prepared
-
-    assert (
-        _query_form_from_prepared(
-            prepare_model_query(Person, "SELECT ?n WHERE { ?s foaf:name ?n }").prepared
-        )
-        == "select"
-    )
-    assert (
-        _query_form_from_prepared(
-            prepare_model_query(
-                Person, "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }"
-            ).prepared
-        )
-        == "construct"
-    )
-    bare = MagicMock(spec=Query)
-    bare.algebra = None
-    assert _query_form_from_prepared(bare) == "unknown"
+def test_prepare_model_query_returns_string():
+    pq = prepare_model_query(Person, "SELECT ?n WHERE { ?s foaf:name ?n }")
+    assert isinstance(pq.prepared, str)
+    assert detect_query_form(pq.prepared) == "select"
 
 
 def test_init_bindings_filter_subject_uri():
@@ -555,8 +510,8 @@ def test_union_member_term_conversion():
     g = Graph()
     g.add(
         (
-            URIRef(f"{EX}a"),
-            URIRef(f"{FOAF}age"),
+            NamedNode(f"{EX}a"),
+            NamedNode(f"{FOAF}age"),
             Literal("not-a-number"),
         )
     )
@@ -622,15 +577,15 @@ def test_subject_uri_outside_namespace_uses_full_uri_as_slug():
     g = Graph()
     g.add(
         (
-            URIRef("http://other.example/alien"),
-            URIRef(RDF_TYPE),
-            URIRef(f"{FOAF}Person"),
+            NamedNode("http://other.example/alien"),
+            NamedNode(RDF_TYPE),
+            NamedNode(f"{FOAF}Person"),
         )
     )
     g.add(
         (
-            URIRef("http://other.example/alien"),
-            URIRef(f"{FOAF}name"),
+            NamedNode("http://other.example/alien"),
+            NamedNode(f"{FOAF}name"),
             Literal("ET"),
         )
     )

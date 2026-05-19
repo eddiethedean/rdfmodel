@@ -7,7 +7,7 @@ Copy this file into the SparqlModel repo (e.g. `docs/ECOSYSTEM.md`). TripleModel
 ## Stack
 
 ```text
-sparqlmodel  →  triplemodel  →  rdflib · pydantic
+sparqlmodel  →  triplemodel  →  pyoxigraph · pydantic
 ```
 
 **Architecture (Option A):** `SPARQLModel` **subclasses** `TripleModel`. One class, one mapping path. Session I/O calls `sync_to_graph` / `from_graph` on the same instances.
@@ -24,7 +24,7 @@ sparqlmodel  →  triplemodel  →  rdflib · pydantic
 | Query DSL + compiler | Terms, literals, subject IRIs |
 | `put`/`delete` cascade | `parse` / `serialize` |
 | Hydration `depth` | Namespaces, Dataset |
-| FastAPI, HTTP SPARQL | rdflib matrix ([ROADMAP](ROADMAP.md)) |
+| FastAPI, HTTP SPARQL | pyoxigraph matrix ([ROADMAP](ROADMAP.md)) |
 
 ---
 
@@ -36,7 +36,13 @@ sparqlmodel  →  triplemodel  →  rdflib · pydantic
 dependencies = ["triplemodel>=0.9,<2"]
 ```
 
-Tighten to `~=1.0` when TripleModel 1.0 ships.
+**After TripleModel 0.10 (SM-7):**
+
+```toml
+dependencies = ["triplemodel>=0.10,<2"]
+```
+
+Use `triplemodel.Store` (not `rdflib.Graph`) for session graph I/O. Tighten to `~=1.0` when TripleModel 1.0 ships.
 
 ---
 

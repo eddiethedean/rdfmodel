@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import re
-from typing import Literal
+from typing import Literal, Protocol
 
-from rdflib import Graph, Namespace
-
+from triplemodel.store.graph import RdfGraph
 from triplemodel.terms.iri import looks_like_iri
 
 BindStrategy = Literal["core", "rdflib", "none"]
+
+
+class _NamespaceBindable(Protocol):
+    def bind(self, prefix: str, namespace: str | object) -> None: ...
 
 _CURIE_RE = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):([^:].*)$")
 
@@ -40,17 +43,14 @@ def resolve_predicate(predicate: str, prefixes: dict[str, str]) -> str:
 
 
 def bind_namespaces(
-    graph: Graph,
+    graph: _NamespaceBindable,
     prefixes: dict[str, str],
     *,
     strategy: BindStrategy = "core",
 ) -> None:
-    """Bind ``prefixes`` on ``graph`` for serialization and SPARQL."""
+    """Bind ``prefixes`` on ``graph`` for serialization (recorded for Turtle output)."""
+    _ = strategy
     if strategy == "none":
         return
     for prefix, uri in prefixes.items():
-        graph.bind(prefix, Namespace(uri), override=True, replace=True)
-    if strategy == "rdflib":
-        bind_all = getattr(graph, "bind_namespaces", None)
-        if callable(bind_all):
-            bind_all()
+        graph.bind(prefix, uri)

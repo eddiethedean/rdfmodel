@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import URIRef
+from pyoxigraph import NamedNode
 
 import triplemodel
 from triplemodel import (
@@ -119,9 +119,13 @@ def test_falsy_type_uri_omits_rdf_type_on_export():
         name: str = rdf_field("http://xmlns.com/foaf/0.1/name")
 
     g = Untyped(slug="a", name="A").to_graph()
-    subj = URIRef(EX + "a")
+    subj = NamedNode(EX + "a")
     assert (
-        list(g.objects(subj, URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")))
+        list(
+            g.objects(
+                subj, NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+            )
+        )
         == []
     )
 

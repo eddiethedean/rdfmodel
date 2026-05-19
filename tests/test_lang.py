@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from rdflib import Literal
+from pyoxigraph import Literal
 
 from triplemodel import TripleModel, rdf_field
 from triplemodel.terms import python_to_term
@@ -42,9 +42,9 @@ def test_langstring_roundtrip():
 def test_annotated_lang_roundtrip():
     doc = TaggedTitle(slug="d1", title="Hello")
     g = doc.to_graph()
-    from rdflib import URIRef
+    from pyoxigraph import NamedNode
 
-    lit = list(g.objects(URIRef(doc.subject_uri()), URIRef(f"{DC}title")))[0]
+    lit = list(g.objects(NamedNode(doc.subject_uri()), NamedNode(f"{DC}title")))[0]
     assert isinstance(lit, Literal)
     assert lit.language == "en"  # noqa: SLF001 — rdflib Literal.language
     restored = TaggedTitle.from_graph(g, doc.subject_uri())

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import RDFS
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.config.constants import RDFS
 
 from triplemodel import TripleModel, graph_to_model_dispatch, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -40,18 +41,18 @@ class Agent(TripleModel):
 
 def _subclass_graph() -> Graph:
     g = Graph()
-    Person_t = URIRef(f"{EX}Person")
-    Agent_t = URIRef(f"{EX}Agent")
-    alice = URIRef(f"{EX}alice")
-    g.add((Agent_t, RDFS.subClassOf, Person_t))
-    g.add((alice, URIRef(RDF_TYPE), Agent_t))
-    g.add((alice, URIRef(f"{EX}name"), Literal("Alice")))
+    Person_t = NamedNode(f"{EX}Person")
+    Agent_t = NamedNode(f"{EX}Agent")
+    alice = NamedNode(f"{EX}alice")
+    g.add((Agent_t, NamedNode(f"{RDFS}subClassOf"), Person_t))
+    g.add((alice, NamedNode(RDF_TYPE), Agent_t))
+    g.add((alice, NamedNode(f"{EX}name"), Literal("Alice")))
     return g
 
 
 def test_subject_type_closure():
     g = _subclass_graph()
-    alice = URIRef(f"{EX}alice")
+    alice = NamedNode(f"{EX}alice")
     closure = subject_type_closure(g, alice)
     assert f"{EX}Agent" in closure
     assert f"{EX}Person" in closure
@@ -59,7 +60,7 @@ def test_subject_type_closure():
 
 def test_resolve_subclass_picks_agent():
     g = _subclass_graph()
-    alice = URIRef(f"{EX}alice")
+    alice = NamedNode(f"{EX}alice")
     cls = resolve_model_class_with_rdfs(g, alice)
     assert cls is Agent
 
@@ -73,7 +74,7 @@ def test_graph_to_model_dispatch_agent():
 
 def test_resolve_exact_type_without_subclass():
     g = _subclass_graph()
-    alice = URIRef(f"{EX}alice")
+    alice = NamedNode(f"{EX}alice")
     cls = resolve_model_class(g, alice, use_subclass=False)
     assert cls is Agent
 
@@ -89,8 +90,8 @@ def test_rdf_resolve_subclass_false_matches_direct_type():
         slug: str
 
     g = Graph()
-    alice = URIRef(f"{EX}alice")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
+    alice = NamedNode(f"{EX}alice")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
 
     cls = resolve_model_class(g, alice)
     assert cls is PersonDirect
@@ -107,11 +108,11 @@ def test_rdf_resolve_subclass_false_skips_superclass_via_closure():
         slug: str
 
     g = Graph()
-    person_t = URIRef(f"{EX}Person")
-    custom_t = URIRef(f"{EX}CustomRole")
-    alice = URIRef(f"{EX}alice")
-    g.add((custom_t, RDFS.subClassOf, person_t))
-    g.add((alice, URIRef(RDF_TYPE), custom_t))
+    person_t = NamedNode(f"{EX}Person")
+    custom_t = NamedNode(f"{EX}CustomRole")
+    alice = NamedNode(f"{EX}alice")
+    g.add((custom_t, NamedNode(f"{RDFS}subClassOf"), person_t))
+    g.add((alice, NamedNode(RDF_TYPE), custom_t))
 
     with pytest.raises(ValueError, match="No registered"):
         resolve_model_class(g, alice)
@@ -119,9 +120,11 @@ def test_rdf_resolve_subclass_false_skips_superclass_via_closure():
 
 def test_transitive_objects_chain():
     g = Graph()
-    a, b, c = URIRef(f"{EX}a"), URIRef(f"{EX}b"), URIRef(f"{EX}c")
-    p = URIRef(f"{EX}partOf")
+    a, b, c = NamedNode(f"{EX}a"), NamedNode(f"{EX}b"), NamedNode(f"{EX}c")
+    p = NamedNode(f"{EX}partOf")
     g.add((a, p, b))
     g.add((b, p, c))
-    objs = transitive_objects(g, a, str(p))
-    assert str(c) in objs
+    from triplemodel.store.terms import term_str
+
+    objs = transitive_objects(g, a, term_str(p))
+    assert term_str(c) in objs

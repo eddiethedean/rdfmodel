@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, graph_to_models, iter_graph_to_models, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -24,9 +25,9 @@ class ChunkPerson(TripleModel):
 def _build_graph(count: int) -> Graph:
     g = Graph()
     for i in range(count):
-        subj = URIRef(f"{EX}p{i}")
-        g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
-        g.add((subj, URIRef(f"{EX}name"), Literal(f"P{i}")))
+        subj = NamedNode(f"{EX}p{i}")
+        g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+        g.add((subj, NamedNode(f"{EX}name"), Literal(f"P{i}")))
     return g
 
 

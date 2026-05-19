@@ -8,9 +8,10 @@ from enum import Enum
 from typing import cast
 from uuid import UUID
 
-from rdflib import Literal, XSD
+from pyoxigraph import Literal
 
 from triplemodel._typing import PyT, RdfScalar
+from triplemodel.store.namespaces import XSD
 
 RegistryValue = RdfScalar | Decimal | UUID
 
@@ -39,9 +40,6 @@ class LiteralRegistry:
             cast(Callable[[Literal], RegistryValue], from_literal),
         )
         if datatype is not None:
-            from rdflib.term import bind
-
-            bind(datatype, py_type)
             self._datatype_from_literal[str(datatype)] = cast(
                 Callable[[Literal], RegistryValue], from_literal
             )
@@ -78,8 +76,8 @@ class LiteralRegistry:
     def literal_to_python(
         self, term: Literal, py_type: type[PyT] | type | None
     ) -> RegistryValue | PyT | None:
-        if isinstance(term, Literal) and term.datatype is not None:
-            by_dt = self.converter_for_datatype(str(term.datatype))
+        if term.datatype is not None:
+            by_dt = self.converter_for_datatype(str(term.datatype.value))
             if by_dt is not None:
                 return by_dt(term)
         if py_type is None:
@@ -96,7 +94,7 @@ def _decimal_to_literal(value: Decimal) -> Literal:
 
 
 def _decimal_from_literal(term: Literal) -> Decimal:
-    return Decimal(str(term))
+    return Decimal(str(term.value))
 
 
 def _uuid_to_literal(value: UUID) -> Literal:
@@ -104,32 +102,33 @@ def _uuid_to_literal(value: UUID) -> Literal:
 
 
 def _uuid_from_literal(term: Literal) -> UUID:
-    return UUID(str(term))
+    return UUID(str(term.value))
 
 
 default_registry = LiteralRegistry()
 default_registry.register_literal_type(
-    Decimal, _decimal_to_literal, _decimal_from_literal, datatype=str(XSD.decimal)
+    Decimal, _decimal_to_literal, _decimal_from_literal, datatype=str(XSD.decimal.value)
 )
 default_registry.register_literal_type(UUID, _uuid_to_literal, _uuid_from_literal)
 
 
 def _g_year_from_literal(term: Literal) -> int:
-    return int(str(term))
+    return int(str(term.value))
 
 
 def _g_month_from_literal(term: Literal) -> str:
-    return str(term)
+    return str(term.value)
 
 
 def _g_month_day_from_literal(term: Literal) -> str:
-    return str(term)
+    return str(term.value)
 
 
-# Partial XSD dates: import via datatype; export via rdf_field(literal_datatype=...)
-default_registry._datatype_from_literal[str(XSD.gYear)] = _g_year_from_literal
-default_registry._datatype_from_literal[str(XSD.gMonth)] = _g_month_from_literal
-default_registry._datatype_from_literal[str(XSD.gMonthDay)] = _g_month_day_from_literal
+default_registry._datatype_from_literal[str(XSD.gYear.value)] = _g_year_from_literal
+default_registry._datatype_from_literal[str(XSD.gMonth.value)] = _g_month_from_literal
+default_registry._datatype_from_literal[str(XSD.gMonthDay.value)] = (
+    _g_month_day_from_literal
+)
 
 
 def register_literal_type(

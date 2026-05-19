@@ -4,16 +4,18 @@ from __future__ import annotations
 
 import hashlib
 
-from rdflib import BNode, Graph
+from pyoxigraph import BlankNode
+
+from triplemodel.store.graph import RdfGraph
 
 
-def stable_bnode(key: str) -> BNode:
+def stable_bnode(key: str) -> BlankNode:
     """Deterministic blank node id from ``key``."""
     digest = hashlib.sha256(key.encode()).hexdigest()[:32]
-    return BNode(digest)
+    return BlankNode(digest)
 
 
-def remove_bnode_subgraph(graph: Graph, node: BNode) -> None:
+def remove_bnode_subgraph(graph: RdfGraph, node: BlankNode) -> None:
     """Remove triples where ``node`` is subject or object."""
     for triple in list(graph.triples((node, None, None))):
         graph.remove(triple)

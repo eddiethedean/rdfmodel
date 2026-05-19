@@ -4,10 +4,19 @@ from __future__ import annotations
 
 import re
 
-from rdflib import BNode, URIRef
-from rdflib.term import Node
+from pyoxigraph import BlankNode, NamedNode
+
+from triplemodel.store.terms import RdfTerm
 
 _SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+
+def normalize_iri(value: str) -> str:
+    """Strip N-Triples angle brackets from an IRI string when present."""
+    s = value.strip()
+    if len(s) >= 2 and s[0] == "<" and s[-1] == ">":
+        return s[1:-1]
+    return s
 
 
 def looks_like_iri(value: str) -> bool:
@@ -22,11 +31,11 @@ def looks_like_iri(value: str) -> bool:
     return False
 
 
-def subject_node(subj: str) -> Node:
+def subject_node(subj: str) -> RdfTerm:
     if looks_like_iri(subj):
-        return URIRef(subj)
-    return BNode(subj)
+        return NamedNode(subj)
+    return BlankNode()
 
 
-def subject_ref(uri: str) -> URIRef:
-    return URIRef(uri)
+def subject_ref(uri: str) -> NamedNode:
+    return NamedNode(normalize_iri(uri))

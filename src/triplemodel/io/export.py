@@ -6,7 +6,8 @@ from typing import cast
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from rdflib import Literal, URIRef, XSD
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store.namespaces import XSD
 
 from triplemodel._typing import ModelFieldScalar, ModelFieldValue, TripleRow
 from triplemodel.config import RDF_TYPE, RdfConfig, get_rdf_config
@@ -106,11 +107,11 @@ def model_to_triples(
             if lang and isinstance(obj, str):
                 obj = LangString(obj, lang)
             elif dt_raw is not None and isinstance(item, int):
-                if dt_raw in ("gYear", "xsd:gYear") or dt_raw == str(XSD.gYear):
+                if dt_raw in ("gYear", "xsd:gYear") or dt_raw == str(XSD.gYear.value):
                     obj = Literal(str(item), datatype=XSD.gYear)
                 else:
                     dt_uri = resolve_predicate(dt_raw, prefixes)
-                    obj = Literal(str(item), datatype=URIRef(dt_uri))
+                    obj = Literal(str(item), datatype=NamedNode(dt_uri))
             triples.append((subject, predicate, obj))
 
     return triples

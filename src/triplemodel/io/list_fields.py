@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 from pydantic import BaseModel
-from rdflib import BNode, Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import BlankNode as BNode, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel._typing import TripleRow
 from triplemodel.config import RdfConfig, get_rdf_config
@@ -47,7 +48,7 @@ def nested_embed_list_subject(
         if node is not None:
             return node
     if graph is not None:
-        pred_ref = URIRef(predicate)
+        pred_ref = NamedNode(predicate)
         parent_ref = subject_ref(parent_subject)
         for obj in graph.objects(parent_ref, pred_ref):
             if isinstance(obj, BNode):
@@ -104,7 +105,9 @@ def iter_nested_list_exports(
         return
     r = resolver or default_resolver
     prefixes = cfg.prefixes_dict
-    parent_subject = str(subject) if isinstance(subject, Node) else subject
+    from triplemodel.store.terms import term_str
+
+    parent_subject = term_str(subject) if isinstance(subject, Node) else subject
     rows_map = embed_rows_by_field or {}
     for name, field_info in type(model).model_fields.items():
         if cfg.id_field and name == cfg.id_field:

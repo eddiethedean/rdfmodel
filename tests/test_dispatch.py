@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import warnings
 
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import (
     TripleModel,
@@ -20,7 +21,7 @@ from triplemodel.io.dispatch import (
 )
 from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
-from rdflib import Dataset
+from triplemodel.store import RdfDataset as Dataset
 
 FOAF_NS = str(FOAF)
 EX = "http://example.org/people/"
@@ -72,11 +73,11 @@ class DispatchAgent(DispatchPerson):
 
 def test_resolve_most_specific_class() -> None:
     g = Graph()
-    subj = URIRef(f"{EX}alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
-    g.add((subj, URIRef(RDF_TYPE), URIRef("http://example.org/Agent")))
-    g.add((subj, URIRef("http://xmlns.com/foaf/0.1/name"), Literal("Alice")))
-    g.add((subj, URIRef("http://example.org/role"), Literal("admin")))
+    subj = NamedNode(f"{EX}alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/Agent")))
+    g.add((subj, NamedNode("http://xmlns.com/foaf/0.1/name"), Literal("Alice")))
+    g.add((subj, NamedNode("http://example.org/role"), Literal("admin")))
 
     cls = resolve_model_class(g, subj)
     assert cls is Agent
@@ -89,12 +90,12 @@ def test_resolve_most_specific_class() -> None:
 def test_all_from_graph_dispatch_dedupes_subject() -> None:
     from unittest.mock import patch
 
-    subj = URIRef(f"{EX}bob")
+    subj = NamedNode(f"{EX}bob")
     g = Graph()
-    g.add((subj, URIRef(f"{FOAF_NS}name"), Literal("Bob")))
-    g.add((subj, URIRef("http://example.org/role"), Literal("editor")))
-    g.add((subj, URIRef(RDF_TYPE), URIRef("http://example.org/Agent")))
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("Bob")))
+    g.add((subj, NamedNode("http://example.org/role"), Literal("editor")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/Agent")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
 
     with patch(
         "triplemodel.protocols.iter_registered_type_uris",
@@ -105,18 +106,34 @@ def test_all_from_graph_dispatch_dedupes_subject() -> None:
 
 
 def test_all_from_graph_dispatch_skips_non_node_subjects() -> None:
-    from rdflib import Literal
+    from unittest.mock import patch
+
+    from pyoxigraph import Literal
 
     from triplemodel.config import RDF_TYPE
 
     g = Graph()
     g.add(
-        (Literal("not-a-subject"), URIRef(RDF_TYPE), URIRef("http://example.org/Agent"))
+        (
+            NamedNode(f"{EX}bob"),
+            NamedNode(RDF_TYPE),
+            NamedNode("http://example.org/Agent"),
+        )
     )
-    g.add((URIRef(f"{EX}bob"), URIRef(RDF_TYPE), URIRef("http://example.org/Agent")))
-    g.add((URIRef(f"{EX}bob"), URIRef(f"{FOAF_NS}name"), Literal("Bob")))
-    g.add((URIRef(f"{EX}bob"), URIRef("http://example.org/role"), Literal("r")))
-    loaded = all_from_graph_dispatch(g)
+    g.add((NamedNode(f"{EX}bob"), NamedNode(f"{FOAF_NS}name"), Literal("Bob")))
+    g.add((NamedNode(f"{EX}bob"), NamedNode("http://example.org/role"), Literal("r")))
+    from triplemodel.store.graph import RdfGraph
+
+    def _subjects(
+        self: RdfGraph,
+        predicate: object = None,
+        object_: object = None,
+    ) -> object:
+        _ = predicate, object_
+        return iter([Literal("not-a-subject"), NamedNode(f"{EX}bob")])
+
+    with patch.object(RdfGraph, "subjects", _subjects):
+        loaded = all_from_graph_dispatch(g)
     assert len(loaded) == 1
 
 
@@ -136,13 +153,13 @@ def test_all_from_dataset_dispatch_dedupes_subject() -> None:
 
     register_rdf_resource(DispatchPerson)
     register_rdf_resource(DispatchAgent)
-    subj = URIRef("http://example.org/dispatch-people/bob")
+    subj = NamedNode("http://example.org/dispatch-people/bob")
     ds = Dataset()
     ctx = get_graph_context(ds, DISPATCH_GRAPH)
-    ctx.add((subj, URIRef(RDF_TYPE), URIRef("http://example.org/DispatchAgent")))
-    ctx.add((subj, URIRef(RDF_TYPE), URIRef("http://example.org/DispatchPerson")))
-    ctx.add((subj, URIRef(f"{FOAF_NS}name"), Literal("Bob")))
-    ctx.add((subj, URIRef("http://example.org/role"), Literal("editor")))
+    ctx.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/DispatchAgent")))
+    ctx.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/DispatchPerson")))
+    ctx.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("Bob")))
+    ctx.add((subj, NamedNode("http://example.org/role"), Literal("editor")))
     with patch(
         "triplemodel.io.dispatch.iter_registered_type_uris",
         return_value=frozenset(
@@ -170,13 +187,15 @@ def test_dispatch_from_dataset_unions_types_across_graphs() -> None:
     from triplemodel.protocols import register_rdf_resource
 
     register_rdf_resource(DispatchPerson)
-    uri = URIRef("http://example.org/dispatch-people/crossgraph")
+    uri = NamedNode("http://example.org/dispatch-people/crossgraph")
     ds = Dataset()
     default_ctx = get_graph_context(ds, None)
     named_ctx = get_graph_context(ds, DISPATCH_GRAPH)
-    default_ctx.add((uri, URIRef(f"{FOAF_NS}name"), Literal("Cross")))
-    named_ctx.add((uri, URIRef(RDF_TYPE), URIRef("http://example.org/DispatchPerson")))
-    named_ctx.add((uri, URIRef(f"{FOAF_NS}name"), Literal("Cross")))
+    default_ctx.add((uri, NamedNode(f"{FOAF_NS}name"), Literal("Cross")))
+    named_ctx.add(
+        (uri, NamedNode(RDF_TYPE), NamedNode("http://example.org/DispatchPerson"))
+    )
+    named_ctx.add((uri, NamedNode(f"{FOAF_NS}name"), Literal("Cross")))
     m = graph_to_model_dispatch_from_dataset(ds, uri)
     assert isinstance(m, DispatchPerson)
     assert m.name == "Cross"
@@ -196,7 +215,9 @@ def test_all_from_dataset_dispatch_skips_unregistered_type_uri() -> None:
 
 
 def test_all_from_dataset_dispatch_skips_non_uri_subjects() -> None:
-    from rdflib import BNode
+    from unittest.mock import patch
+
+    from pyoxigraph import BlankNode as BNode, Literal
 
     from triplemodel.protocols import register_rdf_resource
 
@@ -204,15 +225,19 @@ def test_all_from_dataset_dispatch_skips_non_uri_subjects() -> None:
     ds = Dataset()
     ctx = get_graph_context(ds, DISPATCH_GRAPH)
     bnode = BNode()
-    ctx.add((bnode, URIRef(RDF_TYPE), URIRef("http://example.org/DispatchAgent")))
-    ctx.add(
-        (
-            Literal("not-a-uri-subject"),
-            URIRef(RDF_TYPE),
-            URIRef("http://example.org/DispatchAgent"),
-        )
-    )
-    loaded = all_from_dataset_dispatch(ds)
+    ctx.add((bnode, NamedNode(RDF_TYPE), NamedNode("http://example.org/DispatchAgent")))
+    from triplemodel.store.graph import RdfGraph
+
+    def _subjects(
+        self: RdfGraph,
+        predicate: object = None,
+        object_: object = None,
+    ) -> object:
+        _ = predicate, object_
+        return iter([Literal("not-a-uri-subject"), bnode])
+
+    with patch.object(RdfGraph, "subjects", _subjects):
+        loaded = all_from_dataset_dispatch(ds)
     assert loaded == []
 
 

@@ -9,9 +9,15 @@ import tempfile
 import time
 from pathlib import Path
 
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
-from triplemodel import TripleModel, iter_graph_to_models, load_models_streaming, rdf_field
+from triplemodel import (
+    TripleModel,
+    iter_graph_to_models,
+    load_models_streaming,
+    rdf_field,
+)
 from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
 
@@ -42,12 +48,10 @@ def _write_nt(path: Path, count: int) -> None:
 
 def _strict_import_smoke() -> None:
     g = Graph()
-    subj = URIRef(f"{EX}strict0")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(FOAF_PERSON)))
-    g.add((subj, URIRef(FOAF_NAME), Literal("OK")))
-    people = list(
-        iter_graph_to_models(g, Person, chunk_size=10, strict_import=True)
-    )
+    subj = NamedNode(f"{EX}strict0")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(FOAF_PERSON)))
+    g.add((subj, NamedNode(FOAF_NAME), Literal("OK")))
+    people = list(iter_graph_to_models(g, Person, chunk_size=10, strict_import=True))
     assert len(people) == 1 and people[0][0].name == "OK"
     print("strict_import smoke OK")
 

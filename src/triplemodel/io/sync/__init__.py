@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel.config import (
     GraphMode,

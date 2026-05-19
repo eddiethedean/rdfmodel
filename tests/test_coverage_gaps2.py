@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any, cast
 
 import pytest
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
 from triplemodel.metadata.cardinality import is_triple_model_type
@@ -38,9 +39,9 @@ def test_is_triple_model_type_not_type():
 
 
 def test_python_to_term_mailto():
-    from rdflib import URIRef
+    from pyoxigraph import NamedNode
 
-    assert isinstance(python_to_term("mailto:a@b.co"), URIRef)
+    assert isinstance(python_to_term("mailto:a@b.co"), NamedNode)
 
 
 def test_rdf_list_skips_none_list_items_on_export():
@@ -78,9 +79,9 @@ def test_graph_import_nested_typeerror():
         box: Box | None = rdf_field("http://example.org/box", default=None)
 
     g = Graph()
-    subj = URIRef(EX + "p")
-    g.add((subj, URIRef(f"{FOAF}Person"), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef("http://example.org/box"), Literal("not-a-node")))
+    subj = NamedNode(EX + "p")
+    g.add((subj, NamedNode(f"{FOAF}Person"), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode("http://example.org/box"), Literal("not-a-node")))
     with pytest.raises(ValueError, match="Cannot import nested"):
         graph_to_model(g, P, str(subj), validate_type=False)
 
@@ -134,5 +135,5 @@ def test_model_to_graph_patch_mode():
     g = p.to_graph()
     p2 = P(slug="a", name="A", age=None)
     model_to_graph(p2, g, mode="patch")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []

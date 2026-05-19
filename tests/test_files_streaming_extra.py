@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -130,7 +131,8 @@ def test_cleanup_ephemeral_store_destroy_failure(tmp_path: Path, monkeypatch) ->
 
 
 def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> None:
-    from rdflib import Graph, Literal, URIRef
+    from pyoxigraph import Literal, NamedNode
+    from triplemodel.store import RdfGraph as Graph
 
     from triplemodel.io import files as files_mod
 
@@ -140,9 +142,9 @@ def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> 
         encoding="utf-8",
     )
     g = Graph()
-    subj = URIRef(f"{EX}p0")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
-    g.add((subj, URIRef(f"{EX}name"), Literal("N")))
+    subj = NamedNode(f"{EX}p0")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    g.add((subj, NamedNode(f"{EX}name"), Literal("N")))
     cleaned: list[tuple[str, str, str | None]] = []
 
     def fake_parse_into_store_graph(_path, **_kwargs):
@@ -169,7 +171,8 @@ def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> 
 
 
 def test_load_models_streaming_close_failure(tmp_path: Path, monkeypatch) -> None:
-    from rdflib import Graph, Literal, URIRef
+    from pyoxigraph import Literal, NamedNode
+    from triplemodel.store import RdfGraph as Graph
 
     from triplemodel.io import files as files_mod
 
@@ -181,14 +184,20 @@ def test_load_models_streaming_close_failure(tmp_path: Path, monkeypatch) -> Non
 
     def fake_parse(**_kwargs):
         g = Graph()
-        subj = URIRef(f"{EX}p0")
-        g.add((subj, URIRef(RDF_TYPE), URIRef(f"{EX}Person")))
-        g.add((subj, URIRef(f"{EX}name"), Literal("N")))
+        subj = NamedNode(f"{EX}p0")
+        g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+        g.add((subj, NamedNode(f"{EX}name"), Literal("N")))
 
-        def failing_close():
-            raise OSError("close failed")
+        inner = g.store
 
-        g.store.close = failing_close  # ty: ignore[invalid-assignment]
+        class _StoreWithClose:
+            def close(self) -> None:
+                raise OSError("close failed")
+
+            def __getattr__(self, name: str) -> object:
+                return getattr(inner, name)
+
+        g._store = cast(Any, _StoreWithClose())  # noqa: SLF001
         return g
 
     monkeypatch.setattr(files_mod, "parse_into_graph", fake_parse)

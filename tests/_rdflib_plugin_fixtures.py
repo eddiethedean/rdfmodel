@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from rdflib.parser import InputSource, Parser
 from rdflib.serializer import Serializer
-from rdflib.term import Literal, URIRef
+from pyoxigraph import Literal, NamedNode
 
 
 class MinimalTestParser(Parser):
@@ -22,9 +22,9 @@ class MinimalTestParser(Parser):
         s, p, rest = parts
         o = rest.rsplit(None, 1)[0] if rest.endswith(" .") else rest
         if o.startswith('"'):
-            sink.add((URIRef(s), URIRef(p), Literal(o.strip('"'))))
+            sink.add((NamedNode(s), NamedNode(p), Literal(o.strip('"'))))
         else:
-            sink.add((URIRef(s), URIRef(p), URIRef(o)))
+            sink.add((NamedNode(s), NamedNode(p), NamedNode(o)))
 
 
 class MinimalTestSerializer(Serializer):

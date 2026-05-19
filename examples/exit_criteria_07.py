@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 from rdflib.namespace import RDFS
 
 from triplemodel import TripleModel, graph_to_model_dispatch, rdf_field
@@ -42,16 +43,16 @@ class Agent(TripleModel):
 def main() -> None:
     g = Graph()
     g.bind("foaf", FOAF)
-    Person_t = URIRef(FOAF_PERSON)
-    Agent_t = URIRef(FOAF_AGENT)
+    Person_t = NamedNode(FOAF_PERSON)
+    Agent_t = NamedNode(FOAF_AGENT)
     g.add((Agent_t, RDFS.subClassOf, Person_t))
 
-    alice = URIRef(f"{EX}alice")
-    bob = URIRef(f"{EX}bob")
-    g.add((alice, URIRef(RDF_TYPE), Agent_t))
-    g.add((alice, URIRef(FOAF_NAME), Literal("Alice")))
-    g.add((alice, URIRef(FOAF_KNOWS), bob))
-    g.add((bob, URIRef(FOAF_NAME), Literal("Bob")))
+    alice = NamedNode(f"{EX}alice")
+    bob = NamedNode(f"{EX}bob")
+    g.add((alice, NamedNode(RDF_TYPE), Agent_t))
+    g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
+    g.add((alice, NamedNode(FOAF_KNOWS), bob))
+    g.add((bob, NamedNode(FOAF_NAME), Literal("Bob")))
 
     agent = graph_to_model_dispatch(g, alice)
     assert isinstance(agent, Agent)

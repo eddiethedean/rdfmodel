@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from pydantic import BaseModel
-from rdflib import BNode, Graph, URIRef
-from rdflib.term import Node
+from pyoxigraph import BlankNode as BNode, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel._typing import TripleRow
 from triplemodel.config import EmbedMode, RdfConfig, get_rdf_config
@@ -49,7 +50,7 @@ class IriEmbedStrategy:
     ) -> BaseModel:
         from triplemodel.io.import_ import graph_to_model
 
-        if not isinstance(term, URIRef):
+        if not isinstance(term, NamedNode):
             raise ValueError(
                 f"Cannot import nested {nested_cls.__name__} from term {term!r} "
                 f"with embed='iri'."

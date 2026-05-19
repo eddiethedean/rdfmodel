@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store.terms import term_str
 
 from triplemodel import (
     TripleModel,
@@ -73,8 +74,8 @@ def test_graph_value_raises_without_predicate():
 def test_graph_set_many():
     p = Person(slug="a", name="A")
     g = p.to_graph()
-    subj = URIRef(p.subject_uri())
+    subj = NamedNode(p.subject_uri())
     pred = f"{FOAF}nick"
     graph_set_many(g, subj, pred, ["x", "y"])
-    nicks = sorted(str(o) for o in g.objects(subj, URIRef(pred)))
+    nicks = sorted(term_str(o) for o in g.objects(subj, NamedNode(pred)))
     assert nicks == ["x", "y"]

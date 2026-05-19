@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.io.import_ import OnDuplicate, graph_to_model

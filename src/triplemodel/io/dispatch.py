@@ -6,8 +6,9 @@ from collections.abc import Sequence
 from typing import TypeVar
 
 from pydantic import BaseModel
-from rdflib import Dataset, Graph, Literal, URIRef
-from rdflib.term import Node
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfDataset as Dataset, RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node, term_str
 
 from triplemodel.config import get_graph_context, get_rdf_config
 from triplemodel.io.import_ import OnDuplicate, graph_to_model
@@ -18,6 +19,7 @@ from triplemodel.protocols import (
     model_class_for_type_uri,
     resolve_model_class,
 )
+from triplemodel.terms.iri import normalize_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 T = TypeVar("T", bound=BaseModel)
@@ -34,7 +36,7 @@ def graph_to_model_dispatch(
     de_skolemize: bool | None = None,
 ) -> BaseModel:
     """Hydrate using the most specific registered class for the subject's types."""
-    subject: Node = uri if isinstance(uri, Node) else URIRef(uri)
+    subject: Node = uri if isinstance(uri, Node) else NamedNode(normalize_iri(uri))
     model_cls = resolve_model_class(graph, subject)
     return graph_to_model(
         graph,
@@ -73,9 +75,9 @@ def all_from_graph_dispatch(
     seen: set[str] = set()
     instances: list[BaseModel] = []
     for subject in sorted(graph.subjects(None, None), key=str):
-        if isinstance(subject, Literal) or not isinstance(subject, URIRef):
+        if not isinstance(subject, NamedNode):
             continue
-        key = str(subject)
+        key = term_str(subject)
         if key in seen:
             continue
         try:
@@ -102,7 +104,7 @@ def all_from_graph_dispatch(
 def _contexts_for_subject(dataset: Dataset, subject: Node) -> list[Graph]:
     return [
         context
-        for context in dataset.graphs()
+        for context in dataset.graphs
         if any(context.triples((subject, None, None)))
     ]
 
@@ -151,7 +153,7 @@ def graph_to_model_dispatch_from_dataset(
     de_skolemize: bool | None = None,
 ) -> BaseModel:
     """Hydrate using the most specific registered class for the subject's named graph."""
-    subject: Node = uri if isinstance(uri, Node) else URIRef(uri)
+    subject: Node = uri if isinstance(uri, Node) else NamedNode(normalize_iri(uri))
     matching = _contexts_for_subject(dataset, subject)
     if not matching:
         raise ValueError(
@@ -238,9 +240,9 @@ def all_from_dataset_dispatch(
             apply_de_skolemize(context, de_skolemize=do_de)
             contexts_de_skolemized.add(ctx_id)
         for subject in sorted(context.subjects(None, None), key=str):
-            if isinstance(subject, Literal) or not isinstance(subject, URIRef):
+            if not isinstance(subject, NamedNode):
                 continue
-            key = str(subject)
+            key = term_str(subject)
             if key in seen:
                 continue
             matching = _contexts_for_subject(dataset, subject)

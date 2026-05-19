@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel
-from rdflib import Graph
-from rdflib.term import Node
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel.config import get_rdf_config
 from triplemodel.io.rdfs import resolve_model_class_with_rdfs

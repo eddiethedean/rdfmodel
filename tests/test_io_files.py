@@ -42,8 +42,9 @@ FORMATS = [
     "xml",
     "n3",
     "nt",
-    "hext",
 ]
+
+UNSUPPORTED_FORMATS = ["hext", "longturtle", "trix"]
 
 
 @pytest.mark.parametrize("fmt", FORMATS)
@@ -55,6 +56,12 @@ def test_round_trip_formats(person: Person, fmt: str, tmp_path: Path) -> None:
     assert loaded[0].slug == person.slug
     assert loaded[0].name == person.name
     assert loaded[0].nick == person.nick
+
+
+@pytest.mark.parametrize("fmt", UNSUPPORTED_FORMATS)
+def test_unsupported_formats_raise(person: Person, fmt: str) -> None:
+    with pytest.raises(ValueError, match="not supported by pyoxigraph"):
+        person.serialize(format=fmt)
 
 
 def test_infer_format_from_suffix() -> None:

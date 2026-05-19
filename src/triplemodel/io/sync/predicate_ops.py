@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-from rdflib import Graph
-from rdflib.term import Node
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import RdfTerm as Node
 
 from triplemodel.config import RdfConfig
 from triplemodel.fields.resolver import default_resolver

@@ -5,7 +5,9 @@ from __future__ import annotations
 from typing import Annotated
 
 import pytest
-from rdflib import BNode, Graph, Literal, URIRef
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import term_str
 
 from triplemodel import Predicate, TripleModel, models_to_graph, rdf_field
 from triplemodel.config import RDF_TYPE, id_from_subject_uri
@@ -119,10 +121,10 @@ def test_all_from_graph_ignores_inverse_predicate_subjects():
         )
 
     g = Graph()
-    report_uri = URIRef(f"{EX_INV}report/r1")
-    author_uri = URIRef(f"{EX_INV}person/alice")
-    g.add((author_uri, URIRef(f"{EX_INV}authored"), report_uri))
-    g.add((report_uri, URIRef(f"{EX_INV}hasAuthor"), author_uri))
+    report_uri = NamedNode(f"{EX_INV}report/r1")
+    author_uri = NamedNode(f"{EX_INV}person/alice")
+    g.add((author_uri, NamedNode(f"{EX_INV}authored"), report_uri))
+    g.add((report_uri, NamedNode(f"{EX_INV}hasAuthor"), author_uri))
 
     loaded = Report.all_from_graph(g)
     assert len(loaded) == 1
@@ -144,7 +146,7 @@ def test_id_extraction_rejects_prefix_collision():
         name: str = rdf_field(f"{FOAF}name")
 
     g = Graph()
-    g.add((URIRef(uri), URIRef(f"{FOAF}name"), Literal("Alice")))
+    g.add((NamedNode(uri), NamedNode(f"{FOAF}name"), Literal("Alice")))
     with pytest.raises(ValueError, match="validate"):
         LocalPerson.from_graph(g, uri, validate_type=False)
 
@@ -177,12 +179,12 @@ def test_subject_uri_encodes_special_chars():
 
 def test_from_graph_invalid_literal_raises():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
-    g.add((subj, URIRef(f"{FOAF}age"), Literal("not-a-number")))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    g.add((subj, NamedNode(f"{FOAF}age"), Literal("not-a-number")))
     with pytest.raises(ValueError, match="field 'age'"):
-        Person.from_graph(g, str(subj))
+        Person.from_graph(g, term_str(subj))
 
 
 def test_bnode_object_rejected_for_str_field():
@@ -197,22 +199,22 @@ def test_bnode_object_rejected_for_str_field():
         friend: str | None = rdf_field(f"{FOAF}knows", default=None)
 
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
-    g.add((subj, URIRef(f"{FOAF}knows"), BNode()))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    g.add((subj, NamedNode(f"{FOAF}knows"), BNode()))
     with pytest.raises(ValueError, match="field 'friend'"):
-        WithFriend.from_graph(g, str(subj))
+        WithFriend.from_graph(g, term_str(subj))
 
 
 def test_multi_valued_predicate_uses_first():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alicia")))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alicia")))
     with pytest.warns(UserWarning, match="Multiple objects"):
-        person = Person.from_graph(g, str(subj), on_duplicate="warn")
+        person = Person.from_graph(g, term_str(subj), on_duplicate="warn")
     assert person.name == "Alice"
 
 
@@ -270,47 +272,47 @@ def test_inherited_rdf_config_roundtrip():
 
 def test_from_graph_rejects_wrong_rdf_type():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef("http://example.org/Document")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/Document")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     with pytest.raises(ValueError, match="rdf:type"):
-        Person.from_graph(g, str(subj))
+        Person.from_graph(g, term_str(subj))
 
 
 def test_from_graph_validate_type_can_be_disabled():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
-    person = Person.from_graph(g, str(subj), validate_type=False)
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    person = Person.from_graph(g, term_str(subj), validate_type=False)
     assert person.name == "Alice"
 
 
 def test_from_graph_validation_error_includes_subject():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef(f"{FOAF}age"), URIRef("http://example.org/not-an-int")))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(f"{FOAF}age"), NamedNode("http://example.org/not-an-int")))
     with pytest.raises(ValueError, match="Cannot validate Person"):
-        Person.from_graph(g, str(subj))
+        Person.from_graph(g, term_str(subj))
 
 
 def test_duplicate_predicate_on_error():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alicia")))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alicia")))
     with pytest.raises(ValueError, match="Multiple objects"):
-        Person.from_graph(g, str(subj), on_duplicate="error")
+        Person.from_graph(g, term_str(subj), on_duplicate="error")
 
 
 def test_duplicate_predicate_ignore():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alice")))
-    g.add((subj, URIRef(f"{FOAF}name"), Literal("Alicia")))
-    person = Person.from_graph(g, str(subj), on_duplicate="ignore")
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
+    g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alicia")))
+    person = Person.from_graph(g, term_str(subj), on_duplicate="ignore")
     assert person.name == "Alice"
 
 
@@ -372,10 +374,10 @@ def test_empty_string_field_roundtrip():
 
 def test_from_graph_missing_required_field():
     g = Graph()
-    subj = URIRef(EX + "alice")
-    g.add((subj, URIRef(RDF_TYPE), URIRef(f"{FOAF}Person")))
+    subj = NamedNode(EX + "alice")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
     with pytest.raises(ValueError, match="Cannot validate Person"):
-        Person.from_graph(g, str(subj))
+        Person.from_graph(g, term_str(subj))
 
 
 def test_union_type_string_roundtrip():

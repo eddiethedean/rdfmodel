@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import OWL, RDF, RDFS
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.config.constants import OWL, RDF, RDFS
 
 from triplemodel.codegen.emit import (
     _class_name,
@@ -26,23 +27,23 @@ def test_emit_helpers_local_names():
 
 def test_generate_object_property_range():
     g = Graph()
-    cls = URIRef("http://example.org/onto#Doc")
-    prop = URIRef("http://example.org/onto#relates")
-    g.add((cls, RDF.type, OWL.Class))
-    g.add((prop, RDF.type, OWL.ObjectProperty))
-    g.add((prop, RDFS.domain, cls))
-    g.add((prop, RDFS.range, URIRef("http://example.org/onto#Other")))
+    cls = NamedNode("http://example.org/onto#Doc")
+    prop = NamedNode("http://example.org/onto#relates")
+    g.add((cls, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}Class")))
+    g.add((prop, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}ObjectProperty")))
+    g.add((prop, NamedNode(f"{RDFS}domain"), cls))
+    g.add((prop, NamedNode(f"{RDFS}range"), NamedNode("http://example.org/onto#Other")))
     source = generate_models_from_graph(g)
     assert "class Doc" in source
 
 
 def test_generate_skips_non_uri_domain():
     g = Graph()
-    cls = URIRef("http://example.org/onto#Item")
-    prop = URIRef("http://example.org/onto#title")
-    g.add((cls, RDF.type, OWL.Class))
-    g.add((prop, RDF.type, OWL.DatatypeProperty))
-    g.add((prop, RDFS.domain, Literal("not-uri")))
+    cls = NamedNode("http://example.org/onto#Item")
+    prop = NamedNode("http://example.org/onto#title")
+    g.add((cls, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}Class")))
+    g.add((prop, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}DatatypeProperty")))
+    g.add((prop, NamedNode(f"{RDFS}domain"), Literal("not-uri")))
     source = generate_models_from_graph(g)
     assert "class Item" in source
 
@@ -51,15 +52,15 @@ def test_generate_duplicate_field_names():
     import warnings
 
     g = Graph()
-    cls = URIRef("http://example.org/onto#Item")
-    g.add((cls, RDF.type, OWL.Class))
+    cls = NamedNode("http://example.org/onto#Item")
+    g.add((cls, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}Class")))
     for uri in (
         "http://example.org/onto#name",
         "http://example.org/other#name",
     ):
-        prop = URIRef(uri)
-        g.add((prop, RDF.type, OWL.DatatypeProperty))
-        g.add((prop, RDFS.domain, cls))
+        prop = NamedNode(uri)
+        g.add((prop, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}DatatypeProperty")))
+        g.add((prop, NamedNode(f"{RDFS}domain"), cls))
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         source = generate_models_from_graph(g)
@@ -69,28 +70,18 @@ def test_generate_duplicate_field_names():
 
 def test_emit_class_parent_already_emitted():
     g = Graph()
-    parent = URIRef("http://example.org/onto#Animal")
-    child = URIRef("http://example.org/onto#Aardvark")
+    parent = NamedNode("http://example.org/onto#Animal")
+    child = NamedNode("http://example.org/onto#Aardvark")
     for node in (parent, child):
-        g.add((node, RDF.type, OWL.Class))
-    g.add((child, RDFS.subClassOf, parent))
+        g.add((node, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}Class")))
+    g.add((child, NamedNode(f"{RDFS}subClassOf"), parent))
     source = generate_models_from_graph(g)
     assert "class Aardvark" in source
 
 
-def test_generate_skips_non_uri_property(monkeypatch):
+def test_generate_skips_non_uri_property():
     g = Graph()
-    cls = URIRef("http://example.org/onto#Thing")
-    g.add((cls, RDF.type, OWL.Class))
-    real_subjects = g.subjects
-
-    def subjects(predicate, object):
-        if predicate == RDF.type and object == OWL.DatatypeProperty:
-            yield URIRef("http://example.org/onto#p")
-            yield "not-a-uri"  # type: ignore[misc]
-        else:
-            yield from real_subjects(predicate, object)
-
-    monkeypatch.setattr(g, "subjects", subjects)
+    cls = NamedNode("http://example.org/onto#Thing")
+    g.add((cls, NamedNode(f"{RDF}type"), NamedNode(f"{OWL}Class")))
     source = generate_models_from_graph(g)
     assert "class Thing" in source

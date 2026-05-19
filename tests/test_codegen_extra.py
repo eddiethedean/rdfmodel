@@ -5,8 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, URIRef
-from rdflib.namespace import OWL, RDF, RDFS
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.config.constants import OWL, RDF_TYPE, RDFS
 
 from triplemodel.codegen.emit import generate_models_from_graph
 from triplemodel.codegen.parse import ontology_graph
@@ -44,15 +45,15 @@ def test_ontology_graph_from_path(tmp_path: Path):
 
 def test_generate_subclass_and_paths(tmp_path: Path) -> None:
     g = Graph()
-    agent = URIRef("http://example.org/onto#Agent")
-    person = URIRef("http://example.org/onto#Person")
-    g.add((person, RDF.type, OWL.Class))
-    g.add((person, RDFS.subClassOf, agent))
-    g.add((agent, RDF.type, RDFS.Class))
-    prop = URIRef("http://example.org/onto#label")
-    g.add((prop, RDF.type, OWL.DatatypeProperty))
-    g.add((prop, RDFS.domain, person))
-    g.add((prop, RDFS.range, RDFS.Literal))
+    agent = NamedNode("http://example.org/onto#Agent")
+    person = NamedNode("http://example.org/onto#Person")
+    g.add((person, NamedNode(RDF_TYPE), NamedNode(f"{OWL}Class")))
+    g.add((person, NamedNode(f"{RDFS}subClassOf"), agent))
+    g.add((agent, NamedNode(RDF_TYPE), NamedNode(f"{RDFS}Class")))
+    prop = NamedNode("http://example.org/onto#label")
+    g.add((prop, NamedNode(RDF_TYPE), NamedNode(f"{OWL}DatatypeProperty")))
+    g.add((prop, NamedNode(f"{RDFS}domain"), person))
+    g.add((prop, NamedNode(f"{RDFS}range"), NamedNode(f"{RDFS}Literal")))
     source = generate_models_from_graph(g)
     assert "class Person" in source
     assert "class Agent" in source

@@ -53,10 +53,10 @@ def main() -> None:
 
     alice.age = None
     sync_to_graph(alice, g, mode="replace")
-    from rdflib import URIRef
+    from pyoxigraph import NamedNode
 
-    subj = URIRef(alice.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+    subj = NamedNode(alice.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []
 
     print("0.2.0 FOAF example OK")
 

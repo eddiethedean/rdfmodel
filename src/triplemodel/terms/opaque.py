@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rdflib import Literal
+from pyoxigraph import Literal, NamedNode
+
+from triplemodel.store.terms import term_str
 
 
 @dataclass(frozen=True)
@@ -17,9 +19,9 @@ class OpaqueLiteral:
     @classmethod
     def from_literal(cls, term: Literal) -> OpaqueLiteral:
         dt = term.datatype
-        return cls(str(term), str(dt) if dt is not None else None)
+        return cls(str(term.value), term_str(dt) if dt is not None else None)
 
     def to_literal(self) -> Literal:
         if self.datatype:
-            return Literal(self.value, datatype=self.datatype)
+            return Literal(self.value, datatype=NamedNode(self.datatype))
         return Literal(self.value)

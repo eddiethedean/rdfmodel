@@ -1,6 +1,6 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.9.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.10.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -14,7 +14,7 @@ Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**)
 | {doc}`ECOSYSTEM` | Boundary contract (both packages) |
 | {doc}`ECOSYSTEM_SPARQLMODEL` | SparqlModel maintainer guide (copy to SparqlModel repo) |
 
-**Pre-1.0 commitment:** Every **0.x** release adds capability until TripleModel exposes all [rdflib](https://github.com/RDFLib/rdflib) features that sensibly map to typed Pydantic models. We wrap and orchestrate rdflib; we do not reimplement parsers, stores, or SPARQL engines. We do **not** build sessions, query compilers, or cascade `put` semantics — that stays in SparqlModel. **1.0.0** is API stability and production hardening — not a catch-up release for rdflib parity.
+**Pre-1.0 commitment:** Every **0.x** release adds capability until TripleModel exposes all [pyoxigraph](https://github.com/oxigraph/pyoxigraph) / Oxigraph features that sensibly map to typed Pydantic models. We orchestrate pyoxigraph; we do not reimplement parsers, stores, or SPARQL engines. We do **not** build sessions, query compilers, or cascade `put` semantics — that stays in SparqlModel. **1.0.0** is API stability and production hardening — not further engine churn.
 
 **Matrix legend:** **SM** in release sections = required for SparqlModel’s planned `triplemodel` dependency (see integration milestones).
 
@@ -42,11 +42,11 @@ See [SparqlModel ROADMAP — 0.4 unified model](https://github.com/eddiethedean/
 
 ---
 
-## rdflib coverage matrix
+## Oxigraph / pyoxigraph coverage matrix
 
 Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 
-| rdflib area | Capability | TripleModel surface | Ver |
+| Oxigraph area | Capability | TripleModel surface | Ver |
 |-------------|------------|---------------------|-----|
 | **Terms** | `URIRef`, `Literal`, XSD datatypes | `python_to_term` / `term_to_python` | 0.1 **done** |
 | | `BNode`, anonymous subjects/objects | `Rdf.blank_node_policy` (`"fresh"` \| `"stable"`), skolemize on export | 0.3 **done** |
@@ -326,7 +326,28 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ---
 
-## 0.9.0 — rdflib parity audit and API freeze
+## 0.10.0 — pyoxigraph engine
+
+**Theme:** Replace rdflib with pyoxigraph as the runtime RDF store; keep mapping API stable.
+
+- [x] **Engine swap** — `pyoxigraph.Store` via `triplemodel.Store` / `RdfGraph`
+- [x] **Terms** — `NamedNode`, `Literal`, `BlankNode`; manual `rdf:List`; skolemize/CBD helpers
+- [x] **File I/O** — parse/serialize through pyoxigraph (`Turtle`, `TriG`, `N-Triples`, `N-Quads`, `RDF/XML`, `N3`, `JSON-LD`)
+- [x] **Dataset** — named graphs on one store (`RdfDataset`)
+- [x] **SPARQL** — `Store.query` / `update` passthrough; remote `SPARQLStore` **out of scope**
+- [x] **Stores** — `memory` and `disk` (`open_graph`); drop `rdflib-sqlalchemy` extra
+- [x] **Plugins** — remove rdflib `register_parser` / `register_serializer` / `register_store`
+- [x] **SHACL** — optional rdflib bridge in `[shacl]` extra only
+- [x] **Migration guide** — {doc}`MIGRATION_0.10`
+- [x] **API stability exception** — graph type break documented in {doc}`API_STABILITY`
+
+**Exit criteria:** Core quickstart round-trip; `pytest` green; docs and compat CI updated.
+
+**SparqlModel (SM-7):** Downstream pin `triplemodel>=0.10,<2` when SparqlModel adopts `Store` (see {doc}`ECOSYSTEM_SPARQLMODEL`).
+
+---
+
+## 0.9.0 — rdflib parity audit and API freeze (historical)
 
 **Theme:** Close the matrix; stabilize public API.
 
@@ -429,5 +450,6 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | 0.6.0 | SPARQL passthrough + remote store | `query`, UPDATE, `SERVICE`, stores | — |
 | 0.7.0 | CBD, isomorphism, RDFS, safe merge | graph algorithms | ✅ |
 | 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | ✅ |
-| **0.9.0** | Matrix audit, API freeze | `plugin` passthrough | **SM-5** prep |
-| **1.0.0** | Stable, documented, governed | parity frozen | **SM-5** pin `triplemodel` |
+| **0.9.0** | Matrix audit, API freeze (rdflib) | `plugin` passthrough | **SM-5** prep |
+| **0.10.0** | pyoxigraph engine | `Store`, disk store | **SM-7** |
+| **1.0.0** | Stable, documented, governed | oxigraph matrix frozen | **SM-5** pin `triplemodel` |

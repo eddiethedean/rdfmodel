@@ -1,4 +1,3 @@
-
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 from triplemodel.terms.lang import LangString
 from triplemodel.vocab import DC, FOAF

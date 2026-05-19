@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, bind_namespaces, expand_curie, rdf_field
 

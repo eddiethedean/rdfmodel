@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, cbd_graph, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -27,20 +28,20 @@ class Person(TripleModel):
 
 def test_cbd_graph_includes_related_triples():
     g = Graph()
-    alice = URIRef(f"{EX}alice")
-    bob = URIRef(f"{EX}bob")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(FOAF_PERSON)))
-    g.add((alice, URIRef(FOAF_NAME), Literal("Alice")))
-    g.add((alice, URIRef(FOAF_KNOWS), bob))
-    g.add((bob, URIRef(FOAF_NAME), Literal("Bob")))
+    alice = NamedNode(f"{EX}alice")
+    bob = NamedNode(f"{EX}bob")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(FOAF_PERSON)))
+    g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
+    g.add((alice, NamedNode(FOAF_KNOWS), bob))
+    g.add((bob, NamedNode(FOAF_NAME), Literal("Bob")))
     sub = cbd_graph(g, alice)
-    assert (alice, URIRef(FOAF_KNOWS), bob) in sub
+    assert (alice, NamedNode(FOAF_KNOWS), bob) in sub
 
 
 def test_cbd_model_classmethod():
     g = Graph()
-    alice = URIRef(f"{EX}alice")
-    g.add((alice, URIRef(RDF_TYPE), URIRef(FOAF_PERSON)))
-    g.add((alice, URIRef(FOAF_NAME), Literal("Alice")))
+    alice = NamedNode(f"{EX}alice")
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(FOAF_PERSON)))
+    g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
     p = Person.cbd(g, alice)
     assert p.name == "Alice"

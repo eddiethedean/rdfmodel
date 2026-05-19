@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import term_str
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 
@@ -26,8 +28,8 @@ def test_replace_removes_cleared_age():
     g = p.to_graph()
     p2 = Person(slug="a", name="A", age=None)
     sync_to_graph(p2, g, mode="replace")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []
 
 
 def test_add_leaves_stale_triples():
@@ -35,8 +37,8 @@ def test_add_leaves_stale_triples():
     g = p.to_graph()
     p2 = Person(slug="a", name="A", age=None)
     p2.sync_to_graph(g, mode="add")
-    subj = URIRef(p.subject_uri())
-    assert len(list(g.objects(subj, URIRef(f"{FOAF}age")))) == 1
+    subj = NamedNode(p.subject_uri())
+    assert len(list(g.objects(subj, NamedNode(f"{FOAF}age")))) == 1
 
 
 def test_patch_clears_only_none_fields():
@@ -44,10 +46,12 @@ def test_patch_clears_only_none_fields():
     g = p.to_graph()
     p2 = Person(slug="a", name="A", age=None)
     sync_to_graph(p2, g, mode="patch")
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
-    names = list(g.objects(subj, URIRef(f"{FOAF}name")))
-    assert any(str(o) == "A" for o in names)
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []
+    names = list(g.objects(subj, NamedNode(f"{FOAF}name")))
+    from triplemodel.store.terms import term_str
+
+    assert any(term_str(o) == "A" for o in names)
 
 
 def test_instance_sync_to_graph():
@@ -79,8 +83,8 @@ def test_rdf_graph_mode_replace_on_sync_to_graph():
     p = ReplacePerson(slug="a", name="A", age=30)
     g = p.to_graph()
     sync_to_graph(ReplacePerson(slug="a", name="A", age=None), g, mode=None)
-    subj = URIRef(p.subject_uri())
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+    subj = NamedNode(p.subject_uri())
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []
 
 
 def test_patch_clears_curie_predicate_empty_list():
@@ -97,8 +101,8 @@ def test_patch_clears_curie_predicate_empty_list():
     p = CuriePerson(slug="a", nick=["x"])
     g = p.to_graph()
     sync_to_graph(CuriePerson(slug="a", nick=[]), g, mode="patch")
-    subj = URIRef(EX + "a")
-    assert list(g.objects(subj, URIRef(f"{FOAF}nick"))) == []
+    subj = NamedNode(EX + "a")
+    assert list(g.objects(subj, NamedNode(f"{FOAF}nick"))) == []
 
 
 def test_to_graph_add_leaves_stale_triples():
@@ -106,8 +110,8 @@ def test_to_graph_add_leaves_stale_triples():
     g = p.to_graph()
     p2 = Person(slug="a", name="A", age=None)
     p2.to_graph(g)
-    subj = URIRef(p.subject_uri())
-    assert len(list(g.objects(subj, URIRef(f"{FOAF}age")))) == 1
+    subj = NamedNode(p.subject_uri())
+    assert len(list(g.objects(subj, NamedNode(f"{FOAF}age")))) == 1
 
 
 def test_sync_to_graph_bind_false_skips_prefix_bind():
@@ -130,8 +134,8 @@ def test_patch_preserves_multiple_nick_values():
     p = NickPerson(slug="a", nick=["Al", "Alice"])
     g = Graph()
     sync_to_graph(p, g, mode="patch")
-    subj = URIRef(EX + "a")
-    restored = NickPerson.from_graph(g, str(subj))
+    subj = NamedNode(EX + "a")
+    restored = NickPerson.from_graph(g, term_str(subj))
     assert restored.nick == ["Al", "Alice"]
 
 
@@ -148,8 +152,8 @@ def test_patch_updates_nick_without_touching_name():
 
     g = NickPerson(slug="a", name="A", nick=["x"]).to_graph()
     sync_to_graph(NickPerson(slug="a", name="A", nick=["y", "z"]), g, mode="patch")
-    subj = URIRef(EX + "a")
-    restored = NickPerson.from_graph(g, str(subj))
+    subj = NamedNode(EX + "a")
+    restored = NickPerson.from_graph(g, term_str(subj))
     assert restored.nick == ["y", "z"]
     assert restored.name == "A"
 
@@ -167,8 +171,8 @@ def test_to_graph_patch_preserves_multiple_values():
     p = NickPerson(slug="a", nick=["a", "b"])
     g = Graph()
     p.to_graph(g, mode="patch")
-    subj = URIRef(EX + "a")
-    restored = NickPerson.from_graph(g, str(subj))
+    subj = NamedNode(EX + "a")
+    restored = NickPerson.from_graph(g, term_str(subj))
     assert restored.nick == ["a", "b"]
 
 
@@ -198,15 +202,15 @@ class _AltNameResolver:
 
 def test_replace_and_patch_honor_custom_resolver():
     p = Person(slug="a", name="A")
-    subj = URIRef(p.subject_uri())
+    subj = NamedNode(p.subject_uri())
     resolver = _AltNameResolver()
 
     g = Graph()
     sync_to_graph(p, g, mode="replace", resolver=resolver)
-    assert list(g.objects(subj, URIRef(ALT_NAME)))
-    assert list(g.objects(subj, URIRef(f"{FOAF}name"))) == []
+    assert list(g.objects(subj, NamedNode(ALT_NAME)))
+    assert list(g.objects(subj, NamedNode(f"{FOAF}name"))) == []
 
     g2 = Graph()
     p.to_graph(g2, mode="patch", resolver=resolver)
-    assert list(g2.objects(subj, URIRef(ALT_NAME)))
-    assert list(g2.objects(subj, URIRef(f"{FOAF}name"))) == []
+    assert list(g2.objects(subj, NamedNode(ALT_NAME)))
+    assert list(g2.objects(subj, NamedNode(f"{FOAF}name"))) == []

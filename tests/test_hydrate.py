@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 
-from rdflib import Graph, Literal, URIRef
+from pyoxigraph import Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, hydrate_refs, model_join, rdf_field, ref_field
 from triplemodel.config import RDF_TYPE
@@ -36,18 +37,18 @@ class City(TripleModel):
 
 def _shared_country_graph() -> Graph:
     g = Graph()
-    fr = URIRef(f"{COUNTRY}fr")
-    paris = URIRef(f"{CITY}paris")
-    london = URIRef(f"{CITY}london")
+    fr = NamedNode(f"{COUNTRY}fr")
+    paris = NamedNode(f"{CITY}paris")
+    london = NamedNode(f"{CITY}london")
     for uri, typ, label in (
         (fr, f"{COUNTRY}Country", "France"),
         (paris, f"{CITY}City", "Paris"),
         (london, f"{CITY}City", "London"),
     ):
-        g.add((uri, URIRef(RDF_TYPE), URIRef(typ)))
-        g.add((uri, URIRef(f"{EX}label"), Literal(label)))
-    g.add((paris, URIRef(f"{EX}inCountry"), fr))
-    g.add((london, URIRef(f"{EX}inCountry"), fr))
+        g.add((uri, NamedNode(RDF_TYPE), NamedNode(typ)))
+        g.add((uri, NamedNode(f"{EX}label"), Literal(label)))
+    g.add((paris, NamedNode(f"{EX}inCountry"), fr))
+    g.add((london, NamedNode(f"{EX}inCountry"), fr))
     return g
 
 

@@ -6,10 +6,11 @@ from dataclasses import dataclass
 from typing import Any, TypeVar, cast
 
 from pydantic import BaseModel
-from rdflib import Graph
-from rdflib.term import Node
+from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.terms import OxTerm, QuadPredicate, QuadSubject
 
 from triplemodel.io.skolem import apply_skolemize
+from triplemodel.store.terms import term_str
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -28,8 +29,8 @@ class GraphDiff:
         return not self.only_in_first and not self.only_in_second
 
 
-def _normalize_triple(s: Node, p: Node, o: Node) -> TripleTuple:
-    return (str(s), str(p), str(o))
+def _normalize_triple(s: QuadSubject, p: QuadPredicate, o: OxTerm) -> TripleTuple:
+    return (term_str(s), term_str(p), term_str(o))
 
 
 def _triple_set(graph: Graph) -> frozenset[TripleTuple]:

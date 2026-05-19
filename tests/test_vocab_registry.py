@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, URIRef
+from pyoxigraph import NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field
 from triplemodel.config import RDF_TYPE
@@ -44,8 +45,8 @@ def test_registry_model_for_subject():
     reg = VocabularyRegistry()
     reg.register(Alpha)
     g = Graph()
-    s = URIRef(f"{EX}a")
-    g.add((s, URIRef(RDF_TYPE), URIRef(f"{EX}Alpha")))
+    s = NamedNode(f"{EX}a")
+    g.add((s, NamedNode(RDF_TYPE), NamedNode(f"{EX}Alpha")))
     cls = reg.model_for_subject(g, s)
     assert cls is Alpha
 

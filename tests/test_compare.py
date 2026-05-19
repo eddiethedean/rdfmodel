@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import BNode, Graph, Literal, URIRef
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import (
     TripleModel,
@@ -32,10 +33,10 @@ class Person(TripleModel):
 def test_graphs_equal_isomorphic():
     g1 = Graph()
     g2 = Graph()
-    alice = URIRef(f"{EX}alice")
+    alice = NamedNode(f"{EX}alice")
     for g in (g1, g2):
-        g.add((alice, URIRef(f"{FOAF}type"), URIRef(FOAF_PERSON)))
-        g.add((alice, URIRef(FOAF_NAME), Literal("Alice")))
+        g.add((alice, NamedNode(f"{FOAF}type"), NamedNode(FOAF_PERSON)))
+        g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
     assert graphs_equal(g1, g2)
 
 
@@ -43,18 +44,18 @@ def test_graphs_equal_same_bnode_id():
     g1 = Graph()
     g2 = Graph()
     b = BNode("shared")
-    g1.add((b, URIRef(FOAF_NAME), Literal("A")))
-    g2.add((b, URIRef(FOAF_NAME), Literal("A")))
+    g1.add((b, NamedNode(FOAF_NAME), Literal("A")))
+    g2.add((b, NamedNode(FOAF_NAME), Literal("A")))
     assert graphs_equal(g1, g2)
 
 
 def test_graph_diff_delta():
     g1 = Graph()
     g2 = Graph()
-    alice = URIRef(f"{EX}alice")
-    g1.add((alice, URIRef(FOAF_NAME), Literal("Alice")))
-    g2.add((alice, URIRef(FOAF_NAME), Literal("Alice")))
-    g2.add((alice, URIRef(f"{FOAF}age"), Literal(30)))
+    alice = NamedNode(f"{EX}alice")
+    g1.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
+    g2.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
+    g2.add((alice, NamedNode(f"{FOAF}age"), Literal(30)))
     diff = graph_diff(g1, g2)
     assert not diff.equal
     assert len(diff.only_in_first) == 0

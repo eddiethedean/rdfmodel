@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any, Union, cast
 
 import pytest
-from rdflib import Graph
+from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, model_to_graph, rdf_field
 from triplemodel.metadata.cardinality import (
@@ -23,7 +23,8 @@ from triplemodel.namespaces import expand_curie, resolve_predicate
 from triplemodel.terms import converter_for_type, python_to_literal
 from triplemodel.io.sync import predicates_to_patch, sync_to_graph
 from triplemodel.terms import python_to_term, term_to_python
-from rdflib import Literal, XSD
+from pyoxigraph import Literal
+from triplemodel.store.namespaces import XSD
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -100,14 +101,14 @@ def test_rdf_graph_mode_drives_to_graph_without_explicit_mode():
     g = p.to_graph()
     p2 = PatchPerson(slug="a", name="A", age=None)
     p2.to_graph(g)
-    from rdflib import URIRef
+    from pyoxigraph import NamedNode
 
-    subj = URIRef(EX + "a")
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+    subj = NamedNode(EX + "a")
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []
 
 
 def test_rdf_graph_mode_patch_on_sync_to_graph():
-    from rdflib import URIRef
+    from pyoxigraph import NamedNode
 
     from triplemodel import sync_to_graph
 
@@ -125,8 +126,8 @@ def test_rdf_graph_mode_patch_on_sync_to_graph():
     p = PatchPerson(slug="a", name="A", age=30)
     g = p.to_graph()
     sync_to_graph(PatchPerson(slug="a", name="A", age=None), g, mode=None)
-    subj = URIRef(EX + "a")
-    assert list(g.objects(subj, URIRef(f"{FOAF}age"))) == []
+    subj = NamedNode(EX + "a")
+    assert list(g.objects(subj, NamedNode(f"{FOAF}age"))) == []
 
 
 def test_freeze_prefixes_non_mapping():
@@ -216,7 +217,7 @@ def test_add_nested_to_graph():
 
 def test_import_nested_invalid_term():
     from triplemodel.embed import import_nested_value
-    from rdflib import Literal
+    from pyoxigraph import Literal
 
     class Box(TripleModel):
         class Rdf:
