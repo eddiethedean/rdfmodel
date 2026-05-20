@@ -7,11 +7,20 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
-from pyoxigraph import BlankNode, DefaultGraph, Literal, NamedNode
+from pyoxigraph import BlankNode, DefaultGraph, Literal, NamedNode, Triple
 from triplemodel.store import RdfDataset, RdfGraph
 from triplemodel.store.formats import to_rdf_format
+from triplemodel.store.skolem import de_skolemize_graph, skolemize_graph
 from triplemodel.store.sparql_result import Variable
-from triplemodel.store.terms import is_blank, is_literal, is_named, term_str
+from triplemodel.store.terms import (
+    as_quad_object,
+    as_quad_predicate,
+    as_quad_subject,
+    is_blank,
+    is_literal,
+    is_named,
+    term_str,
+)
 from triplemodel.io.sparql import (
     _inline_init_bindings,
     _sparql_term_for_inline,
@@ -712,3 +721,29 @@ def test_sparql_term_for_field_opaque_value() -> None:
         registry=default_registry,
     )
     assert isinstance(out, (int, str, OpaqueLiteral))
+
+
+def test_skolemize_blank_node_as_object() -> None:
+    """Cover _map_object / _unmap_object in store.skolem."""
+    g = RdfGraph()
+    b = BlankNode("obj-bnode")
+    g.add((NamedNode("http://ex/s"), NamedNode("http://ex/p"), b))
+    sk = skolemize_graph(g)
+    de = de_skolemize_graph(sk)
+    assert len(de) == 1
+    for quad in de.store:
+        assert isinstance(quad.object, BlankNode)
+
+
+def test_store_terms_rdf_star_triple() -> None:
+    """Cover Triple branches in store.terms (RDF-star terms)."""
+    triple = Triple(
+        NamedNode("http://ex/s"),
+        NamedNode("http://ex/p"),
+        Literal("v"),
+    )
+    assert as_quad_subject(triple) is triple
+    assert as_quad_object(triple) is triple
+    with pytest.raises(TypeError, match="Triple term cannot be coerced"):
+        as_quad_predicate(triple)
+    assert term_str(triple) == '<http://ex/s> <http://ex/p> "v"'

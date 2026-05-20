@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from typing import TypeVar
 
 from pydantic import BaseModel
-from pyoxigraph import Literal, NamedNode
+from pyoxigraph import NamedNode
 from triplemodel.store import RdfDataset as Dataset, RdfGraph as Graph
 from triplemodel.store.terms import RdfTerm as Node, term_str
 

@@ -151,7 +151,9 @@ def _handle_forward_inverse_conflict(
         warnings.warn(msg, stacklevel=3)
 
 
-def _union_conversion_order(term: OxTerm, members: tuple[type, ...]) -> tuple[type, ...]:
+def _union_conversion_order(
+    term: OxTerm, members: tuple[type, ...]
+) -> tuple[type, ...]:
     """Prefer union members that match the literal datatype."""
     if not isinstance(term, RdfLiteral) or not members:
         return members

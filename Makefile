@@ -63,10 +63,12 @@ ty:
 lint: format-check ruff ty
 
 docs:
-	sphinx-build -b html docs docs/_build/html -W
+	rm -rf docs/_build/html
+	$(PYTHON) -m sphinx -b html docs docs/_build/html -W
 
 docs-linkcheck:
-	sphinx-build -b linkcheck docs docs/_build/linkcheck -W
+	rm -rf docs/_build/linkcheck
+	$(PYTHON) -m sphinx -b linkcheck docs docs/_build/linkcheck -W
 
 build:
 	rm -rf dist

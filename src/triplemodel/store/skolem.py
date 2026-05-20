@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 
-from pyoxigraph import BlankNode, Literal, NamedNode, Quad
+from pyoxigraph import BlankNode, NamedNode, Quad
 
 from triplemodel.store.graph import RdfGraph
 from triplemodel.store.terms import QuadObject, QuadSubject, term_str
@@ -40,9 +40,7 @@ def de_skolemize_graph(graph: RdfGraph) -> RdfGraph:
     return out
 
 
-def _map_subject(
-    term: QuadSubject, mapping: dict[str, NamedNode]
-) -> QuadSubject:
+def _map_subject(term: QuadSubject, mapping: dict[str, NamedNode]) -> QuadSubject:
     if isinstance(term, BlankNode):
         key = str(term)
         if key not in mapping:
@@ -52,9 +50,7 @@ def _map_subject(
     return term
 
 
-def _map_object(
-    term: QuadObject, mapping: dict[str, NamedNode]
-) -> QuadObject:
+def _map_object(term: QuadObject, mapping: dict[str, NamedNode]) -> QuadObject:
     if isinstance(term, BlankNode):
         key = str(term)
         if key not in mapping:
@@ -64,9 +60,7 @@ def _map_object(
     return term
 
 
-def _unmap_subject(
-    term: QuadSubject, mapping: dict[str, BlankNode]
-) -> QuadSubject:
+def _unmap_subject(term: QuadSubject, mapping: dict[str, BlankNode]) -> QuadSubject:
     if isinstance(term, NamedNode) and term_str(term).startswith(_SKOLEM_BASE):
         key = term_str(term)
         if key not in mapping:
@@ -75,9 +69,7 @@ def _unmap_subject(
     return term
 
 
-def _unmap_object(
-    term: QuadObject, mapping: dict[str, BlankNode]
-) -> QuadObject:
+def _unmap_object(term: QuadObject, mapping: dict[str, BlankNode]) -> QuadObject:
     if isinstance(term, NamedNode) and term_str(term).startswith(_SKOLEM_BASE):
         key = term_str(term)
         if key not in mapping:

@@ -6,7 +6,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 import pytest
-from pyoxigraph import BlankNode as BNode, Literal, NamedNode as URIRef
+from pyoxigraph import BlankNode as BNode, Literal, NamedNode as URIRef, Triple
 
 from triplemodel.store.namespaces import XSD
 from triplemodel.terms import python_to_term, term_to_python
@@ -70,3 +70,9 @@ def test_decimal_registry():
 def test_bnode_scalar_raises():
     with pytest.raises(TypeError, match="BNode"):
         term_to_python(BNode(), str)
+
+
+def test_rdf_star_triple_term_raises():
+    triple = Triple(URIRef("http://ex/s"), URIRef("http://ex/p"), Literal("v"))
+    with pytest.raises(TypeError, match="RDF-star triple terms"):
+        term_to_python(triple)

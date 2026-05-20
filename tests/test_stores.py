@@ -68,7 +68,7 @@ def _sqlalchemy_store_available() -> bool:
         fd, path = tempfile.mkstemp(suffix=".sqlite")
         os.close(fd)
         ident = f"sqlite:///{path}"
-        g = open_graph("sqlalchemy", ident)
+        open_graph("sqlalchemy", ident)
         os.unlink(path)
         return True
     except Exception:

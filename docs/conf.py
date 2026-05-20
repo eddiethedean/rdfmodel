@@ -68,6 +68,24 @@ intersphinx_mapping = {
     "rdflib": ("https://rdflib.readthedocs.io/en/stable/", None),
 }
 
+# Signatures reference pyoxigraph types and internal TypeVars without intersphinx entries.
+nitpick_ignore = [
+    ("py:class", "TripleModel"),
+    ("py:class", "Lang"),
+    ("py:attr", "RdfConfig.instance_of"),
+    ("py:data", "default_registry"),
+    ("py:data", "default_resolver"),
+    ("py:data", "typing.Union"),
+    ("py:class", "typing_extensions.Unpack"),
+    ("py:class", "types.EllipsisType"),
+]
+nitpick_ignore_regex = [
+    (r"py:class", r"pyoxigraph\..*"),
+    (r"py:class", r"triplemodel\.store\.(graph|dataset)\.Rdf\w+"),
+    (r"py:class", r"triplemodel\.store\.sparql_result\.\w+"),
+    (r"py:class", r"triplemodel\.(io|fields|metadata|plugins|namespaces|_typing)\..+"),
+]
+
 # Linkcheck: localhost is local-only; W3C/xmlns IRIs are often not retrievable as HTML.
 linkcheck_ignore = [
     r"http://localhost:8000/?",

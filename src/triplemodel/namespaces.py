@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from typing import Literal, Protocol
 
-from triplemodel.store.graph import RdfGraph
 from triplemodel.terms.iri import looks_like_iri
 
 BindStrategy = Literal["core", "rdflib", "none"]
@@ -13,6 +12,7 @@ BindStrategy = Literal["core", "rdflib", "none"]
 
 class _NamespaceBindable(Protocol):
     def bind(self, prefix: str, namespace: str | object) -> None: ...
+
 
 _CURIE_RE = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):([^:].*)$")
 

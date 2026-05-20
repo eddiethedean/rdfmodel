@@ -11,9 +11,7 @@ from typing_extensions import Self
 from urllib.parse import urlparse
 
 from pyoxigraph import (
-    BlankNode,
     DefaultGraph,
-    Literal,
     NamedNode,
     Quad,
     Store as OxigraphStore,
@@ -24,7 +22,6 @@ from pyoxigraph import serialize as ox_serialize
 from triplemodel.store.formats import to_rdf_format
 from triplemodel.store.terms import (
     OxTerm,
-    QuadObject,
     QuadPredicate,
     QuadSubject,
     RdfTerm,
