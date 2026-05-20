@@ -5,10 +5,9 @@ from __future__ import annotations
 
 from pyoxigraph import Literal, NamedNode
 from triplemodel.store import RdfGraph as Graph
-from rdflib.namespace import RDFS
 
 from triplemodel import TripleModel, graph_to_model_dispatch, rdf_field
-from triplemodel.config import RDF_TYPE
+from triplemodel.config import RDF_TYPE, RDFS
 from triplemodel.vocab import FOAF
 
 EX = "http://example.org/people/"
@@ -45,7 +44,7 @@ def main() -> None:
     g.bind("foaf", FOAF)
     Person_t = NamedNode(FOAF_PERSON)
     Agent_t = NamedNode(FOAF_AGENT)
-    g.add((Agent_t, RDFS.subClassOf, Person_t))
+    g.add((Agent_t, NamedNode(f"{RDFS}subClassOf"), Person_t))
 
     alice = NamedNode(f"{EX}alice")
     bob = NamedNode(f"{EX}bob")
