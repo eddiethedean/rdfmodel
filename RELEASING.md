@@ -1,5 +1,31 @@
 # Releasing TripleModel
 
+## 0.10.1 patch (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.10.1` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `CHANGELOG.md` — `## [0.10.1]` entry | Done |
+| `infer_format` rejects removed formats at inference time | Done |
+| `examples/realworld/schema_org_ngos.py` uses `triplemodel.vocab.XSD` | Done |
+
+**Pre-release checklist (0.10.1)**
+
+- [x] `version` `0.10.1` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] Regenerate `examples/doc/outputs/` (including `installation_version.txt`)
+- [ ] Local gate: `make ci`
+- [ ] **Do not tag** until explicitly approved for PyPI (no `v0.10.1` tag by default)
+
+When publishing is approved:
+
+```bash
+make release-check
+git tag -a v0.10.1 -m "Release 0.10.1"
+git push origin v0.10.1
+```
+
+---
+
 ## 0.10.0 release readiness (repo)
 
 | Item | Status |

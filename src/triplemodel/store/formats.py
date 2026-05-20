@@ -1,4 +1,4 @@
-"""Map rdflib-style format names to pyoxigraph ``RdfFormat``."""
+"""Map format names to pyoxigraph ``RdfFormat`` and reject removed rdflib-era formats."""
 
 from __future__ import annotations
 
@@ -33,8 +33,8 @@ _UNSUPPORTED = frozenset(
 )
 
 
-def to_rdf_format(fmt: str) -> RdfFormat:
-    """Resolve a format name to :class:`~pyoxigraph.RdfFormat`."""
+def raise_if_unsupported_format(fmt: str) -> None:
+    """Raise when ``fmt`` names a format removed in the pyoxigraph engine (0.10+)."""
     normalized = fmt.lower().replace("_", "-")
     if normalized in _UNSUPPORTED:
         msg = (
@@ -42,6 +42,12 @@ def to_rdf_format(fmt: str) -> RdfFormat:
             "Use Turtle, TriG, N-Triples, N-Quads, RDF/XML, N3, or JSON-LD."
         )
         raise ValueError(msg)
+
+
+def to_rdf_format(fmt: str) -> RdfFormat:
+    """Resolve a format name to :class:`~pyoxigraph.RdfFormat`."""
+    raise_if_unsupported_format(fmt)
+    normalized = fmt.lower().replace("_", "-")
     try:
         return _FORMAT_MAP[normalized]
     except KeyError as exc:

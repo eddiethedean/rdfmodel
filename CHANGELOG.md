@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-05-20
+
+### Fixed
+
+- **infer_format** — reject `hext`, `longTurtle`, and `trix` at inference time with a clear error (not only on serialize).
+- **examples/realworld/schema_org_ngos.py** — use `triplemodel.vocab.XSD` (no rdflib import).
+
+### Changed
+
+- **Docstrings** — aligned with pyoxigraph backend (`io/ops`, `codegen/parse`, `store/formats`).
+- **Tests** — removed unused `tests/_rdflib_plugin_fixtures.py`.
+
 ## [0.10.0] - 2026-05-19
 
 ### Breaking

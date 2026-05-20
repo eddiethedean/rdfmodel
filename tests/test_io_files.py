@@ -80,6 +80,27 @@ def test_infer_format_unknown_raises() -> None:
         infer_format("file.xyz", None)
 
 
+@pytest.mark.parametrize(
+    "hint",
+    [
+        "data.hext",
+        "data.trix",
+        "application/hextuples",
+        pytest.param("hext", id="explicit-hext"),
+    ],
+)
+def test_infer_format_removed_formats_raise(hint: str) -> None:
+    with pytest.raises(ValueError, match="not supported by pyoxigraph"):
+        infer_format(hint, "hext" if hint == "hext" else None)
+
+
+def test_parse_file_removed_suffix_raises(person: Person, tmp_path: Path) -> None:
+    path = tmp_path / "alice.hext"
+    path.write_text("", encoding="utf-8")
+    with pytest.raises(ValueError, match="not supported by pyoxigraph"):
+        Person.parse_file(path)
+
+
 def test_parse_file_autodetect(person: Person, tmp_path: Path) -> None:
     path = tmp_path / "alice.ttl"
     person.serialize(destination=path)

@@ -1,4 +1,4 @@
-"""Parse OWL/RDFS ontologies into rdflib graphs."""
+"""Parse OWL/RDFS ontologies into pyoxigraph-backed graphs."""
 
 from __future__ import annotations
 

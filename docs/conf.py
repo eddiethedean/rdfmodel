@@ -3,8 +3,17 @@
 from __future__ import annotations
 
 import sys
+import warnings
 from datetime import datetime
 from pathlib import Path
+
+# myst/linkify imports requests; suppress urllib3/chardet pin noise before that import.
+warnings.filterwarnings(
+    "ignore",
+    message=r"urllib3 .* or chardet .* doesn't match a supported version",
+    category=Warning,
+    module="requests",
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"

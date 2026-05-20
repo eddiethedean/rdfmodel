@@ -112,7 +112,7 @@ from triplemodel.terms import LiteralRegistry, default_registry, register_litera
 
 from triplemodel.store import Store
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"
 
 __all__ = [
     "EmbedMode",

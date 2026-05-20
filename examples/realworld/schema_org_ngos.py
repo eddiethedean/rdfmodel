@@ -9,9 +9,8 @@ Data: examples/realworld/data/schema_org_ngos.ttl
 
 from __future__ import annotations
 
-from rdflib.namespace import XSD
-
 from triplemodel import TripleModel, models_to_graph, rdf_field
+from triplemodel.vocab import XSD
 
 from _paths import data_file
 

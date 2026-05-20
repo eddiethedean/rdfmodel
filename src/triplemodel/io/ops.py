@@ -1,4 +1,4 @@
-"""Thin helpers over rdflib graph operations for TripleModel."""
+"""Thin helpers over pyoxigraph-backed graph operations for TripleModel."""
 
 from __future__ import annotations
 

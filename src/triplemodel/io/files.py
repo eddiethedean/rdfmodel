@@ -13,6 +13,7 @@ from triplemodel.store import RdfGraph as Graph
 from urllib.request import Request, urlopen
 
 from triplemodel.namespaces import bind_namespaces
+from triplemodel.store.formats import raise_if_unsupported_format
 
 TModel = TypeVar("TModel", bound=BaseModel)
 T1 = TypeVar("T1", bound=BaseModel)
@@ -58,6 +59,7 @@ def infer_format(
 ) -> str:
     """Resolve a parser/serializer format name for pyoxigraph."""
     if explicit_format:
+        raise_if_unsupported_format(explicit_format)
         return explicit_format
     if hint is None:
         raise ValueError(
@@ -65,10 +67,14 @@ def infer_format(
         )
     text = str(hint).lower().strip()
     if text in _MEDIA_TO_FORMAT:
-        return _MEDIA_TO_FORMAT[text]
+        fmt = _MEDIA_TO_FORMAT[text]
+        raise_if_unsupported_format(fmt)
+        return fmt
     suffix = Path(text).suffix.lower()
     if suffix in _SUFFIX_TO_FORMAT:
-        return _SUFFIX_TO_FORMAT[suffix]
+        fmt = _SUFFIX_TO_FORMAT[suffix]
+        raise_if_unsupported_format(fmt)
+        return fmt
     raise ValueError(f"Cannot infer RDF format from {hint!r}; pass format= explicitly.")
 
 
