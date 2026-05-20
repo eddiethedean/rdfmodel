@@ -7,36 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **Streaming / store parse** — `parse_into_store_graph` and `load_models_streaming` default to `store="disk"` (pyoxigraph); legacy `sqlalchemy` / `berkeleydb` names emit `DeprecationWarning` and map to disk.
-- **Examples** — `exit_criteria_09.py` (0.10 Store smoke), `examples/stores/disk_store.py`; `exit_criteria_08` disk store smoke.
-- **Makefile `ci`** — use `compat-pyoxigraph` on Python 3.13+; drop removed `sqlalchemy` extra from install line.
-
-### Changed
-
-- **Docs** — README, guides 01/13/15, cookbook, ECOSYSTEM, ROADMAP matrix updated for pyoxigraph 0.10.
-- **RELEASING.md** — 0.10.0 checklist.
-- **Packaging** — removed unused `berkeleydb` optional extra.
-
 ## [0.10.0] - 2026-05-19
 
 ### Breaking
 
 - **RDF engine** — rdflib replaced by **pyoxigraph**; import `Store` from `triplemodel` (or use `RdfGraph` internally). See [MIGRATION_0.10.md](MIGRATION_0.10.md).
-- **Removed** — `register_parser`, `register_serializer`, `register_store`; `open_sparql_graph`; `triplemodel[sqlalchemy]` extra.
+- **Removed** — `register_parser`, `register_serializer`, `register_store`; remote `open_sparql_graph` / `load_sparql` (raise `NotImplementedError`); `triplemodel[sqlalchemy]` extra.
 - **Formats** — `hext`, `longTurtle`, `trix` no longer supported (pyoxigraph limits).
 
 ### Added
 
 - **`triplemodel.Store`** — public alias for the pyoxigraph-backed graph type.
-- **Disk store** — `open_graph("disk", path)` for on-disk `pyoxigraph.Store`.
+- **Disk store** — `open_graph("disk", path)` for on-disk `pyoxigraph.Store`; `read_only` and `create=False` supported.
+- **`RdfGraph.close()`** — closes the store and removes ephemeral on-disk directories from `parse_into_store_graph`.
 - **Migration guide** — [MIGRATION_0.10.md](MIGRATION_0.10.md).
+
+### Fixed
+
+- **Streaming / store parse** — `parse_into_store_graph` cleans up temporary disk directories via `graph.close()`; legacy `sqlalchemy` / `berkeleydb` names emit `DeprecationWarning` and map to disk.
+- **Examples** — `exit_criteria_09.py` (0.10 Store smoke), `examples/stores/disk_store.py`; `exit_criteria_08` disk store smoke.
+- **Makefile `ci`** — use `compat-pyoxigraph` on Python 3.13+; drop removed `sqlalchemy` extra from install line.
 
 ### Changed
 
 - **SHACL** — optional `rdflib` only in `[shacl]` extra (bridge for pyshacl).
-- **Docs / CI** — roadmap, plan, compat pins for pyoxigraph.
+- **Docs / CI** — guides, cookbook, README, ECOSYSTEM, ROADMAP matrix updated for pyoxigraph 0.10.
+- **Packaging** — removed unused `berkeleydb` optional extra.
 
 ## [0.9.0] - 2026-05-18
 

@@ -82,6 +82,7 @@ examples:
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_07.py
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_08.py
 	$(PYTHON) examples/exit_criteria_09.py
+	$(PYTHON) examples/stores/disk_store.py
 	$(PYTHON) examples/readme_examples.py
 
 release-check: ci examples build

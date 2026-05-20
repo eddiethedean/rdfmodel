@@ -88,7 +88,7 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | **Formats** | Turtle, Trig, N-Triples, N-Quads | `serialize(format=...)` | 0.4 **done** |
 | | RDF/XML, N3 | same | 0.4 **done** |
 | | JSON-LD | same; optional `jsonld` extra if needed | 0.4 **done** |
-| | TriG, TriX, HexTuples, longTurtle | same where rdflib registers parser/serializer | 0.4 **done** |
+| | TriG, TriX, HexTuples, longTurtle | TriG **done**; TriX/HexTuples/longTurtle **out of scope** in 0.10 (pyoxigraph) | 0.10 **partial** |
 | | Microdata, RDFa | **out of scope** (HTML scraping, not domain modeling) | — |
 | **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 **done** |
 | | Remote SPARQL read (`SPARQLStore`) | removed in 0.10; use SparqlModel or load into `Store` | 0.10 **out of scope** |
@@ -103,7 +103,7 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | **Tools** | OWL/RDFS stub codegen (experimental) | `triplemodel-codegen` CLI | 0.8 **done** |
 | **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 **done** |
 | **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | **1.0** |
-| **Plugins** | Register custom Parser/Serializer/Store | `triplemodel.plugins.register_*` passthrough | 0.9 **done** |
+| **Plugins** | Register custom Parser/Serializer/Store | removed in 0.10; literals/resolvers only | 0.10 **out of scope** |
 | **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `triplemodel[shacl]` pre-export hook | 0.4 **done** |
 | **contrib** | GraphDB, RDF4J clients | **out of scope** for core; link in cookbook only | — |
 | **Tools** | `rdflib.tools` CLI (csv2rdf, etc.) | **out of scope** (use rdflib directly) | — |
@@ -313,7 +313,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 **Theme:** rdflib **stores** and production-sized graphs.
 
 - [x] **SPARQL store adapter** — documented pattern in guide 15 + guide 13 (persistent remote graphs)
-- [x] **Optional extras** — `sqlalchemy`, `berkeleydb` store backends with examples
+- [x] **Optional extras** — `sqlalchemy`, `berkeleydb` store backends with examples (removed in 0.10; use `open_graph("disk", path)`)
 - [x] **Store lifecycle** — `open_graph`, `graph_store_session`, `destroy_store`
 - [x] **Store transactions** — `store_commit` / `store_rollback` passthrough
 - [x] **Batch import** — `iter_graph_to_models`, `load_models_streaming`, `parse_into_store_graph`

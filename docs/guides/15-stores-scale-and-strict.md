@@ -65,7 +65,7 @@ with graph_store_session(graph):
     store_commit(graph)
 ```
 
-See ``examples/stores/disk_store.py``. For remote SPARQL as the system of record, use {doc}`13-sparql-and-endpoints` and SparqlModel.
+See ``examples/stores/disk_store.py``. When ``parse_into_store_graph`` creates a temporary directory, call ``graph.close()`` to remove it. For remote SPARQL as the system of record, use {doc}`13-sparql-and-endpoints` and SparqlModel.
 
 ## Benchmark
 

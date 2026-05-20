@@ -10,7 +10,7 @@ From **0.9.0**, the public API is frozen for downstream packages (including [Spa
 |----------|--------|
 | Graph type | Use `triplemodel.Store` (not `rdflib.Graph`) |
 | Plugin hooks | `register_parser` / `register_serializer` / `register_store` removed |
-| Remote SPARQL graph | `open_sparql_graph` removed |
+| Remote SPARQL graph | `open_sparql_graph` / `load_sparql` raise `NotImplementedError` (symbols kept for import compatibility) |
 | `[sqlalchemy]` extra | Use `open_graph("disk", path)` |
 
 **Unchanged:** symbols in `triplemodel.__all__` for mapping (`TripleModel`, `rdf_field`, `to_graph`, `from_graph`, `sync_to_graph`, `load_models`, …) — method **names** kept; arguments expecting rdflib graphs now expect `Store`.

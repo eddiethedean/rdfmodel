@@ -1,6 +1,6 @@
 # File I/O (parse and serialize)
 
-TripleModel **0.4** wraps rdflib’s `Graph.parse` and `Graph.serialize` so model classes load and save RDF documents directly.
+TripleModel maps model classes to **pyoxigraph** parse and serialize so you can load and save RDF documents directly on a `Store` or `Dataset`.
 
 ## Serialize to a string or file
 
@@ -36,7 +36,7 @@ Format is inferred from the file suffix when omitted (`.ttl` → Turtle, `.trig`
 
 ## Base URI for relative IRIs
 
-Set `Rdf.base_uri` (or pass `base=` to `parse`) so relative IRIs in Turtle resolve correctly (rdflib 7 `publicID` semantics):
+Set `Rdf.base_uri` (or pass `base=` to `parse`) so relative IRIs in Turtle resolve correctly (`publicID` / base IRI on parse):
 
 ```python
 class Person(TripleModel):

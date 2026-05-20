@@ -83,12 +83,14 @@ def test_parse_into_store_graph_default_disk(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     graph = parse_into_store_graph(path)
+    ephemeral = graph.ephemeral_store_path
+    assert ephemeral is not None
+    assert Path(ephemeral).is_dir()
     try:
         assert len(graph) >= 1
     finally:
-        close = getattr(graph.store, "close", None)
-        if callable(close):
-            close()
+        graph.close()
+    assert not Path(ephemeral).exists()
 
 
 def test_parse_into_store_graph_bind_prefixes(tmp_path: Path) -> None:
@@ -177,14 +179,14 @@ def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> 
             return explicit, None
         return "/tmp/ephemeral-store", "/tmp/ephemeral-store"
 
-    def fake_cleanup(ident, store, ephemeral):
-        cleaned.append((ident, store, ephemeral))
+    def fake_destroy(ident, *, store="disk", **_kwargs):
+        cleaned.append((ident, store, ident))
 
     monkeypatch.setattr(
         files_mod, "parse_into_store_graph", fake_parse_into_store_graph
     )
     monkeypatch.setattr(files_mod, "_streaming_store_identifier", fake_identifier)
-    monkeypatch.setattr(files_mod, "_cleanup_ephemeral_store", fake_cleanup)
+    monkeypatch.setattr("triplemodel.io.stores.destroy_store", fake_destroy)
     people = load_models_streaming(path, StreamPerson, store="disk")
     assert len(people) == 1
     assert cleaned == [("/tmp/ephemeral-store", "disk", "/tmp/ephemeral-store")]

@@ -48,17 +48,19 @@ def _graph_name(graph: GraphName | str | None) -> GraphName:
 class RdfGraph:
     """RDF graph (default graph of a :class:`~pyoxigraph.Store`)."""
 
-    __slots__ = ("_store", "_graph", "_prefixes")
+    __slots__ = ("_store", "_graph", "_prefixes", "_ephemeral_store_path")
 
     def __init__(
         self,
         store: OxigraphStore | None = None,
         *,
         graph: GraphName | str | None = None,
+        ephemeral_store_path: str | None = None,
     ) -> None:
         self._store = store if store is not None else OxigraphStore()
         self._graph = _graph_name(graph)
         self._prefixes: dict[str, str] = {}
+        self._ephemeral_store_path = ephemeral_store_path
 
     @property
     def store(self) -> OxigraphStore:
@@ -75,6 +77,37 @@ class RdfGraph:
         if isinstance(self._graph, NamedNode):
             return str(self._graph.value)
         return None
+
+    @property
+    def ephemeral_store_path(self) -> str | None:
+        """On-disk temp directory to remove when :meth:`close` is called (if any)."""
+        return self._ephemeral_store_path
+
+    def close(self) -> None:
+        """Close the underlying store and remove an ephemeral on-disk directory.
+
+        pyoxigraph releases on-disk locks when the ``Store`` object is dropped; there is
+        no explicit ``close()`` on :class:`~pyoxigraph.Store`.
+        """
+        import gc
+
+        flush = getattr(self._store, "flush", None)
+        if callable(flush):
+            try:
+                flush()
+            except Exception:
+                pass
+        ephemeral = self._ephemeral_store_path
+        self._ephemeral_store_path = None
+        self._store = OxigraphStore()
+        gc.collect()
+        if ephemeral is not None:
+            from triplemodel.io.stores import destroy_store
+
+            try:
+                destroy_store(ephemeral, store="disk")
+            except Exception:
+                pass
 
     def bind(self, prefix: str, namespace: str | object) -> None:
         """Record a prefix for serialization (pyoxigraph has no Graph.bind)."""

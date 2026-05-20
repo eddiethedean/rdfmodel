@@ -1,6 +1,6 @@
 # Graph algorithms and RDFS
 
-TripleModel **0.7** adds thin wrappers over rdflib graph operations for testing, subgraph extraction, RDFS-aware dispatch, and batch reference hydration. These helpers are **not** a reasoner or ORM — they complement `from_graph` / `graph_to_model_dispatch`.
+TripleModel adds thin wrappers over pyoxigraph-backed graph operations for testing, subgraph extraction, RDFS-aware dispatch, and batch reference hydration. These helpers are **not** a reasoner or ORM — they complement `from_graph` / `graph_to_model_dispatch`.
 
 ## When to use which helper
 
@@ -26,11 +26,11 @@ assert not diff.only_in_a and not diff.only_in_b
 changes = model_diff(alice, bob, graph=g)  # optional predicate-level diff
 ```
 
-`graphs_equal(..., normalize_bnodes=True)` skolemizes blank nodes before `Graph.isomorphic()` — useful when graphs were built separately. For graphs parsed in two `parse()` calls, blank-node identity will not match; see {doc}`08-working-with-graphs` and **Safe graph merge** below.
+`graphs_equal(..., normalize_bnodes=True)` skolemizes blank nodes before isomorphism checks — useful when graphs were built separately. For graphs parsed in two `parse()` calls, blank-node identity will not match; see {doc}`08-working-with-graphs` and **Safe graph merge** below.
 
 ## Concise bounded description (CBD)
 
-rdflib’s `Graph.cbd` returns the predicate closure around a subject. TripleModel wraps it for import:
+CBD returns the predicate closure around a subject. TripleModel exposes it for import:
 
 ```python
 from triplemodel import TripleModel, cbd_model

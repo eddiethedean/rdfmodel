@@ -18,11 +18,11 @@
 - [ ] Local gate: `make ci` and `make release-check`
 - [ ] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
 - [ ] `sphinx-build -b html docs docs/_build/html -W`
-- [ ] `make examples` (exit_criteria_03–09 + readme_examples)
+- [ ] `make examples` (exit_criteria_03–09, `disk_store`, readme_examples)
 - [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.10.0` when ready to publish (do not tag until checklist passes)
+- [ ] **Tagging deferred** — do not create `v0.10.0` until explicitly approved for PyPI publish
 
-**Publish (after checklist above)**
+**Publish (when tagging is approved)**
 
 ```bash
 make release-check

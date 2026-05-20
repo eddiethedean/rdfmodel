@@ -36,8 +36,8 @@ restored = Item.from_graph(item.to_graph(), item.subject_uri())
 ## Register a custom type
 
 ```python
-from rdflib import Literal, XSD
-from triplemodel import register_literal_type
+from pyoxigraph import Literal, NamedNode
+from triplemodel import XSD, register_literal_type
 
 class Money:
     def __init__(self, amount: str):
@@ -45,13 +45,13 @@ class Money:
 
 register_literal_type(
     Money,
-    to_literal=lambda m: Literal(m.amount, datatype=XSD.decimal),
+    to_literal=lambda m: Literal(m.amount, NamedNode(str(XSD.decimal))),
     from_literal=lambda lit: Money(str(lit)),
     datatype=str(XSD.decimal),
 )
 ```
 
-When `datatype` is provided, TripleModel also calls `rdflib.term.bind` so rdflib recognizes the Python type.
+Use `NamedNode` for the XSD datatype IRI (import from `pyoxigraph`). Custom converters should return pyoxigraph `Literal` values on export.
 
 Registry lookup runs **before** generic XSD coercion in `python_to_term` / `term_to_python`.
 

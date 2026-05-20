@@ -81,3 +81,56 @@ def test_coerce_store_name_sqlalchemy_warns() -> None:
 
     with pytest.warns(DeprecationWarning, match="sqlalchemy"):
         assert coerce_store_name("sqlalchemy") == "disk"
+
+
+def test_open_graph_disk_create_false_missing(tmp_path: Path) -> None:
+    missing = tmp_path / "no-such-store"
+    with pytest.raises(FileNotFoundError, match="does not exist"):
+        open_graph("disk", str(missing), create=False)
+
+
+def test_open_graph_disk_read_only(tmp_path: Path) -> None:
+    store_dir = tmp_path / "ro-store"
+    g = open_graph("disk", str(store_dir))
+    subj = NamedNode(f"{EX}bob")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    store_commit(g)
+    g.close()
+    g_ro = open_graph("disk", str(store_dir), read_only=True)
+    try:
+        assert len(g_ro) >= 1
+    finally:
+        g_ro.close()
+    destroy_store(str(store_dir), store="disk")
+
+
+def test_graph_close_destroy_failure(tmp_path: Path, monkeypatch) -> None:
+    from triplemodel.io.files import _streaming_store_identifier
+
+    path = tmp_path / "data.nt"
+    path.write_text(f"<{EX}x> <{RDF_TYPE}> <{EX}Person> .\n", encoding="utf-8")
+    ident, ephemeral = _streaming_store_identifier(path, "disk", None)
+
+    def boom(*_args, **_kwargs):
+        raise OSError("destroy failed")
+
+    monkeypatch.setattr("triplemodel.io.stores.destroy_store", boom)
+    g = open_graph("disk", ident, ephemeral_store_path=ephemeral)
+    g.close()
+    g.close()
+
+
+def test_graph_close_ephemeral(tmp_path: Path) -> None:
+    from triplemodel.io.files import _streaming_store_identifier
+
+    path = tmp_path / "data.nt"
+    path.write_text(f"<{EX}x> <{RDF_TYPE}> <{EX}Person> .\n", encoding="utf-8")
+    ident, ephemeral = _streaming_store_identifier(path, "disk", None)
+    assert ephemeral is not None
+    assert ephemeral == ident
+    ephemeral_dir = Path(ephemeral)
+    g = open_graph("disk", ident, ephemeral_store_path=ephemeral)
+    assert g.ephemeral_store_path == ephemeral
+    assert ephemeral_dir.is_dir()
+    g.close()
+    assert not ephemeral_dir.exists()

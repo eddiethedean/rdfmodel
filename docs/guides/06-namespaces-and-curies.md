@@ -60,7 +60,7 @@ bind_namespaces(graph, {"foaf": "http://xmlns.com/foaf/0.1/"}, strategy="core")
 | `strategy` | Effect |
 |------------|--------|
 | `"core"` | `graph.bind(prefix, namespace)` for each entry |
-| `"rdflib"` | Also call rdflib’s `bind_namespaces()` when available |
+| `"rdflib"` | Legacy alias for `"core"` (records prefixes on the `Store` only) |
 | `"none"` | No-op |
 
 Pass `bind=False` to module-level `sync_to_graph` or `model_to_graph` when merging into a graph that already has prefix bindings.
@@ -71,6 +71,6 @@ Pass `bind=False` to module-level `sync_to_graph` or `model_to_graph` when mergi
 from triplemodel.vocab import FOAF, DCTERMS, SKOS, OWL, RDFS, XSD
 ```
 
-These re-export rdflib `DefinedNamespace` objects so you can write `f"{FOAF}name"` in full-IRI form and still add `prefixes = {"foaf": str(FOAF)}` for CURIE fields.
+These are bundled namespace helpers so you can write `f"{FOAF}name"` in full-IRI form and still add `prefixes = {"foaf": str(FOAF)}` for CURIE fields.
 
 **Next:** [Custom literals →](07-custom-literals-and-types.md)

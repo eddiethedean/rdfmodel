@@ -72,6 +72,6 @@ With **`embed="iri"`**, `replace` and `patch` remove owned triples on nested chi
 
 ## Skolemize and shared graphs
 
-`skolemize=True` on `sync_to_graph` affects the whole `Graph` you pass in. **`patch`** runs skolemize after stale cleanup and export; **`replace`** / **`add`** skolemize at the start of `write_model_add` before new triples are appended. When rdflib returns a new graph from `skolemize()`, use the graph returned from `sync_to_graph`.
+`skolemize=True` on `sync_to_graph` affects the whole `Store` you pass in. **`patch`** runs skolemize after stale cleanup and export; **`replace`** / **`add`** skolemize at the start of `write_model_add` before new triples are appended. When skolemization returns a new graph view, use the graph returned from `sync_to_graph`.
 
 **Next:** [Nested models →](05-nested-models.md)

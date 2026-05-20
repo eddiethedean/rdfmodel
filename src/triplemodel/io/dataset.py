@@ -46,7 +46,7 @@ def parse_into_dataset(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Dataset:
-    """Parse RDF into a new in-memory :class:`rdflib.Dataset`."""
+    """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfDataset`."""
     if data is None and source is None:
         raise ValueError("parse_into_dataset requires source= or data=.")
     hint: str | Path | None = None
@@ -74,7 +74,7 @@ def parse_url_into_dataset(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Dataset:
-    """Parse RDF from a URL into a :class:`rdflib.Dataset`."""
+    """Parse RDF from a URL into a :class:`~triplemodel.store.RdfDataset`."""
     fmt = infer_format(url, format)
     body = fetch_url(url, timeout=timeout)
     return parse_into_dataset(
@@ -97,7 +97,7 @@ def load_dataset(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Dataset:
-    """Parse RDF into an in-memory :class:`rdflib.Dataset` (alias for :func:`parse_into_dataset`)."""
+    """Parse RDF into an in-memory dataset (alias for :func:`parse_into_dataset`)."""
     return parse_into_dataset(
         source=source,
         data=data,

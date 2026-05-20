@@ -58,21 +58,44 @@ def open_graph(
     *,
     create: bool = True,
     read_only: bool = False,
+    ephemeral_store_path: str | None = None,
     **kwargs: Any,
 ) -> Graph:
     """Open an in-memory or on-disk graph backed by pyoxigraph.
 
     ``store`` may be ``memory`` / ``default`` or ``disk``. For ``disk``, ``identifier``
     is a directory path passed to :class:`pyoxigraph.Store`.
+
+    When ``read_only=True``, opens with :meth:`pyoxigraph.Store.read_only` (undefined
+    behavior if another process writes the same path). When ``create=False``, raises
+    :exc:`FileNotFoundError` if the directory does not exist.
     """
-    _ = create, read_only, kwargs
+    if kwargs:
+        warnings.warn(
+            f"open_graph() ignored unsupported keyword arguments: {sorted(kwargs)}",
+            stacklevel=2,
+        )
     normalized = _normalize_store_name(store)
     if normalized == "memory":
+        if read_only or not create:
+            warnings.warn(
+                "open_graph(memory): create= and read_only= are ignored for in-memory stores.",
+                stacklevel=2,
+            )
         return Graph()
     path = Path(identifier)
     if not identifier:
         raise ValueError("disk store requires a non-empty identifier path.")
-    return Graph(store=OxigraphStore(str(path)))
+    if not create and not path.exists():
+        raise FileNotFoundError(f"disk store path does not exist: {path}")
+    if read_only:
+        ox = OxigraphStore.read_only(str(path))
+    else:
+        ox = OxigraphStore(str(path))
+    return Graph(
+        store=ox,
+        ephemeral_store_path=ephemeral_store_path,
+    )
 
 
 @contextlib.contextmanager

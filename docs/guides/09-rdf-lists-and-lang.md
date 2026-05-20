@@ -4,7 +4,7 @@ TripleModel maps **`list[T]`** fields to ordered **`rdf:List`** structures and *
 
 ## `list[T]` → `rdf:List`
 
-Use a Python `list` when order matters and the graph should use an **`rdf:List`** head node (rdflib `Collection`):
+Use a Python `list` when order matters and the graph should use an **`rdf:List`** head node (`rdf:first` / `rdf:rest`):
 
 ```python
 nick: list[str] = rdf_field("foaf:nick", default_factory=list)

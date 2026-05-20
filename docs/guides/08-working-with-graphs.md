@@ -1,6 +1,6 @@
 # Working with graphs
 
-Patterns for multiple resources, merging graphs, and small helpers that mirror common rdflib access patterns with type awareness.
+Patterns for multiple resources, merging graphs, and small helpers over a pyoxigraph-backed `Store` with type awareness.
 
 ## Batch export
 
@@ -14,12 +14,12 @@ people = [
 graph = models_to_graph(people)
 ```
 
-Merge into an **existing** graph (note: an empty `Graph()` is falsy in Python — pass it explicitly):
+Merge into an **existing** store (note: an empty `Store()` is falsy in Python — pass it explicitly):
 
 ```python
-from rdflib import Graph
+from triplemodel import Store
 
-existing = Graph()
+existing = Store()
 models_to_graph(people, existing)
 ```
 
@@ -53,7 +53,7 @@ g_bob = Person(slug="bob", name="Bob").to_graph()
 combined = merge_graphs(g_alice, g_bob)
 ```
 
-When merging graphs that contain blank nodes, node identity is preserved as rdflib does — do not assume unrelated parses share BNode ids.
+When merging graphs that contain blank nodes, node identity is preserved within each parse — do not assume unrelated parses share blank-node ids.
 
 ## Graph helpers
 
@@ -94,7 +94,7 @@ print(person.to_graph().serialize(format="turtle"))
 
 ## Skolemize and shared graphs
 
-When `Rdf.skolemize_export` / `Rdf.skolemize_import` is enabled (or you pass `skolemize=` / `de_skolemize=` on `to_graph`, `from_graph`, or `sync_to_graph`), rdflib’s `skolemize()` / `de_skolemize()` runs on the **entire** `Graph` you pass in—not only triples owned by the resource you are loading or syncing. If multiple resources share one graph, blank-node handling for one operation can affect unrelated triples. Use a dedicated graph per resource, or disable skolemization, when you need isolation.
+When `Rdf.skolemize_export` / `Rdf.skolemize_import` is enabled (or you pass `skolemize=` / `de_skolemize=` on `to_graph`, `from_graph`, or `sync_to_graph`), skolemization runs on the **entire** `Store` you pass in—not only triples owned by the resource you are loading or syncing. If multiple resources share one store, blank-node handling for one operation can affect unrelated triples. Use a dedicated store per resource, or disable skolemization, when you need isolation.
 
 ## Related guides
 

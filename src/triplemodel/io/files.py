@@ -55,7 +55,7 @@ def infer_format(
     hint: str | Path | None,
     explicit_format: str | None = None,
 ) -> str:
-    """Resolve an rdflib serializer/parser format name."""
+    """Resolve a parser/serializer format name for pyoxigraph."""
     if explicit_format:
         return explicit_format
     if hint is None:
@@ -76,7 +76,7 @@ def _is_jsonld_format(fmt: str | None) -> bool:
 
 
 def is_quad_format(fmt: str) -> bool:
-    """Return True when ``fmt`` is a quad-aware rdflib format (TriG, N-Quads)."""
+    """Return True when ``fmt`` is a quad-aware format (TriG, N-Quads)."""
     normalized = fmt.lower().replace("_", "-")
     return normalized in ("trig", "nquads", "n-quads")
 
@@ -326,15 +326,15 @@ def parse_into_store_graph(
     """Parse a document into a store-backed ``Graph`` (recommended for large N-Triples/N-Quads).
 
     Defaults to an on-disk :class:`pyoxigraph.Store` (``store='disk'``). Pass ``identifier``
-    for a persistent directory, or omit it to use a temporary directory (caller must clean up
-    when not using :func:`load_models_streaming`).
+    for a persistent directory, or omit it to use a temporary directory removed by
+    :meth:`~triplemodel.store.graph.RdfGraph.close`.
     """
     from triplemodel.io.stores import coerce_store_name, open_graph, store_commit
 
     store = coerce_store_name(store, stacklevel=2)
     fmt = infer_format(path, format)
-    ident, _ephemeral = _streaming_store_identifier(path, store, identifier)
-    graph = open_graph(store, ident)
+    ident, ephemeral = _streaming_store_identifier(path, store, identifier)
+    graph = open_graph(store, ident, ephemeral_store_path=ephemeral)
     parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
     graph.parse(source=str(path), format=fmt, publicID=base, **parse_kwargs)
     store_commit(graph)
@@ -419,14 +419,9 @@ def load_models_streaming(
         return {cls: _load_class(cls) for cls in model_classes}
     finally:
         if graph is not None:
-            close = getattr(graph.store, "close", None)
-            if callable(close):
-                try:
-                    close()
-                except Exception:
-                    pass
-        if ephemeral_path is not None:
-            _cleanup_ephemeral_store(ephemeral_path, store_name, ephemeral_path)
+            if ephemeral_path is not None and graph.ephemeral_store_path is None:
+                graph._ephemeral_store_path = ephemeral_path  # noqa: SLF001
+            graph.close()
 
 
 def dump_model(

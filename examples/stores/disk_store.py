@@ -33,11 +33,14 @@ def main() -> None:
             alice = Person(slug="alice", name="Alice")
             alice.sync_to_graph(graph)
             store_commit(graph)
-        del graph
+        graph.close()
         graph2 = open_graph("disk", str(store_dir))
-        people = Person.all_from_graph(graph2)
-        assert len(people) == 1 and people[0].name == "Alice"
-        print("disk store round-trip OK")
+        try:
+            people = Person.all_from_graph(graph2)
+            assert len(people) == 1 and people[0].name == "Alice"
+            print("disk store round-trip OK")
+        finally:
+            graph2.close()
 
 
 if __name__ == "__main__":

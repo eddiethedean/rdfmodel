@@ -1,6 +1,6 @@
 # Datasets and named graphs
 
-TripleModel **0.5** maps each model class to an rdflib **named graph** via `Rdf.graph_iri`, then reads and writes through `rdflib.Dataset` (TriG, N-Quads).
+TripleModel maps each model class to a **named graph** via `Rdf.graph_iri`, then reads and writes through a pyoxigraph-backed `Dataset` (TriG, N-Quads).
 
 ## Configure a named graph
 
@@ -16,7 +16,7 @@ class Person(TripleModel):
     name: str = rdf_field("foaf:name")
 ```
 
-When `graph_iri` is omitted, triples use the dataset **default graph** (same as a flat `Graph`).
+When `graph_iri` is omitted, triples use the dataset **default graph** (same as a flat `Store`).
 
 ### Instance override
 
@@ -67,24 +67,21 @@ Pass `model_classes=[Person, Catalog]` to load only those exact classes (recomme
 | Operation | Behavior |
 |-----------|----------|
 | `from_dataset`, `all_from_dataset` | **One context only** — the model's `graph_iri` or the default graph |
-| `dataset.query(...)` (rdflib) | May use the **union** of graphs depending on rdflib version and query form |
+| `dataset.query(...)` | SPARQL over the underlying pyoxigraph store (union semantics depend on query form) |
 | `parse_into_graph` on TriG | Can **lose** named-graph boundaries; use `parse_into_dataset` instead |
 
-TripleModel does not wrap SPARQL until **0.6**; use rdflib directly for ad hoc queries.
+For SPARQL helpers on a local store, see {doc}`13-sparql-and-endpoints`.
 
 ## Nested models
 
 When a parent exports an embedded child, nested triples are written to the **parent's** resolved graph context. A child's `graph_iri` applies when that child is exported or loaded on its own (or via `models_to_dataset` grouping).
 
-## Migration from ConjunctiveGraph
+## Migration from rdflib ConjunctiveGraph
 
-rdflib 7 deprecates `ConjunctiveGraph` in favor of **`Dataset`**. In TripleModel:
+If you previously used rdflib’s `ConjunctiveGraph`, use TripleModel’s `Dataset` (from `triplemodel.io` or `load_dataset`):
 
-- Replace `ConjunctiveGraph()` with `Dataset()`.
 - Use `parse_into_dataset` / `load_dataset` instead of `parse_into_graph` for TriG and N-Quads.
-- `Rdf.base_uri` (`publicID` on parse) is unchanged from 0.4.
-
-See the [rdflib documentation](https://rdflib.readthedocs.io/en/stable/) (`Dataset`, named graphs, and quads).
+- `Rdf.base_uri` (`base=` / `publicID` on parse) resolves relative IRIs as before.
 
 ## Helpers
 
@@ -97,6 +94,6 @@ from triplemodel import (
 )
 ```
 
-- `get_graph_context(dataset, graph_iri)` — rdflib `Graph` context for I/O
+- `get_graph_context(dataset, graph_iri)` — `Store` view for one named graph
 - `iter_model_quads(model)` — `(subject, predicate, object, graph_iri)` rows
 - `quads_in_context(dataset, graph_iri)` — iterate quads in one named graph

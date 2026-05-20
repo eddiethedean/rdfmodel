@@ -173,7 +173,7 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 1. **Correctness** — subject IRIs, literals, import/export symmetry.
 2. **SparqlModel gate items** — sync/remove (0.2), namespaces (0.2), nested models (0.2).
 3. **Real-world ergonomics (0.4.1)** — multi-class load, property-based typing, mapping validation, partial XSD dates (unblocks LOD examples without Dataset).
-4. **rdflib matrix** — per [ROADMAP.md](ROADMAP.md) (0.5+ Dataset, 0.6 SPARQL passthrough).
+4. **pyoxigraph matrix** — per [ROADMAP.md](ROADMAP.md) (0.5+ Dataset, 0.6 SPARQL passthrough).
 5. **Ergonomic extras** — codegen, `hydrate_refs`, advanced SPARQL helpers.
 6. **Never** — session/query compiler in TripleModel core.
 
@@ -184,7 +184,7 @@ Patch releases: bugfixes only. Minors: features. Majors: breaking API after 1.0.
 | Document | Audience |
 |----------|----------|
 | [README on GitHub](https://github.com/eddiethedean/triplemodel/blob/main/README.md) | Library users |
-| [ROADMAP.md](ROADMAP.md) | Releases, rdflib matrix |
+| [ROADMAP.md](ROADMAP.md) | Releases, pyoxigraph matrix |
 | [PLAN.md](PLAN.md) | Strategy (this file) |
 | [ECOSYSTEM.md](ECOSYSTEM.md) | triplemodel ↔ SparqlModel boundaries |
 | [ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md) | Copy into SparqlModel repo |
