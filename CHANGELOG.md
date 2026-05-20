@@ -25,13 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Streaming / store parse** — `parse_into_store_graph` cleans up temporary disk directories via `graph.close()`; legacy `sqlalchemy` / `berkeleydb` names emit `DeprecationWarning` and map to disk.
+- **`parse_into_store_graph`** — on parse failure, call `graph.close()` so ephemeral temp directories are not left on disk.
+- **Store cleanup** — `RdfGraph.close()` and `_cleanup_ephemeral_store` emit `ResourceWarning` when flush or `destroy_store` fails (still non-throwing).
+- **CI** — `stores` job installs `[dev,shacl]`; removed pytest `filterwarnings` entries that required optional modules or referenced rdflib-only deprecations.
 - **Examples** — `exit_criteria_09.py` (0.10 Store smoke), `examples/stores/disk_store.py`; `exit_criteria_08` disk store smoke.
 - **Makefile `ci`** — use `compat-pyoxigraph` on Python 3.13+; drop removed `sqlalchemy` extra from install line.
 
 ### Changed
 
 - **SHACL** — optional `rdflib` only in `[shacl]` extra (bridge for pyshacl).
-- **Docs / CI** — guides, cookbook, README, ECOSYSTEM, ROADMAP matrix updated for pyoxigraph 0.10.
+- **Docs / CI** — guides, cookbook, README, ECOSYSTEM, ROADMAP matrix updated for pyoxigraph 0.10; GitHub Actions `checkout@v5` and `setup-python@v6` (Node 24–ready runners).
 - **Packaging** — removed unused `berkeleydb` optional extra.
 
 ## [0.9.0] - 2026-05-18
@@ -72,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Plugin hooks** — `triplemodel.plugins` (`register_predicate_resolver`, re-exports)
 - **Codegen (experimental)** — `triplemodel-codegen` CLI for OWL/RDFS → stub models
 - **Guide** — `docs/guides/15-stores-scale-and-strict.md`
-- **Examples** — `examples/exit_criteria_08.py`, `examples/stores/sqlalchemy_sqlite.py`, `examples/codegen/`
+- **Examples** — `examples/exit_criteria_08.py`, `examples/stores/` (disk store; historical sqlalchemy example removed in 0.10), `examples/codegen/`
 
 ### Changed
 

@@ -272,7 +272,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [x] **`construct_models`** — CONSTRUCT/DESCRIBE → target model class
 - [x] **`ask`** — thin wrapper returning `bool`
 - [x] **SPARQL UPDATE** — `apply_update(graph, query)` with documented interaction with models
-- [x] **`load_sparql`** — `SPARQLStore` / read-only endpoint into models
+- [x] **`load_sparql`** — `SPARQLStore` / read-only endpoint into models *(historical, rdflib 0.6; removed in 0.10 — raises `NotImplementedError`)*
 - [x] **`SPARQLUpdateStore`** — read-write remote graph pattern (optional extra if needed)
 - [x] **Federated `SERVICE`** — document querying remote endpoints inside SPARQL
 - [x] **Prepared queries** — `prepareQuery()` + `initNs` from model `Rdf.prefixes`
@@ -358,7 +358,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [x] **Full API reference** — Sphinx `docs/api/` + autodoc on `triplemodel` and submodules
 - [x] **Cookbook** — `docs/cookbook/` (formats, SPARQL/Fuseki, Dataset, SHACL, stores, real-world)
 - [x] **Typing** — `py.typed` + `ty check` in CI (canonical checker; not mypy)
-- [x] **Compatibility matrix** — pinned pydantic / rdflib ranges in CI `compat` job
+- [x] **Compatibility matrix** — pinned pydantic / pyoxigraph ranges in CI `compat` job
 
 **Exit criteria:** No open matrix gaps except **TBD** / **out of scope**; `examples/exit_criteria_09.py`; beta on PyPI.
 

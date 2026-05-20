@@ -116,7 +116,8 @@ def test_graph_close_destroy_failure(tmp_path: Path, monkeypatch) -> None:
 
     monkeypatch.setattr("triplemodel.io.stores.destroy_store", boom)
     g = open_graph("disk", ident, ephemeral_store_path=ephemeral)
-    g.close()
+    with pytest.warns(ResourceWarning, match="Failed to remove ephemeral store"):
+        g.close()
     g.close()
 
 

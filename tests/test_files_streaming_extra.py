@@ -110,6 +110,35 @@ def test_parse_into_store_graph_bind_prefixes(tmp_path: Path) -> None:
     assert len(graph) >= 1
 
 
+def test_parse_into_store_graph_cleans_ephemeral_on_parse_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from triplemodel.io import files as files_mod
+    from triplemodel.io.files import parse_into_store_graph
+
+    path = tmp_path / "bad.nt"
+    path.write_text("<<< not valid n-triples\n", encoding="utf-8")
+    captured: dict[str, str | None] = {}
+
+    orig = files_mod._streaming_store_identifier
+
+    def capture(
+        path_arg: str | Path, store: str, explicit: str | None
+    ) -> tuple[str, str | None]:
+        ident, ephemeral = orig(path_arg, store, explicit)
+        captured["ephemeral"] = ephemeral
+        return ident, ephemeral
+
+    monkeypatch.setattr(files_mod, "_streaming_store_identifier", capture)
+
+    with pytest.raises(Exception):
+        parse_into_store_graph(path)
+
+    ephemeral = captured.get("ephemeral")
+    assert ephemeral is not None
+    assert not Path(ephemeral).exists()
+
+
 def test_streaming_store_identifier_plain_path(tmp_path: Path) -> None:
     from triplemodel.io.files import _streaming_store_identifier
 
@@ -151,7 +180,8 @@ def test_cleanup_ephemeral_store_destroy_failure(tmp_path: Path, monkeypatch) ->
         raise OSError("destroy failed")
 
     monkeypatch.setattr("triplemodel.io.stores.destroy_store", boom)
-    _cleanup_ephemeral_store(str(store_dir), "disk", str(store_dir))
+    with pytest.warns(ResourceWarning, match="Failed to remove ephemeral store"):
+        _cleanup_ephemeral_store(str(store_dir), "disk", str(store_dir))
 
 
 def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> None:

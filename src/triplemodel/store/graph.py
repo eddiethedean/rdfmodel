@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import warnings
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, overload
@@ -95,8 +96,12 @@ class RdfGraph:
         if callable(flush):
             try:
                 flush()
-            except Exception:
-                pass
+            except Exception as exc:
+                warnings.warn(
+                    f"Failed to flush store before close: {exc}",
+                    ResourceWarning,
+                    stacklevel=2,
+                )
         ephemeral = self._ephemeral_store_path
         self._ephemeral_store_path = None
         self._store = OxigraphStore()
@@ -106,8 +111,12 @@ class RdfGraph:
 
             try:
                 destroy_store(ephemeral, store="disk")
-            except Exception:
-                pass
+            except Exception as exc:
+                warnings.warn(
+                    f"Failed to remove ephemeral store at {ephemeral!r}: {exc}",
+                    ResourceWarning,
+                    stacklevel=2,
+                )
 
     def bind(self, prefix: str, namespace: str | object) -> None:
         """Record a prefix for serialization (pyoxigraph has no Graph.bind)."""

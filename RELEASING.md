@@ -11,12 +11,13 @@
 | Release workflow calls reusable CI + Docs workflows before publish | Done |
 | Exit criteria `examples/exit_criteria_09.py` (0.10 Store + disk smoke) | Done |
 | `examples/stores/disk_store.py` | Done |
+| 0.10 hygiene (parse leak, cleanup warnings, CI stores/shacl, Actions v5/v6) | Done |
 
 **Pre-release checklist (0.10.0)**
 
 - [x] `version` `0.10.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
 - [ ] Local gate: `make ci` and `make release-check`
-- [ ] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
+- [x] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check` — verified in hygiene pass (run `make ci` before publish)
 - [ ] `sphinx-build -b html docs docs/_build/html -W`
 - [ ] `make examples` (exit_criteria_03–09, `disk_store`, readme_examples)
 - [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets

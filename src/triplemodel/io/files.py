@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import warnings
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, TypeVar, cast, overload
@@ -308,8 +309,12 @@ def _cleanup_ephemeral_store(
 
     try:
         destroy_store(identifier, store="disk")
-    except Exception:
-        pass
+    except Exception as exc:
+        warnings.warn(
+            f"Failed to remove ephemeral store at {ephemeral_path!r}: {exc}",
+            ResourceWarning,
+            stacklevel=2,
+        )
 
 
 def parse_into_store_graph(
@@ -335,12 +340,16 @@ def parse_into_store_graph(
     fmt = infer_format(path, format)
     ident, ephemeral = _streaming_store_identifier(path, store, identifier)
     graph = open_graph(store, ident, ephemeral_store_path=ephemeral)
-    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
-    graph.parse(source=str(path), format=fmt, publicID=base, **parse_kwargs)
-    store_commit(graph)
-    if bind_prefixes:
-        bind_namespaces(graph, dict(bind_prefixes))
-    return graph
+    try:
+        parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
+        graph.parse(source=str(path), format=fmt, publicID=base, **parse_kwargs)
+        store_commit(graph)
+        if bind_prefixes:
+            bind_namespaces(graph, dict(bind_prefixes))
+        return graph
+    except Exception:
+        graph.close()
+        raise
 
 
 def load_models_streaming(
