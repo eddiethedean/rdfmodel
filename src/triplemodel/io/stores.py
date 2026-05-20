@@ -134,7 +134,20 @@ def destroy_store(
         shutil.rmtree(path)
 
 
+def cleanup_ephemeral_store_path(path: str) -> None:
+    """Remove a temporary on-disk store directory (non-throwing on failure)."""
+    try:
+        destroy_store(path, store="disk")
+    except Exception as exc:
+        warnings.warn(
+            f"Failed to remove ephemeral store at {path!r}: {exc}",
+            ResourceWarning,
+            stacklevel=2,
+        )
+
+
 __all__ = [
+    "cleanup_ephemeral_store_path",
     "coerce_store_name",
     "destroy_store",
     "graph_store_session",

@@ -71,7 +71,7 @@ class RdfConfig:
     base_uri: str | None = None
     """Default base IRI for ``Graph.parse`` (rdflib ``publicID``)."""
     jsonld_context: dict[str, Any] | str | None = None
-    """Default JSON-LD ``@context`` for parse/serialize when ``format`` is json-ld."""
+    """Reserved for API stability; not applied on pyoxigraph (warns if set)."""
     graph_iri: str | None = None
     """Named graph IRI for Dataset contexts; ``None`` uses the default graph."""
     resolve_subclass: bool = True

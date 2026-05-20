@@ -52,7 +52,7 @@ class Person(TripleModel):
 
 ## JSON-LD context
 
-Optional default context on `Rdf.jsonld_context` is passed through when `format="json-ld"`.
+`Rdf.jsonld_context` is kept for API compatibility but **does not affect** parse or serialize on the pyoxigraph backend (TripleModel 0.10). Setting it emits a `UserWarning`; JSON-LD uses only context embedded in the document.
 
 ## Subclass dispatch
 

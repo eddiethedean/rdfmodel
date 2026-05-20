@@ -11,13 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **infer_format** — reject `hext`, `longTurtle`, and `trix` at inference time with a clear error (not only on serialize).
+- **infer_format** — reject `hext`, `longTurtle`, and `trix` at inference time with a clear error (not only on serialize); infer from URL paths with `?` query and `#` fragment.
+- **parse_into_graph** / **parse_into_dataset** — route `source=bytes`, `BytesIO`, and `StringIO` through `data=`; reject both `source` and `data`.
+- **RdfDataset.parse** — HTTP(S) and `file://` URL sources (parity with `RdfGraph.parse`).
+- **merge_graphs** — preserve namespace bindings from input graphs.
+- **fetch_url** — raise `HTTPError` on HTTP status ≥ 400.
 - **examples/realworld/schema_org_ngos.py** — use `triplemodel.vocab.XSD` (no rdflib import).
 
 ### Changed
 
-- **Docstrings** — aligned with pyoxigraph backend (`io/ops`, `codegen/parse`, `store/formats`).
-- **Tests** — removed unused `tests/_rdflib_plugin_fixtures.py`.
+- **graph_value** — optional `on_duplicate` (`"first"` default; `"warn"` / `"error"` match import).
+- **JSON-LD** — `Rdf.jsonld_context` and unsupported parse/serialize kwargs emit `UserWarning` (pyoxigraph has no `@context` parameter).
+- **Docstrings** — aligned with pyoxigraph backend (`io/ops`, `codegen/parse`, `store/formats`, `model_to_triples`, file I/O guides).
+- **Store cleanup** — `cleanup_ephemeral_store_path` in `io/stores` (replaces unused `_cleanup_ephemeral_store` in `io/files`).
+- **Tests** — removed unused `tests/_rdflib_plugin_fixtures.py`; added `tests/test_io_warnings.py`.
 
 ## [0.10.0] - 2026-05-19
 

@@ -16,7 +16,7 @@ from triplemodel.terms.collection import read_rdf_list
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.convert import python_to_term, term_to_python
 from triplemodel.terms.registry import LiteralRegistry, default_registry
-from triplemodel._typing import ModelFieldScalar, PythonToTermInput
+from triplemodel._typing import ModelFieldScalar, OnDuplicate, PythonToTermInput
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -27,6 +27,8 @@ def merge_graphs(*graphs: Graph) -> Graph:
     for g in graphs:
         for t in g:
             merged.add(t)
+        if g._prefixes:
+            merged._prefixes.update(g._prefixes)
     return merged
 
 
@@ -37,6 +39,7 @@ def graph_value(
     model_cls: type[T],
     field_name: str,
     *,
+    on_duplicate: OnDuplicate = "first",
     resolver: PredicateResolverProtocol | None = None,
     registry: LiteralRegistry = default_registry,
 ) -> ModelFieldScalar | None:
@@ -51,6 +54,16 @@ def graph_value(
     objects = list(graph.objects(NamedNode(subject), NamedNode(resolved_pred)))
     if not objects:
         return None
+    if len(objects) > 1:
+        from triplemodel.io.import_ import _handle_duplicate
+
+        _handle_duplicate(
+            field_name,
+            resolved_pred,
+            subject,
+            len(objects),
+            on_duplicate,
+        )
     return cast(
         ModelFieldScalar, term_to_python(objects[0], py_type, registry=registry)
     )

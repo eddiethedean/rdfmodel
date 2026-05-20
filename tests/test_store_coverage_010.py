@@ -263,6 +263,21 @@ def test_graph_update_and_parse_errors() -> None:
     g.update("INSERT DATA { <http://ex/s> <http://ex/p> <http://ex/o> . }")
 
 
+def test_dataset_parse_http_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    ds = RdfDataset()
+
+    def fake_parse(url: str, **kwargs: object) -> list[object]:
+        _ = url, kwargs
+        return []
+
+    monkeypatch.setattr(
+        "triplemodel.store.parse_source.ox_parse",
+        fake_parse,
+    )
+    ds.parse(source="http://example.org/data.trig", format="trig")
+    assert len(ds.default_graph) == 0
+
+
 def test_graph_parse_http_url(monkeypatch: pytest.MonkeyPatch) -> None:
     g = RdfGraph()
 
@@ -270,7 +285,10 @@ def test_graph_parse_http_url(monkeypatch: pytest.MonkeyPatch) -> None:
         _ = url, kwargs
         return []
 
-    monkeypatch.setattr("triplemodel.store.graph.ox_parse", fake_parse)
+    monkeypatch.setattr(
+        "triplemodel.store.parse_source.ox_parse",
+        fake_parse,
+    )
     g.parse(source="http://example.org/data.ttl", format="turtle")
     assert len(g) == 0
 

@@ -76,7 +76,7 @@ _IMPORT_KWARG_KEYS = frozenset(
 def split_load_kwargs(
     kwargs: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Split mixed kwargs into rdflib parse kwargs and model import kwargs."""
+    """Split mixed kwargs into document parse kwargs and model import kwargs."""
     import_kwargs = {k: v for k, v in kwargs.items() if k in _IMPORT_KWARG_KEYS}
     parse_kwargs = {k: v for k, v in kwargs.items() if k not in _IMPORT_KWARG_KEYS}
     return parse_kwargs, import_kwargs
@@ -95,6 +95,8 @@ def _handle_duplicate(
         f"Multiple objects ({count}) for field {field_name!r} "
         f"(predicate {predicate!r}, subject {uri!r}); using the first only."
     )
+    if on_duplicate in ("ignore", "first"):
+        return
     if on_duplicate == "error":
         raise ValueError(dup_msg)
     if on_duplicate == "warn":

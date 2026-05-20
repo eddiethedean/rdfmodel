@@ -11,6 +11,11 @@ from pyoxigraph import DefaultGraph, NamedNode, Store as OxigraphStore
 
 from triplemodel.store.formats import to_rdf_format
 from triplemodel.store.graph import RdfGraph
+from triplemodel.store.io_warnings import (
+    warn_ignored_parse_kwargs,
+    warn_ignored_serialize_kwargs,
+)
+from triplemodel.store.parse_source import ox_parse_from_source
 from pyoxigraph import parse as ox_parse
 from pyoxigraph import serialize as ox_serialize
 
@@ -84,17 +89,16 @@ class RdfDataset:
         publicID: str | None = None,
         **kwargs: Any,
     ) -> None:
-        _ = kwargs
+        ox_kwargs = warn_ignored_parse_kwargs(kwargs, stacklevel=3)
         if format is None:
             raise ValueError("parse() requires format=")
         rdf_format = to_rdf_format(format)
         base = publicID
         if data is not None:
             payload = data.encode("utf-8") if isinstance(data, str) else data
-            quads = ox_parse(payload, format=rdf_format, base_iri=base)
+            quads = ox_parse(payload, format=rdf_format, base_iri=base, **ox_kwargs)
         elif source is not None:
-            src = Path(source) if not isinstance(source, Path) else source
-            quads = ox_parse(src.read_bytes(), format=rdf_format, base_iri=base)
+            quads = ox_parse_from_source(source, format=rdf_format, base_iri=base)
         else:
             raise ValueError("parse() requires source= or data=")
         self._store.bulk_extend(quads)
@@ -109,10 +113,18 @@ class RdfDataset:
         format: str = "trig",
         **kwargs: Any,
     ) -> str | None:
-        _ = kwargs
+        ox_kwargs = warn_ignored_serialize_kwargs(kwargs, stacklevel=3)
         rdf_format = to_rdf_format(format)
         prefixes = self._prefixes or None
-        payload = ox_serialize(self._store, format=rdf_format, prefixes=prefixes) or b""
+        payload = (
+            ox_serialize(
+                self._store,
+                format=rdf_format,
+                prefixes=prefixes,
+                **ox_kwargs,
+            )
+            or b""
+        )
         if destination is None:
             return payload.decode("utf-8")
         if isinstance(destination, (str, Path)):

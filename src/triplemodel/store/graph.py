@@ -9,8 +9,6 @@ from pathlib import Path
 from typing import Any, overload
 
 from typing_extensions import Self
-from urllib.parse import urlparse
-
 from pyoxigraph import (
     DefaultGraph,
     NamedNode,
@@ -21,6 +19,11 @@ from pyoxigraph import parse as ox_parse
 from pyoxigraph import serialize as ox_serialize
 
 from triplemodel.store.formats import to_rdf_format
+from triplemodel.store.io_warnings import (
+    warn_ignored_parse_kwargs,
+    warn_ignored_serialize_kwargs,
+)
+from triplemodel.store.parse_source import ox_parse_from_source
 from triplemodel.store.terms import (
     OxTerm,
     QuadPredicate,
@@ -107,16 +110,9 @@ class RdfGraph:
         self._store = OxigraphStore()
         gc.collect()
         if ephemeral is not None:
-            from triplemodel.io.stores import destroy_store
+            from triplemodel.io.stores import cleanup_ephemeral_store_path
 
-            try:
-                destroy_store(ephemeral, store="disk")
-            except Exception as exc:
-                warnings.warn(
-                    f"Failed to remove ephemeral store at {ephemeral!r}: {exc}",
-                    ResourceWarning,
-                    stacklevel=2,
-                )
+            cleanup_ephemeral_store_path(ephemeral)
 
     def bind(self, prefix: str, namespace: str | object) -> None:
         """Record a prefix for serialization (pyoxigraph has no Graph.bind)."""
@@ -254,7 +250,7 @@ class RdfGraph:
         publicID: str | None = None,
         **kwargs: Any,
     ) -> Self:
-        _ = kwargs
+        ox_kwargs = warn_ignored_parse_kwargs(kwargs, stacklevel=3)
         if format is None:
             raise ValueError("parse() requires format=")
         rdf_format = to_rdf_format(format)
@@ -265,21 +261,9 @@ class RdfGraph:
                 payload = data.encode("utf-8")
             else:
                 payload = data
-            quads = ox_parse(payload, format=rdf_format, base_iri=base)
+            quads = ox_parse(payload, format=rdf_format, base_iri=base, **ox_kwargs)
         elif source is not None:
-            path = Path(source)
-            if path.exists():
-                quads = ox_parse(path.read_bytes(), format=rdf_format, base_iri=base)
-            else:
-                parsed = urlparse(str(source))
-                if parsed.scheme in ("http", "https", "file"):
-                    quads = ox_parse(str(source), format=rdf_format, base_iri=base)
-                else:
-                    quads = ox_parse(
-                        str(source).encode("utf-8"),
-                        format=rdf_format,
-                        base_iri=base,
-                    )
+            quads = ox_parse_from_source(source, format=rdf_format, base_iri=base)
         else:
             raise ValueError("parse() requires source= or data=")
         self._store.bulk_extend(quads)
@@ -310,10 +294,18 @@ class RdfGraph:
         format: str = "turtle",
         **kwargs: Any,
     ) -> str | None:
-        _ = kwargs
+        ox_kwargs = warn_ignored_serialize_kwargs(kwargs, stacklevel=3)
         rdf_format = to_rdf_format(format)
         prefixes = self._prefixes or None
-        payload = ox_serialize(self._store, format=rdf_format, prefixes=prefixes) or b""
+        payload = (
+            ox_serialize(
+                self._store,
+                format=rdf_format,
+                prefixes=prefixes,
+                **ox_kwargs,
+            )
+            or b""
+        )
         if destination is None:
             return payload.decode("utf-8")
         if isinstance(destination, (str, Path)):

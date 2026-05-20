@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 from triplemodel.store.terms import RdfTerm
 
-OnDuplicate = Literal["ignore", "warn", "error"]
+OnDuplicate = Literal["ignore", "warn", "error", "first"]
 
 # --- Python / RDF value shapes ---
 

@@ -13,7 +13,7 @@
 
 - [x] `version` `0.10.1` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
 - [x] Regenerate `examples/doc/outputs/` (including `installation_version.txt`)
-- [ ] Local gate: `make ci`
+- [x] Local gate: `make ci` (2026-05-20)
 - [ ] **Do not tag** until explicitly approved for PyPI (no `v0.10.1` tag by default)
 
 When publishing is approved:

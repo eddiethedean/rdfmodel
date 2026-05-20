@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import io
-import warnings
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, TypeVar, cast, overload
+from urllib.parse import urlparse
+from urllib.error import HTTPError
 
 from pydantic import BaseModel
 from triplemodel.store import RdfGraph as Graph
@@ -53,6 +54,15 @@ _MEDIA_TO_FORMAT: dict[str, str] = {
 }
 
 
+def _format_hint_for_suffix(hint: str) -> str:
+    """Use URL path (without query/fragment) when inferring format from a URL."""
+    text = hint.strip()
+    parsed = urlparse(text)
+    if parsed.scheme in ("http", "https", "file") and parsed.path:
+        return parsed.path
+    return text
+
+
 def infer_format(
     hint: str | Path | None,
     explicit_format: str | None = None,
@@ -70,12 +80,31 @@ def infer_format(
         fmt = _MEDIA_TO_FORMAT[text]
         raise_if_unsupported_format(fmt)
         return fmt
-    suffix = Path(text).suffix.lower()
+    suffix_path = _format_hint_for_suffix(text)
+    suffix = Path(suffix_path).suffix.lower()
     if suffix in _SUFFIX_TO_FORMAT:
         fmt = _SUFFIX_TO_FORMAT[suffix]
         raise_if_unsupported_format(fmt)
         return fmt
     raise ValueError(f"Cannot infer RDF format from {hint!r}; pass format= explicitly.")
+
+
+def _normalize_parse_source_data(
+    source: str | Path | io.BytesIO | io.StringIO | bytes | None,
+    data: str | bytes | None,
+) -> tuple[str | Path | None, str | bytes | None]:
+    """Route bytes and IO buffers through ``data=``; reject both source and data."""
+    if data is not None and source is not None:
+        raise ValueError("Pass source= or data=, not both.")
+    if data is None and isinstance(source, bytes):
+        return None, source
+    if data is None and isinstance(source, io.BytesIO):
+        return None, source.read()
+    if data is None and isinstance(source, io.StringIO):
+        return None, source.read().encode("utf-8")
+    if source is not None and not isinstance(source, (str, Path)):
+        raise TypeError(f"Unsupported parse source type: {type(source)!r}")
+    return source, data
 
 
 def _is_jsonld_format(fmt: str | None) -> bool:
@@ -93,9 +122,12 @@ def merge_jsonld_kwargs(
     jsonld_context: dict[str, Any] | str | None,
     kwargs: dict[str, Any],
 ) -> dict[str, Any]:
-    """Apply default JSON-LD context when serializing or parsing."""
+    """Merge JSON-LD context into kwargs (warned as unsupported at parse/serialize time)."""
+    from triplemodel.store.io_warnings import warn_jsonld_context_config
+
     if not _is_jsonld_format(fmt) or jsonld_context is None:
         return kwargs
+    warn_jsonld_context_config(stacklevel=4)
     merged = dict(kwargs)
     if "context" not in merged:
         merged["context"] = jsonld_context
@@ -112,9 +144,10 @@ def parse_into_graph(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Graph:
-    """Parse RDF into a new in-memory ``Graph``."""
+    """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfGraph`."""
     if data is None and source is None:
         raise ValueError("parse_into_graph requires source= or data=.")
+    source, data = _normalize_parse_source_data(source, data)
     hint: str | Path | None = None
     if data is None and source is not None and isinstance(source, (str, Path)):
         hint = source
@@ -123,8 +156,10 @@ def parse_into_graph(
     graph = Graph()
     if data is not None:
         graph.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
+    elif source is not None:
+        graph.parse(source=source, format=fmt, publicID=base, **parse_kwargs)
     else:
-        graph.parse(source=str(source), format=fmt, publicID=base, **parse_kwargs)
+        raise ValueError("parse_into_graph requires source= or data=.")
     if bind_prefixes:
         bind_namespaces(graph, dict(bind_prefixes))
     return graph
@@ -136,6 +171,15 @@ def fetch_url(url: str, *, timeout: float = 30.0) -> bytes:
 
     request = Request(url, headers={"User-Agent": f"triplemodel/{__version__}"})
     with urlopen(request, timeout=timeout) as response:
+        status = getattr(response, "status", None)
+        if status is not None and status >= 400:
+            raise HTTPError(
+                url,
+                status,
+                getattr(response, "reason", ""),
+                response.headers,
+                None,
+            )
         return response.read()
 
 
@@ -172,7 +216,7 @@ def load_graph(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Graph:
-    """Parse RDF into an in-memory :class:`~triplemodel.Store` (alias for :func:`parse_into_graph`)."""
+    """Parse RDF into an in-memory graph (alias for :func:`parse_into_graph`)."""
     return parse_into_graph(
         source=source,
         data=data,
@@ -301,26 +345,6 @@ def _streaming_store_identifier(
         tmp = tempfile.mkdtemp(prefix="triplemodel-")
         return tmp, tmp
     return str(path), None
-
-
-def _cleanup_ephemeral_store(
-    identifier: str,
-    store: str,
-    ephemeral_path: str | None,
-) -> None:
-    """Remove a temporary on-disk store created by :func:`_streaming_store_identifier`."""
-    if ephemeral_path is None:
-        return
-    from triplemodel.io.stores import destroy_store
-
-    try:
-        destroy_store(identifier, store="disk")
-    except Exception as exc:
-        warnings.warn(
-            f"Failed to remove ephemeral store at {ephemeral_path!r}: {exc}",
-            ResourceWarning,
-            stacklevel=2,
-        )
 
 
 def parse_into_store_graph(

@@ -53,6 +53,9 @@ def model_to_triples(
 ) -> list[TripleRow]:
     """Return (subject, predicate, object) tuples for a model instance.
 
+    ``list[T]`` fields are omitted here; use :func:`~triplemodel.model_to_graph` or
+    :meth:`~triplemodel.TripleModel.to_graph` for full export including ``rdf:List``.
+
     ``registry`` is accepted for API symmetry with graph writers; literal
     conversion happens when triples are added to a graph (``graph_set_many``).
     """

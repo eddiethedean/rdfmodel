@@ -21,6 +21,7 @@ from triplemodel.config import (
     resolve_graph_iri,
 )
 from triplemodel.io.files import (
+    _normalize_parse_source_data,
     fetch_url,
     infer_format,
     merge_jsonld_kwargs,
@@ -49,6 +50,7 @@ def parse_into_dataset(
     """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfDataset`."""
     if data is None and source is None:
         raise ValueError("parse_into_dataset requires source= or data=.")
+    source, data = _normalize_parse_source_data(source, data)
     hint: str | Path | None = None
     if data is None and source is not None and isinstance(source, (str, Path)):
         hint = source
@@ -57,8 +59,10 @@ def parse_into_dataset(
     dataset = Dataset()
     if data is not None:
         dataset.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
+    elif source is not None:
+        dataset.parse(source=source, format=fmt, publicID=base, **parse_kwargs)
     else:
-        dataset.parse(source=str(source), format=fmt, publicID=base, **parse_kwargs)
+        raise ValueError("parse_into_dataset requires source= or data=.")
     if bind_prefixes:
         bind_namespaces(dataset, dict(bind_prefixes))
     return dataset

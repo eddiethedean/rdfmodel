@@ -13,6 +13,7 @@ from triplemodel import (
     parse_into_graph,
     rdf_field,
 )
+from triplemodel.io.dataset import parse_into_dataset
 from triplemodel.io.files import merge_jsonld_kwargs
 from triplemodel.vocab import FOAF
 
@@ -73,6 +74,11 @@ def test_infer_format_from_suffix() -> None:
     assert infer_format("data.ttl", None) == "turtle"
     assert infer_format("data.trig", None) == "trig"
     assert infer_format(None, "xml") == "xml"
+
+
+def test_infer_format_url_query_and_fragment() -> None:
+    assert infer_format("http://example.org/data.ttl?x=1", None) == "turtle"
+    assert infer_format("http://example.org/data.trig#frag", None) == "trig"
 
 
 def test_infer_format_unknown_raises() -> None:
@@ -137,9 +143,11 @@ def test_base_uri_relative_import(tmp_path: Path) -> None:
 
 def test_merge_jsonld_context() -> None:
     ctx = {"name": "http://xmlns.com/foaf/0.1/name"}
-    merged = merge_jsonld_kwargs("json-ld", ctx, {})
+    with pytest.warns(UserWarning, match="jsonld_context"):
+        merged = merge_jsonld_kwargs("json-ld", ctx, {})
     assert merged["context"] == ctx
-    merged2 = merge_jsonld_kwargs("json-ld", ctx, {"context": {"x": 1}})
+    with pytest.warns(UserWarning, match="jsonld_context"):
+        merged2 = merge_jsonld_kwargs("json-ld", ctx, {"context": {"x": 1}})
     assert merged2["context"] == {"x": 1}
 
 
@@ -160,3 +168,60 @@ def test_parse_into_graph_data_bytes() -> None:
     ttl = f"<{EX}alice> a <{FOAF_NS}Person> ."
     g = parse_into_graph(data=ttl.encode(), format="turtle")
     assert len(g) == 1
+
+
+def test_parse_into_graph_source_bytes() -> None:
+    import io
+
+    ttl = f"<{EX}alice> a <{FOAF_NS}Person> ."
+    g = parse_into_graph(source=ttl.encode(), format="turtle")
+    assert len(g) == 1
+    g2 = parse_into_graph(source=io.BytesIO(ttl.encode()), format="turtle")
+    assert len(g2) == 1
+    g3 = parse_into_graph(source=io.StringIO(ttl), format="turtle")
+    assert len(g3) == 1
+
+
+def test_parse_into_graph_empty_after_normalize(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import triplemodel.io.files as files_mod
+
+    monkeypatch.setattr(
+        files_mod, "_normalize_parse_source_data", lambda _s, _d: (None, None)
+    )
+    with pytest.raises(ValueError, match="requires source= or data="):
+        parse_into_graph(source="http://example.org/a.ttl", format="turtle")
+
+
+def test_parse_into_graph_unsupported_source_type() -> None:
+    from typing import Any, cast
+
+    with pytest.raises(TypeError, match="Unsupported parse source"):
+        parse_into_graph(
+            source=cast(Any, object()),
+            format="turtle",
+        )
+
+
+def test_parse_into_graph_source_and_data_raises() -> None:
+    ttl = f"<{EX}alice> a <{FOAF_NS}Person> ."
+    with pytest.raises(ValueError, match="not both"):
+        parse_into_graph(source=ttl.encode(), data=ttl, format="turtle")
+
+
+def test_parse_into_dataset_empty_after_normalize(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "triplemodel.io.dataset._normalize_parse_source_data",
+        lambda _s, _d: (None, None),
+    )
+    with pytest.raises(ValueError, match="requires source= or data="):
+        parse_into_dataset(source="http://example.org/a.ttl", format="turtle")
+
+
+def test_parse_warns_unsupported_kwargs() -> None:
+    ttl = f"<{EX}alice> a <{FOAF_NS}Person> ."
+    with pytest.warns(UserWarning, match="ignored unsupported"):
+        parse_into_graph(data=ttl, format="turtle", foo=1)

@@ -26,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--format",
         default=None,
-        help="rdflib parse format (inferred from suffix if omitted)",
+        help="pyoxigraph parse format (inferred from suffix if omitted)",
     )
     args = parser.parse_args(argv)
     graph = ontology_graph(args.ontology, format=args.format)

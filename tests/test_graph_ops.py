@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from pyoxigraph import NamedNode
+from pyoxigraph import Literal, NamedNode
 from triplemodel.store.terms import term_str
 
 from triplemodel import (
@@ -39,8 +39,24 @@ class Person(TripleModel):
 def test_merge_graphs():
     a = Person(slug="a", name="A").to_graph()
     b = Person(slug="b", name="B").to_graph()
+    a.bind("ex", EX)
     merged = merge_graphs(a, b)
     assert len(merged) == len(a) + len(b)
+    assert dict(merged.namespaces()).get("ex") == EX
+
+
+def test_graph_value_duplicate_warns() -> None:
+    p = Person(slug="a", name="A")
+    g = p.to_graph()
+    uri = p.subject_uri()
+    g.add((NamedNode(uri), NamedNode(f"{FOAF}name"), Literal("B")))
+    with pytest.warns(UserWarning, match="Multiple objects"):
+        val = graph_value(g, uri, f"{FOAF}name", Person, "name", on_duplicate="warn")
+    assert val in ("A", "B")
+    assert graph_value(g, uri, f"{FOAF}name", Person, "name", on_duplicate="first") in (
+        "A",
+        "B",
+    )
 
 
 def test_graph_value_and_set():

@@ -168,13 +168,13 @@ def test_load_models_streaming_requires_class() -> None:
 
 
 def test_cleanup_ephemeral_store_noop() -> None:
-    from triplemodel.io.files import _cleanup_ephemeral_store
+    from triplemodel.io.stores import cleanup_ephemeral_store_path
 
-    _cleanup_ephemeral_store("sqlite:///unused", "sqlalchemy", None)
+    cleanup_ephemeral_store_path("/nonexistent/path/that/does/not/matter")
 
 
 def test_cleanup_ephemeral_store_destroy_failure(tmp_path: Path, monkeypatch) -> None:
-    from triplemodel.io.files import _cleanup_ephemeral_store
+    from triplemodel.io.stores import cleanup_ephemeral_store_path
 
     store_dir = tmp_path / "orphan-store"
     store_dir.mkdir()
@@ -184,7 +184,7 @@ def test_cleanup_ephemeral_store_destroy_failure(tmp_path: Path, monkeypatch) ->
 
     monkeypatch.setattr("triplemodel.io.stores.destroy_store", boom)
     with pytest.warns(ResourceWarning, match="Failed to remove ephemeral store"):
-        _cleanup_ephemeral_store(str(store_dir), "disk", str(store_dir))
+        cleanup_ephemeral_store_path(str(store_dir))
 
 
 def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> None:

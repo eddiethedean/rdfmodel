@@ -84,17 +84,39 @@ def test_dump_model_type_error() -> None:
 
 def test_fetch_url() -> None:
     with patch("triplemodel.io.files.urlopen") as mock_open:
-        mock_open.return_value.__enter__.return_value.read.return_value = (
-            b"@prefix ex: <http://ex/> ."
-        )
+        resp = mock_open.return_value.__enter__.return_value
+        resp.read.return_value = b"@prefix ex: <http://ex/> ."
+        resp.status = 200
         body = fetch_url("http://example.org/data.ttl")
         assert b"prefix" in body
+
+
+def test_fetch_url_http_error() -> None:
+    from urllib.error import HTTPError
+
+    class Resp:
+        status = 404
+        reason = "Not Found"
+        headers: dict[str, str] = {}
+
+        def read(self) -> bytes:
+            return b"not found"
+
+        def __enter__(self) -> Resp:
+            return self
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    with patch("triplemodel.io.files.urlopen", return_value=Resp()):
+        with pytest.raises(HTTPError):
+            fetch_url("http://example.org/missing.ttl")
 
 
 def test_parse_url_into_graph() -> None:
     ttl = f'<{EX}a> a <{PERSON_TYPE}> ; <{FOAF_NS}name> "A" .'
     with patch("triplemodel.io.files.fetch_url", return_value=ttl.encode()):
-        g = parse_url_into_graph("http://example.org/a.ttl")
+        g = parse_url_into_graph("http://example.org/a.ttl?version=1")
         assert len(g) >= 1
 
 

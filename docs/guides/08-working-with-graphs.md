@@ -63,7 +63,10 @@ from triplemodel import graph_value, graph_set, objects_for_field
 uri = person.subject_uri()
 g = person.to_graph()
 
-name = graph_value(g, uri, f"{FOAF}name", Person, "name")
+name = graph_value(g, uri, f"{FOAF}name", Person, "name")  # on_duplicate="first" (default)
+
+# Match import duplicate policy:
+# graph_value(..., on_duplicate="warn")  # or "error"
 
 graph_set(g, uri, f"{FOAF}name", "Alicia")  # remove-then-add for functional property
 graph_set(g, uri, f"{FOAF}age", None)       # remove all objects for predicate

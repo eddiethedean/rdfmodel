@@ -166,7 +166,7 @@ Runnable version: [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py)
 | `blank_node_policy` | `"fresh"` or `"stable"` nested bnodes |
 | `skolemize_export` / `skolemize_import` | Blank-node skolemization defaults |
 | `base_uri` | Default `publicID` for resolving relative IRIs on parse |
-| `jsonld_context` | Default JSON-LD `@context` when `format` is json-ld |
+| `jsonld_context` | Reserved for API stability; **not applied** on pyoxigraph (issues `UserWarning`) |
 
 Override the subject per call with `uri=` when the IRI still lives under `namespace`:
 
