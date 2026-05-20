@@ -20,7 +20,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.9.0 is beta.** Public API is frozen from 0.9 until 1.0 — see [API stability](https://github.com/eddiethedean/triplemodel/blob/main/docs/API_STABILITY.md), [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md), and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md). Optional extras: `pip install triplemodel[sqlalchemy]`.
+> **0.10.0 is beta.** Public API is frozen from 0.9 until 1.0 — see [API stability](https://github.com/eddiethedean/triplemodel/blob/main/docs/API_STABILITY.md), [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md), [migration guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/MIGRATION_0.10.md), and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md). Optional extra: `pip install triplemodel[shacl]`.
 
 ## Install
 
@@ -74,7 +74,7 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **Graph writes** | `to_graph` / `sync_to_graph` with `add`, `replace`, or `patch` |
 | **Namespaces** | `Rdf.prefixes`, CURIE predicates (`"foaf:name"`), `bind_namespaces` |
 | **Named graphs** | `Rdf.graph_iri`, `to_dataset` / `from_dataset`, TriG / N-Quads via `Dataset` |
-| **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_graph`, `load_dataset`, `load_models`, `load_models_from_graph`, `load_models_from_dataset`, `dump_model` (rdflib formats) |
+| **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_graph`, `load_dataset`, `load_models`, `load_models_from_graph`, `load_models_from_dataset`, `dump_model` (Turtle, TriG, N-Triples, JSON-LD, …) |
 | **Dispatch** | `parse(..., dispatch=True)`, `graph_to_model_dispatch`, `all_from_graph_dispatch` by `rdf:type` |
 | **Inverse predicates** | `rdf_field(..., inverse=...)` for import; forward predicate on export |
 | **Validation** | Optional SHACL via `triplemodel[shacl]` and `shacl_shapes=` on export |
@@ -82,7 +82,7 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **SPARQL** | `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query` |
 | **Graph algorithms** | `graphs_equal`, `graph_diff`, `model_diff`, `cbd_graph` / `cbd_model`, `hydrate_refs`, `model_join` |
 | **RDFS** | Subclass-aware dispatch, `transitive_objects` / `transitive_subjects`, `VocabularyRegistry`, `Transitive` import |
-| **Scale & stores** | `iter_graph_to_models`, `load_models_streaming`, `parse_into_store_graph`, `open_graph`; optional `triplemodel[sqlalchemy]` |
+| **Scale & stores** | `iter_graph_to_models`, `load_models_streaming`, `parse_into_store_graph`, `open_graph` (`memory` / `disk`) |
 | **Strict import** | `Rdf.strict_import`, `Rdf.warn_unmapped_fields` on `graph_to_model` |
 | **Plugins** | `triplemodel.plugins` — `register_predicate_resolver`, literal/resource registration |
 | **Codegen** | Experimental `triplemodel-codegen` CLI (OWL/RDFS → stub models) |
@@ -314,7 +314,7 @@ http://example.org/people/bob%20jones
 
 ## Known limitations
 
-- **Union queries** — `from_dataset` reads one named graph only; use rdflib `dataset.query` for union semantics (see the [datasets guide](https://triplemodel.readthedocs.io/en/latest/guides/12-datasets-and-named-graphs.html)).
+- **Union queries** — `from_dataset` reads one named graph only; use `Dataset.query` for union semantics (see the [datasets guide](https://triplemodel.readthedocs.io/en/latest/guides/12-datasets-and-named-graphs.html)).
 - **BNode embed** is experimental; prefer `embed="iri"` for stable linking.
 - **Collections** — `list[T]` / `set[T]` require scalar `T`; `list[TripleModel]` and `set[TripleModel]` are not supported.
 - **Inverse predicates** — import uses forward or inverse triples (forward wins on conflict); `sync_to_graph` in `add`, `replace`, or `patch` clears incoming inverse triples before writing forward predicates (including reassignment and dropped nested IRI/bnode children). Export writes forward predicates only.
@@ -334,7 +334,7 @@ Details: [user guides](https://triplemodel.readthedocs.io/en/latest/guides/index
 ```bash
 git clone https://github.com/eddiethedean/triplemodel.git && cd triplemodel
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev,shacl,sqlalchemy,docs]"
+pip install -e ".[dev,shacl,docs]"
 make ci              # pytest, lint, docs (matches GitHub Actions)
 make release-check   # before tagging: examples + twine check
 ```

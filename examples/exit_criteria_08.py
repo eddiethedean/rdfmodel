@@ -57,21 +57,14 @@ def _strict_import_smoke() -> None:
 
 
 def _store_smoke(nt_path: Path) -> None:
-    try:
-        from rdflib import Graph as RdfGraph
-
-        RdfGraph(store="SQLAlchemy", identifier="sqlite:///:memory:").close()
-    except Exception:
-        print("store smoke skipped (install triplemodel[sqlalchemy])")
-        return
     people = load_models_streaming(
         nt_path,
         Person,
-        store="sqlalchemy",
+        store="disk",
         chunk_size=min(500, max(COUNT, 1)),
     )
     assert len(people) == COUNT
-    print(f"sqlalchemy store smoke OK ({len(people)} people)")
+    print(f"disk store smoke OK ({len(people)} people)")
 
 
 def main() -> None:
@@ -99,7 +92,7 @@ def main() -> None:
             f"streaming load: {len(streamed)} people, {elapsed_stream:.2f}s "
             f"(TRIPLEMODEL_BENCH_COUNT={COUNT})"
         )
-        if os.environ.get("TRIPLEMODEL_STORE", "").lower() == "sqlalchemy":
+        if os.environ.get("TRIPLEMODEL_STORE", "").lower() == "disk":
             _store_smoke(nt_path)
     print("0.8.0 chunked/streaming import OK")
 

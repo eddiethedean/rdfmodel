@@ -1,19 +1,21 @@
 # SPARQL and remote endpoints
 
-TripleModel **0.6** adds thin helpers around rdflib’s `Graph.query`, `Graph.update`, and SPARQL stores. There is no Python query DSL — write SPARQL (or use [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) for ORM-style queries).
+TripleModel adds thin helpers around a local `Store.query` / `Store.update`. There is no Python query DSL — write SPARQL (or use [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) for ORM-style queries and remote endpoints).
 
 ## When to use which helper
 
 | Goal | Helper |
 |------|--------|
-| Full resources from a graph or endpoint | `construct_models` / `load_sparql` with **CONSTRUCT** or **DESCRIBE** |
+| Full resources from a local graph | `construct_models` with **CONSTRUCT** or **DESCRIBE** |
 | Tabular SELECT → flat model fields | `select_models` (projection) |
 | Filter subjects already in a local graph | `select_models(..., hydrate=True, subject_var="s")` |
 | Boolean check | `ask` |
 | Mutate a graph in place | `apply_update` then reload with `from_graph` / `construct_models` |
-| Federated `SERVICE` | `open_sparql_graph` + raw `graph.query` (rdflib executes `SERVICE`) |
+| Remote SPARQL endpoint | **Not in 0.10** — fetch data into a local `Store`, or use SparqlModel |
 
-**SELECT from a remote endpoint** returns bindings only — not full RDF graphs. Prefer **CONSTRUCT** for endpoint → `TripleModel` round-trip.
+**SELECT** returns bindings only — not full RDF graphs. Prefer **CONSTRUCT** for graph → `TripleModel` round-trip.
+
+`open_sparql_graph` and `load_sparql` raise `NotImplementedError` in **0.10.0** (pyoxigraph has no built-in remote SPARQL graph). See {doc}`../MIGRATION_0.10`.
 
 ## CONSTRUCT on an in-memory graph
 
@@ -40,22 +42,21 @@ people = Person.construct_from_sparql(
 )
 ```
 
-## Remote endpoint (≤10 lines)
+## Remote data (pattern)
+
+Load RDF from an endpoint or file into a local `Store`, then use the helpers above:
 
 ```python
-people = Person.load_sparql(
-    "https://dbpedia.org/sparql",
-    """
-    CONSTRUCT { ?s ?p ?o } WHERE {
-      ?s a <http://xmlns.com/foaf/0.1/Person> .
-      ?s <http://xmlns.com/foaf/0.1/name> ?name .
-      ?s ?p ?o
-    } LIMIT 5
-    """,
+from triplemodel import Store, load_graph
+
+graph = load_graph(source="endpoint-export.nt", format="nt")
+people = Person.construct_from_sparql(
+    graph,
+    "CONSTRUCT { ?s ?p ?o } WHERE { ?s a foaf:Person . ?s ?p ?o }",
 )
 ```
 
-Use `read_only=False` and `open_sparql_graph(..., read_only=False)` for `SPARQLUpdateStore` when the endpoint supports SPARQL Update.
+For live SPARQL sessions against remote endpoints, use [SparqlModel](https://github.com/eddiethedean/sqarqlmodel).
 
 ## SELECT projection
 
@@ -115,10 +116,8 @@ bindings = init_bindings_from_model(alice, {"subj": "slug"})
 result = pq.execute(graph, initBindings=bindings)
 ```
 
-`run_sparql` (and helpers that call it) bind `Rdf.prefixes` on the **same** `Graph` you pass in (`bind_namespaces` with `override=True`). That mutates the graph for serialization and SPARQL prefix resolution.
-
-On **SPARQLStore**, `initBindings` may behave differently than on an in-memory graph when bindings must appear inside `WHERE`. Pass `use_store_provided=False` to `execute` / `run_sparql` if results look wrong (see [rdflib#1772](https://github.com/RDFLib/rdflib/issues/1772)).
+`run_sparql` (and helpers that call it) bind `Rdf.prefixes` on the **same** `Store` you pass in (`bind_namespaces` with `override=True`). That mutates the graph for serialization and SPARQL prefix resolution.
 
 ## Security
 
-`graph.query` and remote stores may follow `SERVICE` clauses and fetch URLs. Only run trusted queries or restrict network access (see rdflib security documentation).
+`graph.query` may follow `SERVICE` clauses when the underlying engine supports them. Only run trusted queries or restrict network access when loading untrusted RDF.

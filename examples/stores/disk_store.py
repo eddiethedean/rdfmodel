@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SQLAlchemy-backed sqlite graph with TripleModel round-trip."""
+"""On-disk pyoxigraph store with TripleModel round-trip."""
 
 from __future__ import annotations
 
@@ -27,17 +27,17 @@ class Person(TripleModel):
 
 def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
-        db = Path(tmp) / "graph.sqlite"
-        ident = f"sqlite:///{db}"
-        graph = open_graph("sqlalchemy", ident)
+        store_dir = Path(tmp) / "oxigraph"
+        graph = open_graph("disk", str(store_dir))
         with graph_store_session(graph):
             alice = Person(slug="alice", name="Alice")
             alice.sync_to_graph(graph)
             store_commit(graph)
-        graph2 = open_graph("sqlalchemy", ident)
+        del graph
+        graph2 = open_graph("disk", str(store_dir))
         people = Person.all_from_graph(graph2)
         assert len(people) == 1 and people[0].name == "Alice"
-        print("SQLAlchemy sqlite store round-trip OK")
+        print("disk store round-trip OK")
 
 
 if __name__ == "__main__":

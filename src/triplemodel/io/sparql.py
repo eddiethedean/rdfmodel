@@ -598,7 +598,11 @@ def prepare_model_query(model_cls: type[BaseModel], query: str) -> PreparedModel
 
 
 def open_sparql_graph(endpoint: str, *, read_only: bool = True) -> Graph:
-    """Remote SPARQL endpoints are not supported in TripleModel 0.10 (pyoxigraph)."""
+    """Open a remote SPARQL graph (removed in 0.10.0).
+
+    Raises :exc:`NotImplementedError`. Load remote data into a local :class:`~triplemodel.Store`
+    or use SparqlModel for session-level remote stores.
+    """
     _ = endpoint, read_only
     raise NotImplementedError(
         "open_sparql_graph is not available with the pyoxigraph engine in 0.10.0. "
@@ -651,7 +655,12 @@ def load_sparql(
     use_store_provided: bool = True,
     **kwargs: Any,
 ) -> list[T]:
-    """Query a remote SPARQL endpoint and return model instances."""
+    """Query a remote SPARQL endpoint and return model instances.
+
+    Uses :func:`open_sparql_graph`, which raises :exc:`NotImplementedError` in 0.10.0.
+    Query a local :class:`~triplemodel.Store` with :func:`construct_models` / :func:`select_models`
+    after fetching data, or use SparqlModel for remote endpoints.
+    """
     if not isinstance(query, str):
         raise ValueError(
             f"Cannot load models from SPARQL query {query!r}; "

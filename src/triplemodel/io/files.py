@@ -1,4 +1,4 @@
-"""Parse and serialize RDF documents via rdflib."""
+"""Parse and serialize RDF documents via pyoxigraph-backed graphs."""
 
 from __future__ import annotations
 
@@ -165,7 +165,7 @@ def load_graph(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Graph:
-    """Parse RDF into an in-memory :class:`rdflib.Graph` (alias for :func:`parse_into_graph`)."""
+    """Parse RDF into an in-memory :class:`~triplemodel.Store` (alias for :func:`parse_into_graph`)."""
     return parse_into_graph(
         source=source,
         data=data,
@@ -282,19 +282,17 @@ def _streaming_store_identifier(
     store: str,
     explicit: str | None,
 ) -> tuple[str, str | None]:
-    """Return ``(store identifier, ephemeral file path to delete)``."""
+    """Return ``(store identifier, ephemeral directory to delete)``."""
+    from triplemodel.io.stores import coerce_store_name
+
+    store = coerce_store_name(store, stacklevel=3)
     if explicit:
         return explicit, None
-    if store.lower() in ("sqlalchemy", "berkeleydb"):
-        import os
+    if store.strip().lower() == "disk":
         import tempfile
 
-        suffix = ".db" if store.lower() == "berkeleydb" else ".sqlite"
-        fd, db_path = tempfile.mkstemp(suffix=suffix)
-        os.close(fd)
-        if store.lower() == "sqlalchemy":
-            return f"sqlite:///{db_path}", db_path
-        return db_path, db_path
+        tmp = tempfile.mkdtemp(prefix="triplemodel-")
+        return tmp, tmp
     return str(path), None
 
 
@@ -306,22 +304,18 @@ def _cleanup_ephemeral_store(
     """Remove a temporary on-disk store created by :func:`_streaming_store_identifier`."""
     if ephemeral_path is None:
         return
-    import os
-
     from triplemodel.io.stores import destroy_store
 
     try:
-        destroy_store(identifier, store=store)
+        destroy_store(identifier, store="disk")
     except Exception:
         pass
-    if os.path.exists(ephemeral_path):
-        os.unlink(ephemeral_path)
 
 
 def parse_into_store_graph(
     path: str | Path,
     *,
-    store: str = "sqlalchemy",
+    store: str = "disk",
     identifier: str | None = None,
     format: str | None = None,
     base: str | None = None,
@@ -329,9 +323,15 @@ def parse_into_store_graph(
     jsonld_context: dict[str, Any] | str | None = None,
     **rdflib_kwargs: Any,
 ) -> Graph:
-    """Parse a document into a store-backed ``Graph`` (recommended for large N-Triples/N-Quads)."""
-    from triplemodel.io.stores import open_graph, store_commit
+    """Parse a document into a store-backed ``Graph`` (recommended for large N-Triples/N-Quads).
 
+    Defaults to an on-disk :class:`pyoxigraph.Store` (``store='disk'``). Pass ``identifier``
+    for a persistent directory, or omit it to use a temporary directory (caller must clean up
+    when not using :func:`load_models_streaming`).
+    """
+    from triplemodel.io.stores import coerce_store_name, open_graph, store_commit
+
+    store = coerce_store_name(store, stacklevel=2)
     fmt = infer_format(path, format)
     ident, _ephemeral = _streaming_store_identifier(path, store, identifier)
     graph = open_graph(store, ident)
@@ -353,8 +353,9 @@ def load_models_streaming(
 ) -> list[TModel] | dict[type[TModel], list[TModel]]:
     """Load models from a large file using chunked hydration (optional on-disk store).
 
-    For N-Triples / N-Quads, pass ``store='sqlalchemy'`` (requires ``triplemodel[sqlalchemy]``)
-    to avoid holding the full graph in memory. Turtle/TriG still require a full parse.
+    For N-Triples / N-Quads, pass ``store='disk'`` (and optional ``store_identifier``) to
+    avoid holding the full graph in memory. Omit ``store`` for an in-memory parse.
+    Turtle/TriG still require a full parse.
     """
     from triplemodel.config import get_rdf_config
     from triplemodel.io.import_ import iter_graph_to_models, split_load_kwargs
@@ -374,7 +375,7 @@ def load_models_streaming(
         kwargs.get("base") if kwargs.get("base") is not None else cfg.base_uri
     )
     parse_kwargs, import_kwargs = split_load_kwargs(kwargs)
-    store_name = store or "sqlalchemy"
+    store_name = store or "disk"
     ephemeral_path: str | None = None
     graph: Graph | None = None
     try:
@@ -425,12 +426,7 @@ def load_models_streaming(
                 except Exception:
                     pass
         if ephemeral_path is not None:
-            store_ident = (
-                f"sqlite:///{ephemeral_path}"
-                if store_name.lower() == "sqlalchemy"
-                else ephemeral_path
-            )
-            _cleanup_ephemeral_store(store_ident, store_name, ephemeral_path)
+            _cleanup_ephemeral_store(ephemeral_path, store_name, ephemeral_path)
 
 
 def dump_model(

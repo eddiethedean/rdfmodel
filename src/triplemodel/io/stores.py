@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import warnings
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -17,10 +18,30 @@ _STORE_ALIASES: dict[str, str] = {
     "disk": "disk",
 }
 
+_LEGACY_STORE_ALIASES: dict[str, str] = {
+    "sqlalchemy": "disk",
+    "berkeleydb": "disk",
+}
+
+
+def coerce_store_name(store: str, *, stacklevel: int = 2) -> str:
+    """Normalize ``store``; map deprecated rdflib backend names to ``disk``."""
+    key = store.strip().lower()
+    if key in _LEGACY_STORE_ALIASES:
+        warnings.warn(
+            f"store={store!r} is deprecated in TripleModel 0.10; "
+            "use store='disk' with a directory path (see docs/MIGRATION_0.10.md).",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+        return _LEGACY_STORE_ALIASES[key]
+    return store
+
 
 def _normalize_store_name(store: str) -> str:
+    store = coerce_store_name(store, stacklevel=3)
     key = store.strip().lower()
-    if key in ("sqlalchemy", "berkeleydb", "sparql"):
+    if key == "sparql":
         raise ValueError(
             f"Store {store!r} is not supported in TripleModel 0.10 (pyoxigraph). "
             "Use store='memory' or store='disk' with a filesystem path as identifier."
@@ -91,6 +112,7 @@ def destroy_store(
 
 
 __all__ = [
+    "coerce_store_name",
     "destroy_store",
     "graph_store_session",
     "open_graph",

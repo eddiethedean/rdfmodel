@@ -1,6 +1,6 @@
 # Getting started
 
-This guide walks through installing TripleModel, defining a small model, and round-tripping it through an in-memory rdflib `Graph`.
+This guide walks through installing TripleModel, defining a small model, and round-tripping it through an in-memory `Store` (pyoxigraph-backed graph).
 
 ## Install
 
@@ -8,7 +8,7 @@ This guide walks through installing TripleModel, defining a small model, and rou
 pip install triplemodel
 ```
 
-Requirements: Python **3.10+**, Pydantic v2, rdflib v7.
+Requirements: Python **3.10+**, Pydantic v2, pyoxigraph 0.5+.
 
 ## Define a model
 
@@ -53,7 +53,7 @@ Output:
 :language: text
 ```
 
-`to_graph()` returns a new `Graph` when you do not pass one. Optional fields set to `None` (here `age` when omitted) produce **no triple** on export.
+`to_graph()` returns a new `Store` when you do not pass one. Optional fields set to `None` (here `age` when omitted) produce **no triple** on export.
 
 ## Import from a graph
 

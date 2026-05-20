@@ -193,8 +193,7 @@ SparqlModel-specific behaviour (cascade, query compiler, session, async stores) 
 
 | Extra | Package |
 |-------|---------|
-| `triplemodel[shacl]` | TripleModel |
-| `triplemodel[sqlalchemy]`, `[berkeleydb]` | TripleModel (store backends for graphs) |
+| `triplemodel[shacl]` | TripleModel (rdflib bridge for pyshacl only) |
 | `sparqlmodel[fastapi]` | SparqlModel |
 | `httpx` remote SPARQL | SparqlModel dev / optional extra |
 
@@ -202,7 +201,7 @@ SparqlModel-specific behaviour (cascade, query compiler, session, async stores) 
 
 ## Summary
 
-- **TripleModel** = **what** the data is in RDF (mapping + files + rdflib parity for models).
+- **TripleModel** = **what** the data is in RDF (mapping + files + pyoxigraph-backed graphs).
 - **SparqlModel** = **how** an application **uses** that data (session, queries, updates, stores).
 
 Keep TripleModel thin, library-friendly, and stateless. Keep SparqlModel opinionated about persistence and querying. Share one mapping implementation; do not share one public API.

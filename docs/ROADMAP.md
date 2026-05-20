@@ -91,9 +91,9 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | | TriG, TriX, HexTuples, longTurtle | same where rdflib registers parser/serializer | 0.4 **done** |
 | | Microdata, RDFa | **out of scope** (HTML scraping, not domain modeling) | — |
 | **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 **done** |
-| | Remote SPARQL read (`SPARQLStore`) | `load_sparql`, `open_sparql_graph` | 0.6 **done** |
-| | Remote SPARQL read-write (`SPARQLUpdateStore`) | `open_sparql_graph` + `apply_update` | 0.6 **done** |
-| | BerkeleyDB, SQLAlchemy | optional extras `triplemodel[berkeleydb]`, `[sqlalchemy]` | 0.8 **done** |
+| | Remote SPARQL read (`SPARQLStore`) | removed in 0.10; use SparqlModel or load into `Store` | 0.10 **out of scope** |
+| | Remote SPARQL read-write (`SPARQLUpdateStore`) | same | 0.10 **out of scope** |
+| | BerkeleyDB, SQLAlchemy (rdflib stores) | removed; use `open_graph("disk", path)` | 0.10 **out of scope** |
 | | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
 | | `open` / `close` / `destroy` on store | `graph_store_session`, `destroy_store` | 0.8 **done** |
 | | Store transactions (`commit` / `rollback` / `open`) | `store_commit`, `store_rollback` | 0.8 **done** |
@@ -322,7 +322,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [x] **Plugin hooks** — `triplemodel.plugins` (pre-0.9 full registry)
 - [x] **Codegen (experimental)** — `triplemodel-codegen` CLI
 
-**Exit criteria:** ✅ `examples/exit_criteria_08.py` (chunked/streaming benchmark); SQLAlchemy tests when `[sqlalchemy]` extra is installed.
+**Exit criteria:** ✅ `examples/exit_criteria_08.py` (chunked/streaming benchmark); disk store via `open_graph("disk", ...)`.
 
 ---
 
@@ -376,7 +376,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 | API stability | Semver commitment; deprecations required ≥1 minor earlier |
 | Security | Safe parser defaults; document XML/URL fetch risks |
 | Quality | ≥90% coverage on core; integration tests per supported format and SPARQL |
-| Packaging | PyPI wheels; extras: `shacl`, `jsonld`, `sqlalchemy`, `berkeleydb`, `dev` |
+| Packaging | PyPI wheels; extras: `shacl`, `dev`, `docs` |
 | Governance | `CONTRIBUTING.md`, CODE_OF_CONDUCT, Keep a Changelog |
 
 **Celebration criteria:** A downstream app can depend on `triplemodel~=1.0` knowing rdflib features are available through TripleModel where they apply to typed models, SparqlModel can pin this release for mapping, and patch releases are safe.
@@ -422,7 +422,7 @@ Use rdflib directly, SparqlModel, or another integration package:
 | **Role** | Mapping + files | Session + queries |
 | **State** | Stateless | Stateful |
 | **Base class** | `TripleModel` | `SPARQLModel` |
-| **Depends on** | rdflib, pydantic | rdflib, pydantic; **triplemodel** (from 0.2) |
+| **Depends on** | pyoxigraph, pydantic | pydantic; **triplemodel** (from 0.2) |
 
 Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.md)** · SparqlModel dev copy: **[ECOSYSTEM_SPARQLMODEL.md](ECOSYSTEM_SPARQLMODEL.md)**
 

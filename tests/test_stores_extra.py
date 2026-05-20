@@ -36,6 +36,10 @@ def test_destroy_store_disk(tmp_path: Path):
     assert not path.exists()
 
 
-def test_open_graph_sqlalchemy_removed():
-    with pytest.raises(ValueError, match="not supported"):
-        open_graph("sqlalchemy", "sqlite:///x.db")
+def test_open_graph_sqlalchemy_deprecated_maps_to_disk(tmp_path: Path) -> None:
+    path = tmp_path / "legacy-store"
+    with pytest.warns(DeprecationWarning, match="sqlalchemy"):
+        g = open_graph("sqlalchemy", str(path))
+    assert isinstance(g, Graph)
+    del g
+    destroy_store(str(path), store="disk")

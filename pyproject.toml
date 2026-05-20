@@ -49,9 +49,6 @@ shacl = [
     "pyshacl>=0.25",
     "rdflib>=7.0,<8",
 ]
-berkeleydb = [
-    "berkeleydb>=18.1.0; platform_system != 'Windows'",
-]
 
 [project.scripts]
 triplemodel-codegen = "triplemodel.codegen.cli:main"

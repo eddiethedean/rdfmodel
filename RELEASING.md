@@ -1,300 +1,40 @@
 # Releasing TripleModel
 
-## 0.9.0 release readiness (repo)
+## 0.10.0 release readiness (repo)
 
 | Item | Status |
 |------|--------|
-| Version `0.9.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `CHANGELOG.md` — single `## [0.9.0]` entry (sync fixes included) | Done |
-| Matrix audit; plugin `register_parser` / `register_serializer` / `register_store` | Done |
-| `docs/API_STABILITY.md`, `docs/cookbook/`, `docs/COMPATIBILITY.md` | Done |
-| CI `compat` job (min pydantic / rdflib pins) | Done |
+| Version `0.10.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| pyoxigraph engine; `triplemodel.Store`; migration guide `docs/MIGRATION_0.10.md` | Done |
+| `CHANGELOG.md` — `## [0.10.0]` entry | Done |
+| CI `compat` job (min pydantic / pyoxigraph pins) | Done |
 | Release workflow calls reusable CI + Docs workflows before publish | Done |
-| pytest filters upstream `PyparsingDeprecationWarning` noise | Done |
-| Exit criteria `examples/exit_criteria_09.py` | Done |
-| PyPI latest | **0.8.0** — `0.9.0` not published yet |
-| Git tag `v0.9.0` | Exists but must point at **current `main`** before publish (see below) |
+| Exit criteria `examples/exit_criteria_09.py` (0.10 Store + disk smoke) | Done |
+| `examples/stores/disk_store.py` | Done |
 
-**Pre-release checklist (0.9.0)**
+**Pre-release checklist (0.10.0)**
 
-- [x] `version` `0.9.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] Local gate: `make ci` and `make release-check`
-- [x] `pytest` (100% cov), `ruff`, `ty`, `sphinx-build -W`
-- [x] `examples/exit_criteria_03.py`–`09.py` in Makefile `examples` target, release workflow, sdist
-- [x] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] **Move `v0.9.0` tag to current `main`** (tag was created before final sync fixes; required so the release build matches this changelog)
-- [ ] Push tag to trigger `.github/workflows/release.yml` and publish `triplemodel==0.9.0` to PyPI
+- [x] `version` `0.10.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [ ] Local gate: `make ci` and `make release-check`
+- [ ] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
+- [ ] `sphinx-build -b html docs docs/_build/html -W`
+- [ ] `make examples` (exit_criteria_03–09 + readme_examples)
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
+- [ ] Create and push git tag `v0.10.0` when ready to publish (do not tag until checklist passes)
 
 **Publish (after checklist above)**
 
 ```bash
-# On latest main, with a clean working tree:
 make release-check
 
-# Recreate the tag on current HEAD (safe: 0.9.0 is not on PyPI yet)
-git tag -d v0.9.0
-git push origin :refs/tags/v0.9.0
-git tag -a v0.9.0 -m "Release 0.9.0"
-git push origin v0.9.0
+git tag -a v0.10.0 -m "Release 0.10.0"
+git push origin v0.10.0
 ```
 
-Watch the **Release** workflow on GitHub Actions; confirm [PyPI](https://pypi.org/project/triplemodel/) shows `0.9.0`.
+Watch the **Release** workflow on GitHub Actions; confirm [PyPI](https://pypi.org/project/triplemodel/) shows `0.10.0`.
 
 ---
 
-## 0.8.0 release readiness (repo)
+## Historical releases
 
-| Item | Status |
-|------|--------|
-| Version `0.8.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| Stores, chunked/streaming import, strict mode, plugins, codegen CLI | Done |
-| Exit criteria `examples/exit_criteria_08.py` (set `TRIPLEMODEL_BENCH_COUNT` for CI smoke) | Done |
-| Guide `docs/guides/15-stores-scale-and-strict.md`; API `stores`, `plugins`, `codegen` | Done |
-| Optional extras `sqlalchemy`, `berkeleydb`; CI `stores` job | Done |
-| Release workflow includes `exit_criteria_08.py` | Done |
-
-**Pre-release checklist (0.8.0)**
-
-- [x] `version` `0.8.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] Local gate: `make ci` (matches CI + docs HTML) and `make release-check` (adds examples + `twine check`)
-- [x] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
-- [x] `sphinx-build -b html docs docs/_build/html -W`
-- [x] `examples/exit_criteria_08.py` and release workflow `exit_criteria_05`–`08` + `readme_examples.py`
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.8.0`
-
-```bash
-git tag -a v0.8.0 -m "Release 0.8.0"
-git push origin v0.8.0
-```
-
----
-
-## 0.7.0 release readiness (repo)
-
-Verified on `main` after **v0.6.0**. PyPI latest before this release: **0.6.0**.
-
-| Item | Status |
-|------|--------|
-| Version `0.7.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `docs/conf.py` release via `triplemodel.__version__` | Done |
-| `CHANGELOG.md` — `## [0.7.0]` complete (Added/Changed/Deferred); `[Unreleased]` stub | Done |
-| Graph algorithms — `graphs_equal`, `graph_diff`, `model_diff`, CBD, RDFS dispatch, `hydrate_refs` | Done |
-| Pre-release hardening — import skolemize once, `Rdf.resolve_subclass`, bulk dispatch discovery | Done |
-| Exit criteria `examples/exit_criteria_07.py` (CBD + subclass dispatch) | Done |
-| Guide `docs/guides/14-graph-algorithms-and-rdfs.md`; API `compare`, `cbd`, `rdfs`, `hydrate`, `vocab_registry` | Done |
-| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
-| README / PLAN / ROADMAP reflect **0.7.0** beta | Done |
-| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
-| Release workflow on tag: `verify` job includes `exit_criteria_07.py` | Done |
-
-**Before tagging:** commit and push all changes on `main` (audit fixes, docs, `tests/test_skolemize_import.py`). PyPI still shows **0.6.0** until `v0.7.0` is published.
-
-**Pre-release checklist (0.7.0)**
-
-- [x] `version` `0.7.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] `[Unreleased]` empty (all 0.7.0 notes under `## [0.7.0]`, including **Fixed** hardening)
-- [x] `pytest` (542 tests, 100% cov), `ruff format --check`, `ruff check`, `ty check`
-- [x] `sphinx-build -b html docs docs/_build/html -W`
-- [x] `python -m build` and `twine check dist/*`
-- [x] `PYTHONPATH=src python examples/exit_criteria_05.py`
-- [x] `PYTHONPATH=src python examples/exit_criteria_06.py`
-- [x] `PYTHONPATH=src python examples/exit_criteria_07.py`
-- [x] `PYTHONPATH=src python examples/readme_examples.py`
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.7.0` (triggers Release workflow)
-- [ ] GitHub release from tag; paste `## [0.7.0]` from `CHANGELOG.md`
-- [ ] Verify PyPI shows `triplemodel==0.7.0`
-
-```bash
-git tag -a v0.7.0 -m "Release 0.7.0"
-git push origin v0.7.0
-```
-
----
-
-## 0.6.0 release readiness (repo)
-
-Verified on `main` at commit `c6d022f` (prior tag: **v0.5.0**). PyPI latest before this release: **0.5.0**.
-
-| Item | Status |
-|------|--------|
-| Version `0.6.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `docs/conf.py` release via `triplemodel.__version__` | Done |
-| `CHANGELOG.md` — `## [0.6.0]` complete (Added/Fixed/Changed); `[Unreleased]` stub | Done |
-| SPARQL helpers — `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query`, `run_sparql`, etc. | Done |
-| Exit criteria `examples/exit_criteria_06.py` (CONSTRUCT → models) | Done |
-| Guide `docs/guides/13-sparql-and-endpoints.md`; API `docs/api/sparql.rst` | Done |
-| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
-| README / PLAN / ROADMAP reflect **0.6.0** beta | Done |
-| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
-| Release workflow on tag: `verify` job includes `exit_criteria_06.py` | Done |
-
-**Pre-release checklist (0.6.0)**
-
-- [x] `version` `0.6.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] `[Unreleased]` empty (all 0.6.0 notes under `## [0.6.0]`)
-- [x] `pytest`, `ruff format --check`, `ruff check`, `ty check`
-- [x] `sphinx-build -b html docs docs/_build/html -W`
-- [x] `python -m build` and `twine check dist/*`
-- [x] `PYTHONPATH=src python examples/exit_criteria_05.py`
-- [x] `PYTHONPATH=src python examples/exit_criteria_06.py`
-- [x] `PYTHONPATH=src python examples/readme_examples.py`
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.6.0` (triggers Release workflow)
-- [ ] GitHub release from tag; paste `## [0.6.0]` from `CHANGELOG.md`
-- [ ] Verify PyPI shows `triplemodel==0.6.0`
-
-```bash
-git tag -a v0.6.0 -m "Release 0.6.0"
-git push origin v0.6.0
-```
-
----
-
-## 0.5.0 release readiness (repo)
-
-Verified on `main` at commit `160a0bc` before tagging `v0.5.0` (prior tag: **v0.4.1**).
-
-| Item | Status |
-|------|--------|
-| Version `0.5.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `docs/conf.py` release via `triplemodel.__version__` | Done |
-| `CHANGELOG.md` — `## [0.5.0]` complete (Added/Changed/Fixed); `[Unreleased]` stub | Done |
-| `src/triplemodel/py.typed` in source and wheel (`tests/test_packaging.py`) | Done |
-| Exit criteria `examples/exit_criteria_05.py` (named-graph TriG) | Done |
-| Guide `docs/guides/12-datasets-and-named-graphs.md`; API exports `iter_model_quads`, `quads_in_context`, etc. | Done |
-| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
-| README / PLAN / ROADMAP reflect **0.5.0** beta | Done |
-| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
-| Docs workflow: `sphinx-build -W` | Done (run locally before tag) |
-| Release workflow on tag: `verify` job then `publish` (see `.github/workflows/release.yml`) | Configured |
-
-**Pre-release checklist (0.5.0)**
-
-- [x] `version` `0.5.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] `[Unreleased]` empty (all 0.5.0 notes under `## [0.5.0]`)
-- [x] `pytest`, `ruff format --check`, `ruff check`, `ty check`
-- [x] `sphinx-build -b html docs docs/_build/html -W`
-- [x] `python -m build` and `twine check dist/*`
-- [x] `PYTHONPATH=src python examples/exit_criteria_05.py`
-- [x] `PYTHONPATH=src python examples/readme_examples.py`
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.5.0` (triggers Release workflow)
-- [ ] GitHub release from tag; paste `## [0.5.0]` from `CHANGELOG.md`
-- [ ] Verify PyPI shows `triplemodel==0.5.0`
-
-```bash
-git tag -a v0.5.0 -m "Release 0.5.0"
-git push origin v0.5.0
-```
-
----
-
-## 0.4.1 release readiness (repo)
-
-Verified on `main` before tagging `v0.4.1` (prior tag: **v0.4.0**).
-
-| Item | Status |
-|------|--------|
-| Version `0.4.1` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `docs/conf.py` release via `triplemodel.__version__` | Done |
-| `CHANGELOG.md` — `## [0.4.1]` complete (Added/Changed/Fixed); `[Unreleased]` empty | Done |
-| `src/triplemodel/py.typed` in source and wheel (`tests/test_packaging.py`) | Done |
-| Exit criteria `examples/exit_criteria_03.py`, `examples/exit_criteria_04.py` | Done |
-| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
-| README / PLAN / ROADMAP reflect **0.4.1** beta | Done |
-| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
-| Docs workflow: `sphinx-build -W` | Done (run locally before tag) |
-| Release workflow on tag: `pytest`, `build`, `twine check`, `ruff`, `ty`, `sphinx-build -W`, PyPI publish | Configured |
-
-**Pre-release checklist (0.4.1)**
-
-- [x] `version` `0.4.1` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] `[Unreleased]` empty (all 0.4.1 notes under `## [0.4.1]`)
-- [x] `pytest`, `ruff format --check`, `ruff check`, `ty check`
-- [x] `sphinx-build -b html docs docs/_build/html -W`
-- [x] `python -m build` and `twine check dist/*`
-- [x] `PYTHONPATH=src python examples/exit_criteria_03.py`
-- [x] `PYTHONPATH=src python examples/exit_criteria_04.py`
-- [x] `PYTHONPATH=src python examples/readme_examples.py`
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] Create and push git tag `v0.4.1` (triggers Release workflow)
-- [ ] GitHub release from tag; paste `## [0.4.1]` from `CHANGELOG.md`
-- [ ] Verify PyPI shows `triplemodel==0.4.1`
-
-```bash
-git tag -a v0.4.1 -m "Release 0.4.1"
-git push origin v0.4.1
-```
-
----
-
-## 0.4.0 release readiness (repo)
-
-Verified on `main` before tagging `v0.4.0` (PyPI latest prior to this release: **0.3.0**).
-
-| Item | Status |
-|------|--------|
-| Version `0.4.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `docs/conf.py` release via `triplemodel.__version__` | Done |
-| `CHANGELOG.md` — `## [0.4.0]` complete; `[Unreleased]` lists **0.4.1** planned work only | Done |
-| `src/triplemodel/py.typed` in source and wheel (`tests/test_packaging.py`) | Done |
-| Exit criteria `examples/exit_criteria_03.py`, `examples/exit_criteria_04.py` | Done |
-| `examples/readme_examples.py`, `examples/realworld/*` (CI) | Done |
-| sdist includes exit-criteria and `examples/realworld` (`pyproject.toml` `[tool.hatch.build.targets.sdist]`) | Done |
-| README: beta status, file I/O, dispatch, inverse, limitations | Done |
-| CI on push: `pytest` (100% cov), `build`, `ruff`, `ty` (Python 3.10–3.13) | Done |
-| Docs workflow: `sphinx-build -W` | Done |
-| Release workflow on tag: `pytest`, `build`, `twine check`, `ruff`, `ty`, `sphinx-build -W`, PyPI publish | Done |
-
-**Remaining manual steps:** confirm `PYPI_API_TOKEN` in GitHub Actions secrets → tag `v0.4.0` → GitHub release → verify PyPI shows `0.4.0`.
-
-## Pre-release checklist (0.4.0)
-
-- [x] `version` `0.4.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] `[Unreleased]` contains only planned **0.4.1** work (no undocumented 0.4.0 changes)
-- [x] CI on `main`: `pytest`, `ruff`, `ty`, `python -m build` (Python 3.10–3.13); Docs workflow
-- [x] Local: `pytest`, `ruff format --check src tests`, `ruff check src tests`, `ty check src tests`
-- [x] `PYTHONPATH=src python examples/exit_criteria_03.py`
-- [x] `PYTHONPATH=src python examples/exit_criteria_04.py`
-- [x] `PYTHONPATH=src python examples/readme_examples.py`
-- [x] `python -m build` and `twine check dist/*` pass
-- [ ] Create and push git tag `v0.4.0` (triggers Release workflow: build + PyPI publish)
-- [ ] GitHub release from tag
-
-## Publish to PyPI
-
-### GitHub Actions (default)
-
-1. In the repo **Settings → Secrets and variables → Actions**, add **`PYPI_API_TOKEN`**: a PyPI [API token](https://pypi.org/manage/account/token/) scoped to the `triplemodel` project (or the whole account for first release).
-2. Push an annotated tag `v*` (e.g. `v0.5.0`). The [Release workflow](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/release.yml) runs the same [**CI**](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/ci.yml) and [**Docs**](https://github.com/eddiethedean/triplemodel/blob/main/.github/workflows/docs.yml) workflows as PRs (`workflow_call`), then a **`package`** job (`make examples`, `make build`, `twine check`) uploads `dist/`, and **`publish`** uploads to PyPI with [`pypa/gh-action-pypi-publish`](https://github.com/pypa/gh-action-pypi-publish).
-
-### Manual fallback
-
-```bash
-python -m pip install build twine
-python -m build
-twine check dist/*
-twine upload dist/*   # uses ~/.pypirc or PyPI token
-```
-
-## Read the Docs
-
-After pushing to `main` (and after tagging for a versioned doc build if desired):
-
-1. Import the project at [readthedocs.org](https://readthedocs.org/) (suggested slug: **triplemodel**).
-2. Point it at `eddiethedean/triplemodel`; config file `.readthedocs.yaml` is used automatically.
-3. Confirm the build is green; site URL: `https://triplemodel.readthedocs.io/`.
-4. Optional: add the docs badge to `README.md` and set PyPI **Project-URL: Documentation** (already `https://triplemodel.readthedocs.io/` in `pyproject.toml`).
-
-Local check: `pip install -e ".[docs]" && sphinx-build -b html docs docs/_build/html -W`.
-
-## Git tag and GitHub release
-
-```bash
-git tag -a v0.4.0 -m "Release 0.4.0"
-git push origin v0.4.0
-```
-
-Create a GitHub release from the tag and paste the `## [0.4.0]` section from `CHANGELOG.md` as release notes.
+Older checklists (0.9.0, 0.8.0, …) are preserved in git history. See `CHANGELOG.md` for shipped versions.

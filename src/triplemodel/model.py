@@ -108,7 +108,7 @@ class TripleModel(BaseModel):
         skolemize: bool | None = None,
         shacl_shapes: Graph | str | Path | Any | None = None,
     ) -> Graph:
-        """Serialize this instance into an rdflib ``Graph``.
+        """Serialize this instance into a :class:`~triplemodel.Store` graph.
 
         When ``mode`` is omitted, uses ``Rdf.graph_mode`` (default ``"add"``).
         """

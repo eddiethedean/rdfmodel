@@ -51,21 +51,44 @@ def test_load_models_streaming_multi_class(tmp_path: Path) -> None:
 def test_streaming_store_identifier_helpers(tmp_path: Path) -> None:
     from triplemodel.io.files import _streaming_store_identifier
 
-    sql_id, sql_ephemeral = _streaming_store_identifier(
-        tmp_path / "x.nt", "sqlalchemy", None
+    with pytest.warns(DeprecationWarning, match="sqlalchemy"):
+        sql_id, sql_ephemeral = _streaming_store_identifier(
+            tmp_path / "x.nt", "sqlalchemy", None
+        )
+    assert sql_id == sql_ephemeral
+    assert Path(sql_id).is_dir()
+    with pytest.warns(DeprecationWarning, match="berkeleydb"):
+        bdb_id, bdb_ephemeral = _streaming_store_identifier(
+            tmp_path / "x.nt", "berkeleydb", None
+        )
+    assert bdb_id == bdb_ephemeral
+    disk_id, disk_ephemeral = _streaming_store_identifier(
+        tmp_path / "x.nt", "disk", None
     )
-    assert sql_id.startswith("sqlite:///")
-    assert sql_ephemeral is not None
-    bdb_id, bdb_ephemeral = _streaming_store_identifier(
-        tmp_path / "x.nt", "berkeleydb", None
-    )
-    assert bdb_id.endswith(".db")
-    assert bdb_ephemeral is not None
+    assert disk_id == disk_ephemeral
+    assert Path(disk_id).is_dir()
     custom, ephemeral = _streaming_store_identifier(
         tmp_path / "x.nt", "memory", "custom"
     )
     assert custom == "custom"
     assert ephemeral is None
+
+
+def test_parse_into_store_graph_default_disk(tmp_path: Path) -> None:
+    from triplemodel.io.files import parse_into_store_graph
+
+    path = tmp_path / "one.nt"
+    path.write_text(
+        f"<{EX}z> <{RDF_TYPE}> <{EX}Org> .\n",
+        encoding="utf-8",
+    )
+    graph = parse_into_store_graph(path)
+    try:
+        assert len(graph) >= 1
+    finally:
+        close = getattr(graph.store, "close", None)
+        if callable(close):
+            close()
 
 
 def test_parse_into_store_graph_bind_prefixes(tmp_path: Path) -> None:
@@ -119,15 +142,14 @@ def test_cleanup_ephemeral_store_noop() -> None:
 def test_cleanup_ephemeral_store_destroy_failure(tmp_path: Path, monkeypatch) -> None:
     from triplemodel.io.files import _cleanup_ephemeral_store
 
-    db = tmp_path / "orphan.sqlite"
-    db.write_text("", encoding="utf-8")
+    store_dir = tmp_path / "orphan-store"
+    store_dir.mkdir()
 
     def boom(*_args, **_kwargs):
         raise OSError("destroy failed")
 
     monkeypatch.setattr("triplemodel.io.stores.destroy_store", boom)
-    _cleanup_ephemeral_store(f"sqlite:///{db}", "sqlalchemy", str(db))
-    assert not db.exists()
+    _cleanup_ephemeral_store(str(store_dir), "disk", str(store_dir))
 
 
 def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> None:
@@ -153,7 +175,7 @@ def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> 
     def fake_identifier(_path, _store, explicit):
         if explicit:
             return explicit, None
-        return "sqlite:///ephemeral", "/tmp/ephemeral.sqlite"
+        return "/tmp/ephemeral-store", "/tmp/ephemeral-store"
 
     def fake_cleanup(ident, store, ephemeral):
         cleaned.append((ident, store, ephemeral))
@@ -163,11 +185,9 @@ def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> 
     )
     monkeypatch.setattr(files_mod, "_streaming_store_identifier", fake_identifier)
     monkeypatch.setattr(files_mod, "_cleanup_ephemeral_store", fake_cleanup)
-    people = load_models_streaming(path, StreamPerson, store="sqlalchemy")
+    people = load_models_streaming(path, StreamPerson, store="disk")
     assert len(people) == 1
-    assert cleaned == [
-        ("sqlite:////tmp/ephemeral.sqlite", "sqlalchemy", "/tmp/ephemeral.sqlite"),
-    ]
+    assert cleaned == [("/tmp/ephemeral-store", "disk", "/tmp/ephemeral-store")]
 
 
 def test_load_models_streaming_close_failure(tmp_path: Path, monkeypatch) -> None:

@@ -58,39 +58,26 @@ def test_open_graph_unknown_store():
         open_graph("not-a-store")
 
 
-def _sqlalchemy_store_available() -> bool:
-    try:
-        import os
-        import tempfile
-
-        from triplemodel.io.stores import open_graph
-
-        fd, path = tempfile.mkstemp(suffix=".sqlite")
-        os.close(fd)
-        ident = f"sqlite:///{path}"
-        open_graph("sqlalchemy", ident)
-        os.unlink(path)
-        return True
-    except Exception:
-        return False
-
-
-@pytest.mark.skipif(
-    not _sqlalchemy_store_available(),
-    reason="rdflib-sqlalchemy store plugin not installed",
-)
-def test_sqlalchemy_round_trip(tmp_path: Path) -> None:
-    db = tmp_path / "test.sqlite"
-    ident = f"sqlite:///{db}"
-    g = open_graph("sqlalchemy", ident)
+def test_disk_round_trip(tmp_path: Path) -> None:
+    store_dir = tmp_path / "oxstore"
+    g = open_graph("disk", str(store_dir))
     subj = NamedNode(f"{EX}alice")
     g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
     g.add((subj, NamedNode(f"{EX}name"), Literal("Alice")))
     store_commit(g)
-    g2 = open_graph("sqlalchemy", ident)
+    del g
+    g2 = open_graph("disk", str(store_dir))
     from triplemodel.io.import_ import graph_to_models
 
     people = graph_to_models(g2, StorePerson)
     assert len(people) == 1
     assert people[0].name == "Alice"
-    destroy_store(ident, store="sqlalchemy")
+    del g2
+    destroy_store(str(store_dir), store="disk")
+
+
+def test_coerce_store_name_sqlalchemy_warns() -> None:
+    from triplemodel.io.stores import coerce_store_name
+
+    with pytest.warns(DeprecationWarning, match="sqlalchemy"):
+        assert coerce_store_name("sqlalchemy") == "disk"

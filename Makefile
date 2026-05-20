@@ -12,7 +12,7 @@ help:
 	@echo "TripleModel — local CI targets"
 	@echo ""
 	@echo "  make ci              Run all PR CI checks (test, stores, lint, docs)"
-	@echo "  make install         Editable install with dev+shacl+sqlalchemy+docs extras"
+	@echo "  make install         Editable install with dev+shacl+docs extras"
 	@echo "  make test            pytest (100% coverage)"
 	@echo "  make stores          Store-focused pytest subset (--no-cov, like CI)"
 	@echo "  make compat          pytest with min pydantic/pyoxigraph pins (like CI compat job)"
@@ -93,11 +93,11 @@ ci: install
 	$(PYTHON) -m pytest
 	$(PYTHON) -m pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
 	@if $(PYTHON) -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 13) else 1)"; then \
-		$(MAKE) compat-rdflib; \
+		$(MAKE) compat-pyoxigraph; \
 	else \
 		$(MAKE) compat; \
 	fi
-	$(PIP) install --upgrade "pydantic>=2.5,<3" "rdflib>=7.0,<8" -e ".[dev,shacl,sqlalchemy,docs]"
+	$(PIP) install --upgrade "pydantic>=2.5,<3" "pyoxigraph>=0.5,<0.6" -e ".[dev,shacl,docs]"
 	$(PYTHON) -m ruff format --check src tests
 	$(PYTHON) -m ruff check src tests
 	$(PYTHON) -m ty check src tests

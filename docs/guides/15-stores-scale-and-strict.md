@@ -1,6 +1,6 @@
-# Stores, scale, and strict import (0.8)
+# Stores, scale, and strict import
 
-TripleModel **0.8** adds optional on-disk rdflib stores, chunked import, predicate-map caching, and strict data-quality checks.
+TripleModel supports chunked import, on-disk pyoxigraph stores, predicate-map caching, and strict data-quality checks.
 
 ## Predicate-map caching
 
@@ -38,56 +38,53 @@ for chunk in iter_graph_to_models(graph, Person, chunk_size=500):
 
 ## Streaming file load
 
-For large **N-Triples** / **N-Quads** files, use ``load_models_streaming`` with an optional SQLAlchemy store (``pip install triplemodel[sqlalchemy]``):
+For large **N-Triples** / **N-Quads** files, use ``load_models_streaming`` with an on-disk store:
 
 ```python
 people = load_models_streaming(
     "huge.nt",
     Person,
-    store="sqlalchemy",
+    store="disk",
+    store_identifier="/path/to/oxigraph-store",
     chunk_size=500,
 )
 ```
 
-Turtle and TriG still require a full parse; convert to N-Quads for multi-GB inputs.
+Omit ``store`` to parse into memory. Turtle and TriG still require a full parse; convert to N-Quads for multi-GB inputs.
+
+Legacy ``store="sqlalchemy"`` / ``"berkeleydb"`` emit a ``DeprecationWarning`` and map to ``disk``.
 
 ## Store helpers
 
 ```python
 from triplemodel import open_graph, graph_store_session, store_commit
 
-graph = open_graph("sqlalchemy", "sqlite:///data/graph.sqlite")
+graph = open_graph("disk", "/path/to/oxigraph-store")
 with graph_store_session(graph):
     Person.sync_to_graph(instance, graph)
     store_commit(graph)
 ```
 
-See ``examples/stores/sqlalchemy_sqlite.py`` and {doc}`13-sparql-and-endpoints` for remote SPARQL as the system of record.
+See ``examples/stores/disk_store.py``. For remote SPARQL as the system of record, use {doc}`13-sparql-and-endpoints` and SparqlModel.
 
 ## Benchmark
 
-``examples/exit_criteria_08.py`` loads a FOAF-shaped graph (default 100k people; set ``TRIPLEMODEL_BENCH_COUNT`` for CI smoke runs).
+``examples/exit_criteria_08.py`` loads a FOAF-shaped graph (default 100k people; set ``TRIPLEMODEL_BENCH_COUNT`` for CI smoke runs). Set ``TRIPLEMODEL_STORE=disk`` to exercise the on-disk streaming path.
 
 ## Plugin hooks
 
-``triplemodel.plugins`` registers custom literals, resources, predicate resolvers, and rdflib plugins:
+``triplemodel.plugins`` registers custom literals, resources, and predicate resolvers:
 
 ```python
 from triplemodel.plugins import (
     register_literal_type,
-    register_parser,
     register_predicate_resolver,
-    register_serializer,
-    register_store,
 )
 
-# rdflib passthrough (module_path + class_name per rdflib.plugin.register)
-register_parser("myformat", "myapp.parsers", "MyParser")
-register_serializer("myformat", "myapp.serializers", "MySerializer")
-register_store("mystore", "myapp.stores", "MyStore")
+register_predicate_resolver(MyResolver)
 ```
 
-See {doc}`../api/plugins`.
+``register_parser``, ``register_serializer``, and ``register_store`` were removed in **0.10.0** (pyoxigraph has no rdflib plugin registry). See {doc}`../api/plugins` and {doc}`../MIGRATION_0.10`.
 
 ## Codegen (experimental)
 

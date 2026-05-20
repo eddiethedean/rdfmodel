@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- **Streaming / store parse** — `parse_into_store_graph` and `load_models_streaming` default to `store="disk"` (pyoxigraph); legacy `sqlalchemy` / `berkeleydb` names emit `DeprecationWarning` and map to disk.
+- **Examples** — `exit_criteria_09.py` (0.10 Store smoke), `examples/stores/disk_store.py`; `exit_criteria_08` disk store smoke.
+- **Makefile `ci`** — use `compat-pyoxigraph` on Python 3.13+; drop removed `sqlalchemy` extra from install line.
+
+### Changed
+
+- **Docs** — README, guides 01/13/15, cookbook, ECOSYSTEM, ROADMAP matrix updated for pyoxigraph 0.10.
+- **RELEASING.md** — 0.10.0 checklist.
+- **Packaging** — removed unused `berkeleydb` optional extra.
 
 ## [0.10.0] - 2026-05-19
 

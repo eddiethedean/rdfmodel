@@ -35,26 +35,23 @@ Use `apply_update` for SPARQL Update against a writable store when rdflib’s `S
 - Install: `pip install triplemodel[shacl]`
 - Pre-export validation — {doc}`../guides/10-file-io` (SHACL section) and `validate_graph`
 
-## Persistent and optional stores
+## Persistent stores
 
-- **SQLAlchemy** — `pip install triplemodel[sqlalchemy]`; see `examples/stores/sqlalchemy_sqlite.py` and {doc}`../guides/15-stores-scale-and-strict`
-- **BerkeleyDB** — `triplemodel[berkeleydb]` extra (non-Windows)
-- **LevelDB / Kyoto / GraphDB / RDF4J** — use rdflib or vendor SDKs directly (**out of scope** for core; register custom stores via `triplemodel.plugins.register_store`)
+- **On-disk pyoxigraph** — `open_graph("disk", path)`; see `examples/stores/disk_store.py` and {doc}`../guides/15-stores-scale-and-strict`
+- **LevelDB / Kyoto / GraphDB / RDF4J** — use vendor SDKs or SparqlModel directly (**out of scope** for core)
 
 ## Scale and strict import
 
 - **Chunked load** — `iter_graph_to_models`, `load_models_streaming` (guide 15)
 - **Strict mode** — `Rdf.strict_import`, `Rdf.warn_unmapped_fields`
 
-## Custom rdflib plugins
+## Custom plugins (literals and resolvers)
 
 ```python
-from triplemodel.plugins import register_parser, register_serializer, register_store
-
-register_parser("myfmt", "myapp.plugins", "MyParser")
+from triplemodel.plugins import register_literal_type, register_predicate_resolver
 ```
 
-See {doc}`../api/plugins`.
+Parser/serializer/store registration was removed in **0.10.0** — see {doc}`../api/plugins` and {doc}`../MIGRATION_0.10`.
 
 ## Real-world datasets
 
