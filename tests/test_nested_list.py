@@ -9,6 +9,11 @@ from triplemodel import TripleModel, rdf_field, sync_to_graph
 from triplemodel.terms.collection import remove_rdf_list
 from triplemodel.vocab import FOAF
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 EX = "http://example.org/people/"
 FOAF_NICK = f"{FOAF}nick"
 
@@ -26,7 +31,7 @@ class TagHolder(TripleModel):
 class PersonIri(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         embed = "iri"
 
@@ -38,7 +43,7 @@ class PersonIri(TripleModel):
 class PersonBnode(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_2")
         id_field = "slug"
         embed = "bnode"
 
@@ -220,7 +225,7 @@ def test_stable_bnode_replace_drops_removed_predicate():
     class PersonStable(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
             embed = "bnode"
             blank_node_policy = "stable"
@@ -256,7 +261,7 @@ def test_patch_clears_nested_iri_optional_scalar():
     class Person(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
             embed = "iri"
 

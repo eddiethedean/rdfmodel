@@ -88,7 +88,8 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | **Formats** | Turtle, Trig, N-Triples, N-Quads | `serialize(format=...)` | 0.4 **done** |
 | | RDF/XML, N3 | same | 0.4 **done** |
 | | JSON-LD | same; optional `jsonld` extra if needed | 0.4 **done** |
-| | TriG, TriX, HexTuples, longTurtle | TriG **done**; TriX/HexTuples/longTurtle **out of scope** in 0.10 (pyoxigraph) | 0.10 **partial** |
+| | TriG, N-Quads, Turtle, RDF/XML, N3, JSON-LD | **done** (pyoxigraph) | 0.10 **done** |
+| | TriX, HexTuples, longTurtle | **out of scope** in 0.10 (pyoxigraph; were rdflib-era formats) | 0.10 **out of scope** |
 | | Microdata, RDFa | **out of scope** (HTML scraping, not domain modeling) | — |
 | **Stores** | Memory (`default`, `memory`) | default `Graph()` / `Dataset()` | 0.1 **done** |
 | | Remote SPARQL read (`SPARQLStore`) | removed in 0.10; use SparqlModel or load into `Store` | 0.10 **out of scope** |
@@ -185,7 +186,7 @@ Before **1.0.0**, the matrix above must be **done** or explicitly **out of scope
 **Theme:** All rdflib **syntaxes** that make sense for documents (not HTML).
 
 - [x] **`TripleModel.parse` / `.serialize`** — delegate to `Graph.parse` / `Graph.serialize`
-- [x] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (each format rdflib registers in CI)
+- [x] **Format support** — Turtle, Trig, N-Triples, N-Quads, RDF/XML, N3, JSON-LD, TriX, HexTuples, longTurtle (rdflib-era; TriX/HexTuples/longTurtle **removed in 0.10** — see {doc}`MIGRATION_0.10`)
 - [x] **Format autodetection** — filename suffix and `format=` / media type passthrough
 - [x] **Base URI on parse** — rdflib 7 `publicID` semantics: `Rdf.base_uri` for resolving relative IRIs (not named-graph id)
 - [x] **`parse_file` / `parse_url`** — parse RDF from path or URL into `list[TripleModel]`
@@ -360,7 +361,7 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [x] **Typing** — `py.typed` + `ty check` in CI (canonical checker; not mypy)
 - [x] **Compatibility matrix** — pinned pydantic / pyoxigraph ranges in CI `compat` job
 
-**Exit criteria:** No open matrix gaps except **TBD** / **out of scope**; `examples/exit_criteria_09.py`; beta on PyPI.
+**Exit criteria:** No open matrix gaps except **TBD** / **out of scope**; beta on PyPI. (`examples/exit_criteria_09.py` is now **0.10** Store + disk smoke — not 0.9 plugin registry.)
 
 **SparqlModel (SM-5):** Compatibility range in `ECOSYSTEM_SPARQLMODEL.md`; SparqlModel-side migration when pinning `triplemodel` (optional cross-package CI deferred).
 
@@ -368,11 +369,11 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 
 ## 1.0.0 — Stable release
 
-**Theme:** Trustworthy default for Pydantic ↔ RDF in production. **No new rdflib surface** — only fixes, docs, and governance.
+**Theme:** Trustworthy default for Pydantic ↔ RDF in production. **No new engine surface** — only fixes, docs, and governance.
 
 | Requirement | Detail |
 |-------------|--------|
-| rdflib coverage | Matrix complete per 0.9 audit |
+| pyoxigraph coverage | Matrix complete per 0.9/0.10 audit (see matrix above) |
 | API stability | Semver commitment; deprecations required ≥1 minor earlier |
 | Security | Safe parser defaults; document XML/URL fetch risks |
 | Quality | ≥90% coverage on core; integration tests per supported format and SPARQL |

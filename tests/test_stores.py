@@ -17,14 +17,16 @@ from triplemodel.io.stores import (
     store_commit,
     store_rollback,
 )
+from tests._type_uri import module_type_uri
 
 EX = "http://example.org/"
+PERSON_TYPE = module_type_uri("StorePerson")
 
 
 class StorePerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{EX}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -62,7 +64,7 @@ def test_disk_round_trip(tmp_path: Path) -> None:
     store_dir = tmp_path / "oxstore"
     g = open_graph("disk", str(store_dir))
     subj = NamedNode(f"{EX}alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{EX}name"), Literal("Alice")))
     store_commit(g)
     del g
@@ -93,7 +95,7 @@ def test_open_graph_disk_read_only(tmp_path: Path) -> None:
     store_dir = tmp_path / "ro-store"
     g = open_graph("disk", str(store_dir))
     subj = NamedNode(f"{EX}bob")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     store_commit(g)
     g.close()
     g_ro = open_graph("disk", str(store_dir), read_only=True)
@@ -108,7 +110,7 @@ def test_graph_close_destroy_failure(tmp_path: Path, monkeypatch) -> None:
     from triplemodel.io.files import _streaming_store_identifier
 
     path = tmp_path / "data.nt"
-    path.write_text(f"<{EX}x> <{RDF_TYPE}> <{EX}Person> .\n", encoding="utf-8")
+    path.write_text(f"<{EX}x> <{RDF_TYPE}> <{PERSON_TYPE}> .\n", encoding="utf-8")
     ident, ephemeral = _streaming_store_identifier(path, "disk", None)
 
     def boom(*_args, **_kwargs):
@@ -125,7 +127,7 @@ def test_graph_close_ephemeral(tmp_path: Path) -> None:
     from triplemodel.io.files import _streaming_store_identifier
 
     path = tmp_path / "data.nt"
-    path.write_text(f"<{EX}x> <{RDF_TYPE}> <{EX}Person> .\n", encoding="utf-8")
+    path.write_text(f"<{EX}x> <{RDF_TYPE}> <{PERSON_TYPE}> .\n", encoding="utf-8")
     ident, ephemeral = _streaming_store_identifier(path, "disk", None)
     assert ephemeral is not None
     assert ephemeral == ident

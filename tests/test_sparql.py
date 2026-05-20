@@ -27,6 +27,9 @@ from triplemodel.io.sparql import (
     run_sparql,
     select_models,
 )
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
@@ -35,7 +38,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         prefixes = {"foaf": str(FOAF)}
 
@@ -47,22 +50,23 @@ class Person(TripleModel):
 class PersonIriId(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_2")
         id_field = "uri"
 
     uri: Annotated[str, IriId()]
     name: str = rdf_field("foaf:name")
 
 
-def _foaf_graph() -> Graph:
+def _foaf_graph(*, person_type: str | None = None) -> Graph:
+    ptype = person_type or PERSON_TYPE
     g = Graph()
     g.bind("foaf", FOAF_NS)
     alice = NamedNode(f"{EX}alice")
-    g.add((alice, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(ptype)))
     g.add((alice, NamedNode(f"{FOAF}name"), Literal("Alice")))
     g.add((alice, NamedNode(f"{FOAF}age"), Literal(30)))
     bob = NamedNode(f"{EX}bob")
-    g.add((bob, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((bob, NamedNode(RDF_TYPE), NamedNode(ptype)))
     g.add((bob, NamedNode(f"{FOAF}name"), Literal("Bob")))
     return g
 
@@ -99,7 +103,7 @@ def test_ask_true_false():
     g = _foaf_graph()
     assert Person.ask_sparql(
         g,
-        "ASK { ?s a <http://xmlns.com/foaf/0.1/Person> }",
+        f"ASK {{ ?s a <{PERSON_TYPE}> }}",
     )
     assert not ask(
         g,
@@ -116,12 +120,12 @@ def test_ask_wrong_result_type():
 
 def test_construct_models():
     g = _foaf_graph()
-    query = """
-    CONSTRUCT { ?s ?p ?o }
-    WHERE {
-      ?s a foaf:Person .
+    query = f"""
+    CONSTRUCT {{ ?s ?p ?o }}
+    WHERE {{
+      ?s a <{PERSON_TYPE}> .
       ?s ?p ?o .
-    }
+    }}
     """
     people = construct_models(Person, g, query)
     assert len(people) == 2
@@ -133,9 +137,9 @@ def test_construct_models_classmethod():
     g = _foaf_graph()
     people = Person.construct_from_sparql(
         g,
-        """
-        CONSTRUCT { ?s ?p ?o }
-        WHERE { ?s a foaf:Person . ?s ?p ?o . }
+        f"""
+        CONSTRUCT {{ ?s ?p ?o }}
+        WHERE {{ ?s a <{PERSON_TYPE}> . ?s ?p ?o . }}
         """,
     )
     assert len(people) == 2
@@ -156,7 +160,7 @@ def test_construct_models_dispatch(monkeypatch: pytest.MonkeyPatch) -> None:
     people = construct_models(
         Person,
         g,
-        "CONSTRUCT { ?s ?p ?o } WHERE { ?s a foaf:Person . ?s ?p ?o . }",
+        f"CONSTRUCT {{ ?s ?p ?o }} WHERE {{ ?s a <{PERSON_TYPE}> . ?s ?p ?o . }}",
         dispatch=True,
     )
     assert seen
@@ -165,7 +169,7 @@ def test_construct_models_dispatch(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_graph_from_construct_result_wrong_type():
     g = _foaf_graph()
-    result = g.query("SELECT ?s WHERE { ?s a foaf:Person }")
+    result = g.query(f"SELECT ?s WHERE {{ ?s a <{PERSON_TYPE}> }}")
     with pytest.raises(TypeError, match="graph SPARQL result"):
         graph_from_construct_result(result)
 
@@ -175,12 +179,12 @@ def test_select_models_projection():
     rows = select_models(
         Person,
         g,
-        """
-        SELECT ?slug ?name WHERE {
-          ?s a foaf:Person .
+        f"""
+        SELECT ?slug ?name WHERE {{
+          ?s a <{PERSON_TYPE}> .
           ?s foaf:name ?name .
           BIND(REPLACE(STR(?s), "http://example.org/people/", "") AS ?slug)
-        }
+        }}
         """,
     )
     assert len(rows) == 2
@@ -192,7 +196,7 @@ def test_select_models_subject_var():
     rows = select_models(
         Person,
         g,
-        "SELECT ?s ?name WHERE { ?s a foaf:Person . ?s foaf:name ?name }",
+        f"SELECT ?s ?name WHERE {{ ?s a <{PERSON_TYPE}> . ?s foaf:name ?name }}",
         subject_var="s",
         field_map={"name": "name"},
     )
@@ -201,11 +205,12 @@ def test_select_models_subject_var():
 
 
 def test_select_models_iri_id_subject():
-    g = _foaf_graph()
+    iri_type = module_type_uri("Person_2")
+    g = _foaf_graph(person_type=iri_type)
     rows = select_models(
         PersonIriId,
         g,
-        "SELECT ?s ?name WHERE { ?s a foaf:Person . ?s foaf:name ?name }",
+        f"SELECT ?s ?name WHERE {{ ?s a <{iri_type}> . ?s foaf:name ?name }}",
         subject_var="s",
         field_map={"name": "name"},
     )
@@ -228,14 +233,14 @@ def test_select_models_hydrate():
     people = select_models(
         Person,
         g,
-        "SELECT ?s WHERE { ?s a foaf:Person }",
+        f"SELECT ?s WHERE {{ ?s a <{PERSON_TYPE}> }}",
         subject_var="s",
         hydrate=True,
     )
     assert len(people) == 2
     assert Person.select_from_sparql(
         g,
-        "SELECT ?s WHERE { ?s a foaf:Person }",
+        f"SELECT ?s WHERE {{ ?s a <{PERSON_TYPE}> }}",
         subject_var="s",
         hydrate=True,
     )
@@ -250,14 +255,14 @@ def test_select_models_hydrate_requires_subject_var():
 def test_select_models_wrong_result_type():
     g = _foaf_graph()
     with pytest.raises(TypeError, match="bindings"):
-        select_models(Person, g, "ASK { ?s a foaf:Person }")
+        select_models(Person, g, f"ASK {{ ?s a <{PERSON_TYPE}> }}")
 
 
 def test_select_models_subject_without_id_field():
     class NoId(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
 
         name: str = rdf_field("foaf:name")
 
@@ -276,9 +281,9 @@ def test_apply_update_insert():
     g = Graph()
     apply_update(
         g,
-        """
+        f"""
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-        INSERT DATA { <http://example.org/people/x> a foaf:Person . }
+        INSERT DATA {{ <http://example.org/people/x> a <{PERSON_TYPE}> . }}
         """,
         model_cls=Person,
     )
@@ -299,7 +304,7 @@ def test_prepare_model_query():
 
 def test_run_sparql_without_model_cls():
     g = _foaf_graph()
-    result = run_sparql(g, "SELECT ?s WHERE { ?s a foaf:Person }")
+    result = run_sparql(g, f"SELECT ?s WHERE {{ ?s a <{PERSON_TYPE}> }}")
     assert result.type in ("SELECT", "bindings")
 
 
@@ -324,7 +329,7 @@ def test_load_sparql_construct(mock_open: MagicMock) -> None:
     people = load_sparql(
         Person,
         "http://example.org/sparql",
-        "CONSTRUCT { ?s ?p ?o } WHERE { ?s a foaf:Person . ?s ?p ?o . }",
+        f"CONSTRUCT {{ ?s ?p ?o }} WHERE {{ ?s a <{PERSON_TYPE}> . ?s ?p ?o . }}",
     )
     assert len(people) == 2
 
@@ -335,7 +340,7 @@ def test_load_sparql_select(mock_open: MagicMock) -> None:
     rows = load_sparql(
         Person,
         "http://example.org/sparql",
-        "SELECT ?s ?name WHERE { ?s a foaf:Person . ?s foaf:name ?name }",
+        f"SELECT ?s ?name WHERE {{ ?s a <{PERSON_TYPE}> . ?s foaf:name ?name }}",
         subject_var="s",
     )
     assert len(rows) == 2
@@ -372,7 +377,7 @@ def test_load_sparql_classmethod(mock_open: MagicMock) -> None:
     mock_open.return_value = _foaf_graph()
     people = Person.load_sparql(
         "http://example.org/sparql",
-        "CONSTRUCT { ?s ?p ?o } WHERE { ?s a foaf:Person . ?s ?p ?o . }",
+        f"CONSTRUCT {{ ?s ?p ?o }} WHERE {{ ?s a <{PERSON_TYPE}> . ?s ?p ?o . }}",
     )
     assert len(people) == 2
 
@@ -382,11 +387,11 @@ def test_select_models_subject_in_field_map():
     rows = select_models(
         Person,
         g,
-        """
-        SELECT ?s ?name WHERE {
-          ?s a foaf:Person .
+        f"""
+        SELECT ?s ?name WHERE {{
+          ?s a <{PERSON_TYPE}> .
           ?s foaf:name ?name .
-        }
+        }}
         """,
         subject_var="s",
         field_map={"s": "slug", "name": "name"},
@@ -440,7 +445,7 @@ def test_select_models_hydrate_skips_missing_and_duplicates(
     people = select_models(
         Person,
         g,
-        "SELECT ?s WHERE { ?s a foaf:Person }",
+        f"SELECT ?s WHERE {{ ?s a <{PERSON_TYPE}> }}",
         subject_var="s",
         hydrate=True,
     )
@@ -450,12 +455,12 @@ def test_select_models_hydrate_skips_missing_and_duplicates(
 def test_load_sparql_prepared_query_select():
     pq = prepare_model_query(
         Person,
-        """
-        SELECT ?slug ?name WHERE {
-          ?s a foaf:Person .
+        f"""
+        SELECT ?slug ?name WHERE {{
+          ?s a <{PERSON_TYPE}> .
           ?s foaf:name ?name .
           BIND(REPLACE(STR(?s), "http://example.org/people/", "") AS ?slug)
-        }
+        }}
         """,
     )
     with patch("triplemodel.io.sparql.open_sparql_graph") as mock_open:
@@ -492,7 +497,7 @@ def test_union_member_term_conversion():
     class MaybeAge(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
 
         slug: str
@@ -567,7 +572,7 @@ def test_hydrate_wrong_result_type():
         select_models(
             Person,
             g,
-            "ASK { ?s a foaf:Person }",
+            f"ASK {{ ?s a <{PERSON_TYPE}> }}",
             subject_var="s",
             hydrate=True,
         )
@@ -579,7 +584,7 @@ def test_subject_uri_outside_namespace_uses_full_uri_as_slug():
         (
             NamedNode("http://other.example/alien"),
             NamedNode(RDF_TYPE),
-            NamedNode(f"{FOAF}Person"),
+            NamedNode(PERSON_TYPE),
         )
     )
     g.add(

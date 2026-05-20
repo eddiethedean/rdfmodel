@@ -13,6 +13,11 @@ from triplemodel import TripleModel, objects_for_field, rdf_field, sync_to_graph
 from triplemodel.io.list_fields import clear_model_rdf_lists
 from triplemodel.terms.collection import read_rdf_list
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -20,7 +25,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str

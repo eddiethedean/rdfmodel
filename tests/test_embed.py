@@ -8,6 +8,12 @@ from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+MAILBOX_TYPE = module_type_uri("Mailbox")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 ADDRESS = "http://example.org/address"
@@ -16,7 +22,7 @@ ADDRESS = "http://example.org/address"
 class Mailbox(TripleModel):
     class Rdf:
         namespace = "http://example.org/mailbox/"
-        type_uri = "http://example.org/Mailbox"
+        type_uri = MAILBOX_TYPE
         id_field = "slug"
 
     slug: str = "m1"
@@ -26,7 +32,7 @@ class Mailbox(TripleModel):
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         embed = "iri"
 
@@ -59,7 +65,7 @@ def test_nested_iri_embed_roundtrip():
 class PersonBnode(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_2")
         id_field = "slug"
         embed = "bnode"
 

@@ -7,14 +7,16 @@ from pathlib import Path
 
 from triplemodel import TripleModel, load_models_streaming, rdf_field
 from triplemodel.config import RDF_TYPE
+from tests._type_uri import module_type_uri
 
 EX = "http://example.org/"
+PERSON_TYPE = module_type_uri("StreamPerson")
 
 
 class StreamPerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{EX}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -25,7 +27,7 @@ def _write_nt(path: Path, count: int) -> None:
     lines = []
     for i in range(count):
         subj = f"<{EX}p{i}>"
-        lines.append(f"{subj} <{RDF_TYPE}> <{EX}Person> .")
+        lines.append(f"{subj} <{RDF_TYPE}> <{PERSON_TYPE}> .")
         lines.append(f'{subj} <{EX}name> "P{i}" .')
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 

@@ -8,14 +8,17 @@ from typing import cast
 from triplemodel import TripleModel, load_models, load_models_streaming, rdf_field
 from triplemodel.config import RDF_TYPE
 from triplemodel.io.import_ import split_load_kwargs
+from tests._type_uri import module_type_uri
 
 EX = "http://example.org/"
+PERSON_TYPE = module_type_uri("KPerson")
+ORG_TYPE = module_type_uri("KOrg")
 
 
 class KPerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{EX}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -25,7 +28,7 @@ class KPerson(TripleModel):
 class KOrg(TripleModel):
     class Rdf:
         namespace = f"{EX}org/"
-        type_uri = f"{EX}Org"
+        type_uri = ORG_TYPE
         id_field = "slug"
 
     slug: str
@@ -35,9 +38,9 @@ def _write_nt(path: Path) -> None:
     path.write_text(
         "\n".join(
             [
-                f"<{EX}a> <{RDF_TYPE}> <{EX}Person> .",
+                f"<{EX}a> <{RDF_TYPE}> <{PERSON_TYPE}> .",
                 f'<{EX}a> <{EX}name> "Alice" .',
-                f"<{EX}org/o1> <{RDF_TYPE}> <{EX}Org> .",
+                f"<{EX}org/o1> <{RDF_TYPE}> <{ORG_TYPE}> .",
             ]
         )
         + "\n",

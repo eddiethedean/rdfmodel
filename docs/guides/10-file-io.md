@@ -34,6 +34,10 @@ people = Person.parse_url("https://example.org/data.ttl")
 
 Format is inferred from the file suffix when omitted (`.ttl` → Turtle, `.trig` → TriG, and so on).
 
+### URL fetch security
+
+`parse_url` and `parse_url_into_graph` use Python’s `urllib` to fetch remote RDF. Do not pass untrusted URLs without your own allowlist or proxy controls — a malicious URL could target internal networks (SSRF). Load trusted content into a local `Store` first when data comes from users or external systems.
+
 ## Base URI for relative IRIs
 
 Set `Rdf.base_uri` (or pass `base=` to `parse`) so relative IRIs in Turtle resolve correctly (`publicID` / base IRI on parse):

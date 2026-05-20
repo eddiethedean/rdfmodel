@@ -11,7 +11,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "TripleModel contributors" }]
-keywords = ["rdf", "rdflib", "pydantic", "semantic-web", "linked-data"]
+keywords = ["rdf", "pyoxigraph", "oxigraph", "pydantic", "semantic-web", "linked-data"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -107,10 +107,6 @@ include = [
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = ["--cov=triplemodel", "--cov-report=term-missing", "--cov-fail-under=100"]
-filterwarnings = [
-    "ignore:Rdf.type_uri .* already registered:UserWarning",
-]
-
 [tool.coverage.run]
 source = ["triplemodel"]
 

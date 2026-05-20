@@ -15,7 +15,12 @@ from triplemodel import (
 )
 from triplemodel.vocab import FOAF
 
-FOAF_PERSON = f"{FOAF}Person"
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
+FOAF_PERSON = PERSON_TYPE
 FOAF_NAME = f"{FOAF}name"
 EX = "http://example.org/people/"
 
@@ -23,7 +28,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = FOAF_PERSON
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -35,7 +40,7 @@ def test_graphs_equal_isomorphic():
     g2 = Graph()
     alice = NamedNode(f"{EX}alice")
     for g in (g1, g2):
-        g.add((alice, NamedNode(f"{FOAF}type"), NamedNode(FOAF_PERSON)))
+        g.add((alice, NamedNode(f"{FOAF}type"), NamedNode(PERSON_TYPE)))
         g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
     assert graphs_equal(g1, g2)
 
@@ -82,7 +87,7 @@ def test_model_diff_type_mismatch():
     class Other(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = FOAF_PERSON
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
 
         slug: str

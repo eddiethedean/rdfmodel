@@ -23,6 +23,11 @@ from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
 from triplemodel.store import RdfDataset as Dataset
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF_NS = str(FOAF)
 EX = "http://example.org/people/"
 DISPATCH_GRAPH = "http://example.org/graph/dispatch"
@@ -31,7 +36,7 @@ DISPATCH_GRAPH = "http://example.org/graph/dispatch"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -74,7 +79,7 @@ class DispatchAgent(DispatchPerson):
 def test_resolve_most_specific_class() -> None:
     g = Graph()
     subj = NamedNode(f"{EX}alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/Agent")))
     g.add((subj, NamedNode("http://xmlns.com/foaf/0.1/name"), Literal("Alice")))
     g.add((subj, NamedNode("http://example.org/role"), Literal("admin")))
@@ -95,11 +100,11 @@ def test_all_from_graph_dispatch_dedupes_subject() -> None:
     g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("Bob")))
     g.add((subj, NamedNode("http://example.org/role"), Literal("editor")))
     g.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/Agent")))
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
 
     with patch(
         "triplemodel.protocols.iter_registered_type_uris",
-        return_value=frozenset({f"{FOAF_NS}Person", "http://example.org/Agent"}),
+        return_value=frozenset({PERSON_TYPE, "http://example.org/Agent"}),
     ):
         loaded = all_from_graph_dispatch(g)
     assert len(loaded) == 1

@@ -15,6 +15,11 @@ from triplemodel import (
 from triplemodel.config import RdfConfig, get_rdf_config, resolve_graph_iri
 from triplemodel.config.rdf_config import _normalize_graph_iri
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 EX = "http://example.org/people/"
 
 
@@ -74,7 +79,7 @@ def test_get_rdf_config_inherits_from_base():
     class Base(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = PERSON_TYPE
             id_field = "slug"
 
     class Employee(Base):
@@ -83,7 +88,7 @@ def test_get_rdf_config_inherits_from_base():
 
     cfg = get_rdf_config(Employee)
     assert cfg.namespace == EX
-    assert cfg.type_uri == f"{FOAF}Person"
+    assert cfg.type_uri == PERSON_TYPE
     assert cfg.id_field == "slug"
 
 
@@ -93,7 +98,7 @@ def test_subject_uri_accepts_zero_and_false_id_values():
     class Counter(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
 
         slug: int | bool
@@ -145,7 +150,7 @@ def test_get_rdf_config_empty_graph_iri_becomes_none() -> None:
     class EmptyGraph(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = "http://xmlns.com/foaf/0.1/Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
             graph_iri = ""
 
@@ -158,7 +163,7 @@ def test_resolve_graph_iri_method_returns_none_falls_back() -> None:
     class WithHook(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = "http://xmlns.com/foaf/0.1/Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
             graph_iri = "http://example.org/graph/g1"
 
@@ -174,7 +179,7 @@ def test_get_rdf_config_reads_graph_iri() -> None:
     class InGraph(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = "http://xmlns.com/foaf/0.1/Person"
+            type_uri = module_type_uri("Person_5")
             id_field = "slug"
             graph_iri = "http://example.org/graph/g1"
 

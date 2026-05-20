@@ -661,6 +661,7 @@ def load_sparql(
     Query a local :class:`~triplemodel.Store` with :func:`construct_models` / :func:`select_models`
     after fetching data, or use SparqlModel for remote endpoints.
     """
+    open_sparql_graph(endpoint, read_only=read_only)
     if not isinstance(query, str):
         raise ValueError(
             f"Cannot load models from SPARQL query {query!r}; "

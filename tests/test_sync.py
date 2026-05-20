@@ -8,6 +8,11 @@ from triplemodel.store.terms import term_str
 
 from triplemodel import TripleModel, rdf_field, sync_to_graph
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -15,7 +20,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -72,7 +77,7 @@ def test_rdf_graph_mode_replace_on_sync_to_graph():
     class ReplacePerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
             graph_mode = "replace"
 
@@ -91,7 +96,7 @@ def test_patch_clears_curie_predicate_empty_list():
     class CuriePerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
             prefixes = {"foaf": FOAF}
 
@@ -125,7 +130,7 @@ def test_patch_preserves_multiple_nick_values():
     class NickPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
 
         slug: str
@@ -143,7 +148,7 @@ def test_patch_updates_nick_without_touching_name():
     class NickPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_5")
             id_field = "slug"
 
         slug: str
@@ -162,7 +167,7 @@ def test_to_graph_patch_preserves_multiple_values():
     class NickPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_6")
             id_field = "slug"
 
         slug: str

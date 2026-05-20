@@ -15,13 +15,16 @@ from triplemodel.metadata.predicate_map import (
     uses_default_resolver,
 )
 
+from tests._type_uri import module_type_uri
+
 EX = "http://example.org/"
+PERSON_TYPE = module_type_uri("CachedPerson")
 
 
 class CachedPerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{EX}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str

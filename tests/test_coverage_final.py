@@ -18,6 +18,11 @@ from triplemodel.terms import literal_to_python, register_literal_type
 from triplemodel.io.sync import predicates_to_patch
 from triplemodel.terms import python_to_term
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -74,7 +79,7 @@ def test_import_empty_list_and_set():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = PERSON_TYPE
             id_field = "slug"
 
         slug: str
@@ -87,7 +92,7 @@ def test_import_empty_list_and_set():
         (
             subj,
             NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            NamedNode(f"{FOAF}Person"),
+            NamedNode(PERSON_TYPE),
         )
     )
     empty = graph_to_model(g, P, str(subj), validate_type=False)
@@ -98,7 +103,7 @@ def test_import_empty_list_and_set():
         (
             subj,
             NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            NamedNode(f"{FOAF}Person"),
+            NamedNode(PERSON_TYPE),
         )
     )
     only = graph_to_model(g2, P, str(subj), validate_type=False)

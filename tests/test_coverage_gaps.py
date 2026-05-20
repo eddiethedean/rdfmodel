@@ -26,6 +26,11 @@ from triplemodel.terms import python_to_term, term_to_python
 from pyoxigraph import Literal
 from triplemodel.store.namespaces import XSD
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -89,7 +94,7 @@ def test_rdf_graph_mode_drives_to_graph_without_explicit_mode():
     class PatchPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = PERSON_TYPE
             id_field = "slug"
             graph_mode = "patch"
 
@@ -115,7 +120,7 @@ def test_rdf_graph_mode_patch_on_sync_to_graph():
     class PatchPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
             graph_mode = "patch"
 
@@ -153,7 +158,7 @@ def test_model_to_graph_replace_mode():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
 
         slug: str
@@ -168,7 +173,7 @@ def test_sync_bind_on_new_graph():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
             prefixes = {"foaf": FOAF}
 

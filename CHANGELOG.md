@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Tests** — per-module unique `Rdf.type_uri` values via `tests._type_uri.module_type_uri()` to avoid duplicate registration warnings across test files; removed global pytest filter for that warning.
+- **Docs** — align installation, index, guides index, codegen API, and ROADMAP with pyoxigraph / 0.10.x (see below).
+
+### Changed
+
+- **Docs** — `docs/installation.md`, `docs/index.md`, `docs/guides/index.md`: pyoxigraph as core engine; rdflib only in `[shacl]` extra.
+- **Docs** — `docs/ROADMAP.md`: format matrix split (TriG done; TriX/HexTuples/longTurtle out of scope); 0.9 exit-criteria note for `exit_criteria_09.py`; 1.0 pyoxigraph coverage wording.
+- **Packaging** — `pyproject.toml` keywords: `pyoxigraph` / `oxigraph` instead of `rdflib`.
+- **SPARQL** — `load_sparql()` fails fast with the same `NotImplementedError` as `open_sparql_graph()` (0.10 remote endpoints).
+- **Docs** — `docs/guides/10-file-io.md`: security note for `parse_url` / `parse_url_into_graph` (untrusted URLs).
+
 ## [0.10.0] - 2026-05-19
 
 ### Breaking

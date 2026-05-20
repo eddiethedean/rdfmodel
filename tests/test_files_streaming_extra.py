@@ -9,14 +9,17 @@ import pytest
 
 from triplemodel import TripleModel, load_models_streaming, rdf_field
 from triplemodel.config import RDF_TYPE
+from tests._type_uri import module_type_uri
 
 EX = "http://example.org/"
+ORG_TYPE = module_type_uri("StreamOrg")
+PERSON_TYPE = module_type_uri("StreamPerson")
 
 
 class StreamOrg(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{EX}Org"
+        type_uri = ORG_TYPE
         id_field = "slug"
 
     slug: str
@@ -26,7 +29,7 @@ class StreamOrg(TripleModel):
 class StreamPerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{EX}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -36,9 +39,9 @@ class StreamPerson(TripleModel):
 def test_load_models_streaming_multi_class(tmp_path: Path) -> None:
     path = tmp_path / "data.nt"
     path.write_text(
-        f"<{EX}a> <{RDF_TYPE}> <{EX}Org> .\n"
+        f"<{EX}a> <{RDF_TYPE}> <{ORG_TYPE}> .\n"
         f'<{EX}a> <{EX}label> "A" .\n'
-        f"<{EX}b> <{RDF_TYPE}> <{EX}Person> .\n"
+        f"<{EX}b> <{RDF_TYPE}> <{PERSON_TYPE}> .\n"
         f'<{EX}b> <{EX}name> "B" .\n',
         encoding="utf-8",
     )
@@ -79,7 +82,7 @@ def test_parse_into_store_graph_default_disk(tmp_path: Path) -> None:
 
     path = tmp_path / "one.nt"
     path.write_text(
-        f"<{EX}z> <{RDF_TYPE}> <{EX}Org> .\n",
+        f"<{EX}z> <{RDF_TYPE}> <{ORG_TYPE}> .\n",
         encoding="utf-8",
     )
     graph = parse_into_store_graph(path)
@@ -98,7 +101,7 @@ def test_parse_into_store_graph_bind_prefixes(tmp_path: Path) -> None:
 
     path = tmp_path / "one.nt"
     path.write_text(
-        f"<{EX}z> <{RDF_TYPE}> <{EX}Org> .\n",
+        f"<{EX}z> <{RDF_TYPE}> <{ORG_TYPE}> .\n",
         encoding="utf-8",
     )
     graph = parse_into_store_graph(
@@ -150,7 +153,7 @@ def test_streaming_store_identifier_plain_path(tmp_path: Path) -> None:
 
 def test_load_models_streaming_invalid_model_class(tmp_path: Path) -> None:
     path = tmp_path / "one.nt"
-    path.write_text(f"<{EX}z> <{RDF_TYPE}> <{EX}Org> .\n", encoding="utf-8")
+    path.write_text(f"<{EX}z> <{RDF_TYPE}> <{ORG_TYPE}> .\n", encoding="utf-8")
 
     class NotModel:
         pass
@@ -192,12 +195,12 @@ def test_load_models_streaming_use_store_branch(tmp_path: Path, monkeypatch) -> 
 
     path = tmp_path / "one.nt"
     path.write_text(
-        f'<{EX}p0> <{RDF_TYPE}> <{EX}Person> .\n<{EX}p0> <{EX}name> "N" .\n',
+        f'<{EX}p0> <{RDF_TYPE}> <{PERSON_TYPE}> .\n<{EX}p0> <{EX}name> "N" .\n',
         encoding="utf-8",
     )
     g = Graph()
     subj = NamedNode(f"{EX}p0")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{EX}name"), Literal("N")))
     cleaned: list[tuple[str, str, str | None]] = []
 
@@ -230,14 +233,14 @@ def test_load_models_streaming_close_failure(tmp_path: Path, monkeypatch) -> Non
 
     path = tmp_path / "one.nt"
     path.write_text(
-        f'<{EX}p0> <{RDF_TYPE}> <{EX}Person> .\n<{EX}p0> <{EX}name> "N" .\n',
+        f'<{EX}p0> <{RDF_TYPE}> <{PERSON_TYPE}> .\n<{EX}p0> <{EX}name> "N" .\n',
         encoding="utf-8",
     )
 
     def fake_parse(**_kwargs):
         g = Graph()
         subj = NamedNode(f"{EX}p0")
-        g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{EX}Person")))
+        g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
         g.add((subj, NamedNode(f"{EX}name"), Literal("N")))
 
         inner = g.store

@@ -12,6 +12,12 @@ from triplemodel.store.terms import term_str
 from triplemodel import Predicate, TripleModel, models_to_graph, rdf_field
 from triplemodel.config import RDF_TYPE, id_from_subject_uri
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+DOCUMENT_TYPE = module_type_uri("Document")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -19,7 +25,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -30,7 +36,7 @@ class Person(TripleModel):
 class Document(TripleModel):
     class Rdf:
         namespace = "http://example.org/docs/"
-        type_uri = "http://example.org/Document"
+        type_uri = DOCUMENT_TYPE
         id_field = "slug"
 
     slug: str
@@ -139,7 +145,7 @@ def test_id_extraction_rejects_prefix_collision():
     class LocalPerson(TripleModel):
         class Rdf:
             namespace = ns
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
 
         slug: str
@@ -180,7 +186,7 @@ def test_subject_uri_encodes_special_chars():
 def test_from_graph_invalid_literal_raises():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     g.add((subj, NamedNode(f"{FOAF}age"), Literal("not-a-number")))
     with pytest.raises(ValueError, match="field 'age'"):
@@ -191,7 +197,7 @@ def test_bnode_object_rejected_for_str_field():
     class WithFriend(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
 
         slug: str
@@ -200,7 +206,8 @@ def test_bnode_object_rejected_for_str_field():
 
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    friend_type = module_type_uri("Person_3")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(friend_type)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     g.add((subj, NamedNode(f"{FOAF}knows"), BNode()))
     with pytest.raises(ValueError, match="field 'friend'"):
@@ -210,7 +217,7 @@ def test_bnode_object_rejected_for_str_field():
 def test_multi_valued_predicate_uses_first():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alicia")))
     with pytest.warns(UserWarning, match="Multiple objects"):
@@ -250,7 +257,7 @@ def test_subject_uri_override():
 def test_rdf_config_classmethod():
     cfg = Person.rdf_config()
     assert cfg.namespace == EX
-    assert cfg.type_uri == f"{FOAF}Person"
+    assert cfg.type_uri == PERSON_TYPE
     assert cfg.id_field == "slug"
 
 
@@ -258,7 +265,7 @@ def test_inherited_rdf_config_roundtrip():
     class Base(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
 
     class Employee(Base):
@@ -273,7 +280,7 @@ def test_inherited_rdf_config_roundtrip():
 def test_from_graph_rejects_wrong_rdf_type():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode("http://example.org/Document")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(DOCUMENT_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     with pytest.raises(ValueError, match="rdf:type"):
         Person.from_graph(g, term_str(subj))
@@ -290,7 +297,7 @@ def test_from_graph_validate_type_can_be_disabled():
 def test_from_graph_validation_error_includes_subject():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}age"), NamedNode("http://example.org/not-an-int")))
     with pytest.raises(ValueError, match="Cannot validate Person"):
         Person.from_graph(g, term_str(subj))
@@ -299,7 +306,7 @@ def test_from_graph_validation_error_includes_subject():
 def test_duplicate_predicate_on_error():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alicia")))
     with pytest.raises(ValueError, match="Multiple objects"):
@@ -309,7 +316,7 @@ def test_duplicate_predicate_on_error():
 def test_duplicate_predicate_ignore():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alicia")))
     person = Person.from_graph(g, term_str(subj), on_duplicate="ignore")
@@ -319,7 +326,7 @@ def test_duplicate_predicate_ignore():
 class AnnotatedAgePerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_5")
         id_field = "slug"
 
     slug: str
@@ -337,7 +344,7 @@ def test_annotated_int_roundtrip():
 class Flagged(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_6")
         id_field = "slug"
 
     slug: str
@@ -356,7 +363,7 @@ def test_false_and_zero_roundtrip():
 class WithBio(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_7")
         id_field = "slug"
 
     slug: str
@@ -375,7 +382,7 @@ def test_empty_string_field_roundtrip():
 def test_from_graph_missing_required_field():
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     with pytest.raises(ValueError, match="Cannot validate Person"):
         Person.from_graph(g, term_str(subj))
 
@@ -408,7 +415,7 @@ def test_empty_child_rdf_shadows_parent():
     class Base(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_8")
             id_field = "slug"
 
     class Child(Base):

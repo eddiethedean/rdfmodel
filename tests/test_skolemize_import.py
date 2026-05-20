@@ -13,6 +13,11 @@ from triplemodel.io.dispatch import all_from_graph_dispatch
 from triplemodel.io.import_ import graph_to_model
 from triplemodel.vocab import FOAF
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF_NS = str(FOAF)
 EX = "http://example.org/skolem/"
 
@@ -116,7 +121,7 @@ def test_all_from_graph_dispatch_de_skolemize_once(
     class SkolemPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = PERSON_TYPE
             id_field = "slug"
             skolemize_import = True
             prefixes = {"foaf": FOAF_NS}
@@ -127,7 +132,7 @@ def test_all_from_graph_dispatch_de_skolemize_once(
     g = Graph()
     for slug, name in (("a", "A"), ("b", "B")):
         subj = NamedNode(f"{EX}{slug}")
-        g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+        g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
         g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal(name)))
 
     all_from_graph_dispatch(g)
@@ -148,13 +153,13 @@ def test_all_from_graph_dispatch_explicit_de_skolemize_false(
 
     g = Graph()
     subj = NamedNode(f"{EX}only")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("Only")))
 
     class One(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
             skolemize_import = True
             prefixes = {"foaf": FOAF_NS}
@@ -236,7 +241,7 @@ def test_all_from_dataset_dispatch_explicit_de_skolemize(
     class DsPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
             graph_iri = f"{EX}graph/people"
             skolemize_import = True

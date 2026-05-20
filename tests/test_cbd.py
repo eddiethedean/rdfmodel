@@ -9,7 +9,12 @@ from triplemodel import TripleModel, cbd_graph, rdf_field
 from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
 
-FOAF_PERSON = f"{FOAF}Person"
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
+FOAF_PERSON = PERSON_TYPE
 FOAF_NAME = f"{FOAF}name"
 FOAF_KNOWS = f"{FOAF}knows"
 EX = "http://example.org/people/"
@@ -18,7 +23,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = FOAF_PERSON
+        type_uri = PERSON_TYPE
         id_field = "slug"
         prefixes = {"foaf": str(FOAF)}
 
@@ -30,7 +35,7 @@ def test_cbd_graph_includes_related_triples():
     g = Graph()
     alice = NamedNode(f"{EX}alice")
     bob = NamedNode(f"{EX}bob")
-    g.add((alice, NamedNode(RDF_TYPE), NamedNode(FOAF_PERSON)))
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
     g.add((alice, NamedNode(FOAF_KNOWS), bob))
     g.add((bob, NamedNode(FOAF_NAME), Literal("Bob")))
@@ -41,7 +46,7 @@ def test_cbd_graph_includes_related_triples():
 def test_cbd_model_classmethod():
     g = Graph()
     alice = NamedNode(f"{EX}alice")
-    g.add((alice, NamedNode(RDF_TYPE), NamedNode(FOAF_PERSON)))
+    g.add((alice, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((alice, NamedNode(FOAF_NAME), Literal("Alice")))
     p = Person.cbd(g, alice)
     assert p.name == "Alice"

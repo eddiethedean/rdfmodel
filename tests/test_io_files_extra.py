@@ -24,6 +24,11 @@ from triplemodel.io.dispatch import graph_to_model_dispatch
 from triplemodel.protocols import resolve_model_class
 from triplemodel.vocab import FOAF
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF_NS = str(FOAF)
 EX = "http://example.org/people/"
 
@@ -31,7 +36,7 @@ EX = "http://example.org/people/"
 class Mini(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         prefixes = {"foaf": FOAF_NS}
 
@@ -87,7 +92,7 @@ def test_fetch_url() -> None:
 
 
 def test_parse_url_into_graph() -> None:
-    ttl = f'<{EX}a> a <{FOAF_NS}Person> ; <{FOAF_NS}name> "A" .'
+    ttl = f'<{EX}a> a <{PERSON_TYPE}> ; <{FOAF_NS}name> "A" .'
     with patch("triplemodel.io.files.fetch_url", return_value=ttl.encode()):
         g = parse_url_into_graph("http://example.org/a.ttl")
         assert len(g) >= 1
@@ -122,7 +127,7 @@ def test_merge_jsonld_noop() -> None:
 
 
 def test_person_parse_url() -> None:
-    ttl = f'<{EX}a> a <{FOAF_NS}Person> ; <{FOAF_NS}name> "A" .'
+    ttl = f'<{EX}a> a <{PERSON_TYPE}> ; <{FOAF_NS}name> "A" .'
     with patch("triplemodel.io.files.fetch_url", return_value=ttl.encode()):
         loaded = Mini.parse_url("http://example.org/a.ttl")
     assert loaded[0].slug == "a"

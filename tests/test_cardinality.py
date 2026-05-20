@@ -19,6 +19,11 @@ from triplemodel.metadata.cardinality import (
 )
 from triplemodel.fields import owned_predicates
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -36,7 +41,7 @@ class Child(TripleModel):
 class Parent(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         prefixes = {"foaf": FOAF}
 
@@ -102,7 +107,7 @@ def test_list_of_triple_model_raises_on_export():
         class Team(TripleModel):
             class Rdf:
                 namespace = EX
-                type_uri = f"{FOAF}Person"
+                type_uri = module_type_uri("Person_2")
                 id_field = "slug"
 
             slug: str
@@ -117,7 +122,7 @@ def test_list_of_triple_model_raises_on_import():
         class Team(TripleModel):
             class Rdf:
                 namespace = EX
-                type_uri = f"{FOAF}Person"
+                type_uri = module_type_uri("Person_3")
                 id_field = "slug"
 
             slug: str
@@ -132,7 +137,7 @@ def test_set_of_triple_model_raises_on_export():
         class Team(TripleModel):
             class Rdf:
                 namespace = EX
-                type_uri = f"{FOAF}Person"
+                type_uri = module_type_uri("Person_4")
                 id_field = "slug"
 
             slug: str

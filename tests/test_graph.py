@@ -12,6 +12,11 @@ from triplemodel.config import RDF_TYPE
 from triplemodel.io import graph_to_model, model_to_triples
 from triplemodel.metadata import unwrap_annotation
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -19,7 +24,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -31,7 +36,7 @@ def test_unmapped_field_omitted_from_triples():
     class WithExtra(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
 
         slug: str
@@ -90,7 +95,7 @@ def test_graph_to_models_skips_bnode_subjects():
         (
             bnode,
             NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            NamedNode(f"{FOAF}Person"),
+            NamedNode(PERSON_TYPE),
         )
     )
     assert Person.all_from_graph(g) == []
@@ -100,7 +105,7 @@ def test_graph_to_model_skips_unmapped_fields():
     class WithExtra(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
 
         slug: str
@@ -109,7 +114,8 @@ def test_graph_to_model_skips_unmapped_fields():
 
     g = Graph()
     subj = NamedNode(EX + "alice")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    extra_type = module_type_uri("Person_3")
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(extra_type)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Alice")))
     m = graph_to_model(g, WithExtra, str(subj))
     assert m.name == "Alice"
@@ -150,9 +156,9 @@ def test_all_from_graph_type_uri_override():
 
     g = Graph()
     subj = NamedNode(EX + "w1")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("Pat")))
-    loaded = Worker.all_from_graph(g, type_uri=f"{FOAF}Person", validate_type=False)
+    loaded = Worker.all_from_graph(g, type_uri=PERSON_TYPE, validate_type=False)
     assert len(loaded) == 1
     assert loaded[0].slug == "w1"
     assert loaded[0].name == "Pat"

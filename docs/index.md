@@ -1,6 +1,6 @@
 # TripleModel
 
-**Pydantic models for RDF graphs.** Map typed Python classes to [rdflib](https://rdflib.readthedocs.io/) triples and back — without hand-writing `graph.add` for every field.
+**Pydantic models for RDF graphs.** Map typed Python classes to RDF triples in a [pyoxigraph](https://github.com/oxigraph/pyoxigraph)-backed `Store` and back — without hand-writing triples for every field.
 
 ```text
 Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Person(...)
@@ -10,7 +10,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 |--|--|
 | PyPI | `pip install triplemodel` |
 | Python | 3.10+ |
-| Status | Beta (0.9.x) |
+| Status | Beta (0.10.x) |
 
 ```{toctree}
 :hidden:

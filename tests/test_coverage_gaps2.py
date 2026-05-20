@@ -15,6 +15,11 @@ from triplemodel.namespaces import expand_curie
 from triplemodel.io.sync import sync_to_graph as sync_fn
 from triplemodel.terms import python_to_term
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -71,7 +76,7 @@ def test_graph_import_nested_typeerror():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = PERSON_TYPE
             id_field = "slug"
             embed = "iri"
 
@@ -80,7 +85,7 @@ def test_graph_import_nested_typeerror():
 
     g = Graph()
     subj = NamedNode(EX + "p")
-    g.add((subj, NamedNode(f"{FOAF}Person"), NamedNode(f"{FOAF}Person")))
+    g.add((subj, NamedNode(PERSON_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode("http://example.org/box"), Literal("not-a-node")))
     with pytest.raises(ValueError, match="Cannot import nested"):
         graph_to_model(g, P, str(subj), validate_type=False)
@@ -90,7 +95,7 @@ def test_sync_add_mode_explicit():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
 
         slug: str
@@ -124,7 +129,7 @@ def test_model_to_graph_patch_mode():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
 
         slug: str

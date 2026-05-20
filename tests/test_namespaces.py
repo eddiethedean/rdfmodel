@@ -7,6 +7,11 @@ from triplemodel.store import RdfGraph as Graph
 
 from triplemodel import TripleModel, bind_namespaces, expand_curie, rdf_field
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -26,7 +31,7 @@ def test_bind_namespaces_and_turtle_prefix():
     class Person(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = PERSON_TYPE
             id_field = "slug"
             prefixes = {"foaf": FOAF}
 
@@ -43,7 +48,7 @@ def test_to_graph_patch_on_new_graph_binds_prefixes():
     class Person(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
             prefixes = {"foaf": FOAF}
             graph_mode = "patch"
@@ -68,7 +73,7 @@ def test_rdf_prefixes_as_list_of_tuples_roundtrip():
     class Person(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
             prefixes = [("foaf", FOAF)]
 

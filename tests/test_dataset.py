@@ -34,7 +34,13 @@ from triplemodel.io.dispatch import (
     all_from_dataset_dispatch,
     graph_to_model_dispatch_from_dataset,
 )
+from triplemodel.config import get_rdf_config
 from triplemodel.vocab import FOAF
+
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
 
 PEOPLE_GRAPH = "http://example.org/graph/people"
 CATALOG_GRAPH = "http://example.org/graph/catalog"
@@ -45,7 +51,7 @@ DCAT_NS = "http://www.w3.org/ns/dcat#"
 class Person(TripleModel):
     class Rdf:
         namespace = "http://example.org/people/"
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         graph_iri = PEOPLE_GRAPH
         prefixes = {"foaf": FOAF_NS}
@@ -69,7 +75,7 @@ class Catalog(TripleModel):
 class PlainPerson(TripleModel):
     class Rdf:
         namespace = "http://example.org/plain/"
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = module_type_uri("Person_2")
         id_field = "slug"
 
     slug: str
@@ -79,7 +85,7 @@ class PlainPerson(TripleModel):
 class PersonWithGraphAlias(TripleModel):
     class Rdf:
         namespace = "http://example.org/alias/"
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = module_type_uri("Person_3")
         id_field = "slug"
         graph = PEOPLE_GRAPH
 
@@ -121,7 +127,7 @@ def test_resolve_graph_iri_private_field() -> None:
     class M(TripleModel):
         class Rdf:
             namespace = "http://example.org/p/"
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = module_type_uri("Person_4")
             id_field = "slug"
             graph_iri = PEOPLE_GRAPH
 
@@ -135,7 +141,7 @@ def test_normalize_graph_iri_empty_raises() -> None:
     class Bad(TripleModel):
         class Rdf:
             namespace = "http://example.org/b/"
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = module_type_uri("Person_5")
             id_field = "slug"
 
         slug: str
@@ -192,7 +198,7 @@ def test_all_from_dataset_scoped(tmp_path: Path) -> None:
         (
             NamedNode("http://example.org/people/eve"),
             NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            NamedNode(f"{FOAF_NS}Person"),
+            NamedNode(PERSON_TYPE),
         )
     )
     ds = models_to_dataset([Person(slug="alice", name="Alice")])
@@ -318,7 +324,7 @@ def test_graph_to_models_de_skolemize_once(monkeypatch: pytest.MonkeyPatch) -> N
     class SkolemPerson(TripleModel):
         class Rdf:
             namespace = "http://example.org/skolem/"
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = module_type_uri("Person_6")
             id_field = "slug"
             graph_iri = PEOPLE_GRAPH
             skolemize_import = True
@@ -350,8 +356,10 @@ def test_dispatch_from_dataset_prefers_class_graph_context() -> None:
     ds = Dataset()
     people_ctx = get_graph_context(ds, PEOPLE_GRAPH)
     default_ctx = get_graph_context(ds, None)
+    plain_type = get_rdf_config(PlainPerson).type_uri
+    assert plain_type is not None
     for ctx in (people_ctx, default_ctx):
-        ctx.add((uri, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+        ctx.add((uri, NamedNode(RDF_TYPE), NamedNode(plain_type)))
         ctx.add((uri, NamedNode(f"{FOAF_NS}name"), Literal("Plain")))
     m = graph_to_model_dispatch_from_dataset(ds, uri)
     assert isinstance(m, PlainPerson)
@@ -460,7 +468,7 @@ def test_parse_url_into_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
     trig = (
         f"@prefix foaf: <{FOAF_NS}> .\n"
         f"GRAPH <{PEOPLE_GRAPH}> {{\n"
-        f'  <http://example.org/people/a> a foaf:Person ; foaf:name "Ann" .\n'
+        f'  <http://example.org/people/a> a <{PERSON_TYPE}> ; foaf:name "Ann" .\n'
         f"}}\n"
     )
     monkeypatch.setattr(
@@ -477,7 +485,7 @@ def test_parse_url_dataset_path(monkeypatch: pytest.MonkeyPatch) -> None:
     trig = (
         f"@prefix foaf: <{FOAF_NS}> .\n"
         f"GRAPH <{PEOPLE_GRAPH}> {{\n"
-        f'  <http://example.org/people/u> a foaf:Person ; foaf:name "U" .\n'
+        f'  <http://example.org/people/u> a <{PERSON_TYPE}> ; foaf:name "U" .\n'
         f"}}\n"
     )
     monkeypatch.setattr(

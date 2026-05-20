@@ -14,6 +14,9 @@ from triplemodel import (
     rdf_field,
     subject_base,
 )
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
 
 FOAF = "http://xmlns.com/foaf/0.1/"
 
@@ -21,7 +24,7 @@ FOAF = "http://xmlns.com/foaf/0.1/"
 class Person(TripleModel):
     class Rdf:
         namespace = "http://example.org/people/"
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str

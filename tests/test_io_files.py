@@ -16,6 +16,11 @@ from triplemodel import (
 from triplemodel.io.files import merge_jsonld_kwargs
 from triplemodel.vocab import FOAF
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF_NS = str(FOAF)
 EX = "http://example.org/people/"
 
@@ -23,7 +28,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         prefixes = {"foaf": FOAF_NS}
 
@@ -93,7 +98,7 @@ def test_base_uri_relative_import(tmp_path: Path) -> None:
     class RelPerson(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF_NS}Person"
+            type_uri = module_type_uri("Person_2")
             id_field = "slug"
             base_uri = EX
             prefixes = {"foaf": FOAF_NS}
@@ -101,7 +106,8 @@ def test_base_uri_relative_import(tmp_path: Path) -> None:
         slug: str
         name: str = rdf_field(f"{FOAF_NS}name")
 
-    ttl = f'@base <{EX}> .\n<alice> a <{FOAF_NS}Person> ; <{FOAF_NS}name> "Alice" .'
+    rel_type = module_type_uri("Person_2")
+    ttl = f'@base <{EX}> .\n<alice> a <{rel_type}> ; <{FOAF_NS}name> "Alice" .'
     graph = parse_into_graph(data=ttl, format="turtle", base=EX)
     loaded = RelPerson.all_from_graph(graph)
     assert len(loaded) == 1
@@ -121,11 +127,11 @@ def test_jsonld_round_trip_if_supported(person: Person, fmt: str) -> None:
     try:
         serialized = person.serialize(format=fmt)
     except Exception:
-        pytest.skip(f"rdflib does not support serialize format {fmt!r}")  # ty: ignore
+        pytest.skip(f"format {fmt!r} not supported for serialize")  # ty: ignore
     try:
         loaded = Person.parse(data=serialized, format=fmt)
     except Exception:
-        pytest.skip(f"rdflib does not support parse format {fmt!r}")  # ty: ignore
+        pytest.skip(f"format {fmt!r} not supported for parse")  # ty: ignore
     assert loaded[0].name == person.name
 
 

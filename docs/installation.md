@@ -4,7 +4,9 @@
 
 - Python **3.10** or newer
 - [Pydantic](https://docs.pydantic.dev/) v2
-- [rdflib](https://rdflib.readthedocs.io/) v7
+- [pyoxigraph](https://github.com/oxigraph/pyoxigraph) 0.5+
+
+Optional: [rdflib](https://rdflib.readthedocs.io/) v7 (SHACL bridge only) — `pip install triplemodel[shacl]`
 
 Pinned ranges and CI matrix: {doc}`COMPATIBILITY`.
 

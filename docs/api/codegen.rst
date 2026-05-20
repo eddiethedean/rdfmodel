@@ -3,8 +3,8 @@ Codegen (experimental)
 
 ``triplemodel-codegen`` generates stub :class:`~triplemodel.TripleModel` classes from OWL/RDFS ontologies.
 
-Limitations (0.8)
------------------
+Limitations
+-----------
 
 - Only ``owl:DatatypeProperty`` and ``owl:ObjectProperty`` are emitted (plain ``rdf:Property`` is ignored).
 - All properties are typed as ``str``; ``rdfs:range`` is not read.

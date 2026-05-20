@@ -27,6 +27,13 @@ from triplemodel import (
 from triplemodel.config import RDF_TYPE
 from triplemodel.vocab import FOAF
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+MAILBOX_TYPE = module_type_uri("Mailbox")
+DOCUMENT_TYPE = module_type_uri("Document")
+
+
 FOAF_NS = str(FOAF)
 EX = "http://example.org/people/"
 ANNOTATION = "http://example.org/annotation"
@@ -35,7 +42,7 @@ ANNOTATION = "http://example.org/annotation"
 class Mailbox(TripleModel):
     class Rdf:
         namespace = "http://example.org/mailbox/"
-        type_uri = "http://example.org/Mailbox"
+        type_uri = MAILBOX_TYPE
         id_field = "slug"
 
     slug: str = "m1"
@@ -47,7 +54,7 @@ class Person(TripleModel):
 
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         prefixes = {"foaf": FOAF_NS}
         embed = "iri"
@@ -78,7 +85,7 @@ class Status(Enum):
 class Member(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF_NS}Person"
+        type_uri = module_type_uri("Person_2")
         id_field = "slug"
 
     slug: str
@@ -188,7 +195,7 @@ def test_set_import_dedupes_duplicate_objects():
 
     g = Graph()
     subj = NamedNode(EX + "a")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode("http://example.org/tag"), Literal("x")))
     g.add((subj, NamedNode("http://example.org/tag"), Literal("x")))
     g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("A")))
@@ -199,7 +206,7 @@ def test_set_import_dedupes_duplicate_objects():
 def test_scalar_duplicate_raises_when_configured():
     g = Graph()
     subj = NamedNode(EX + "a")
-    g.add((subj, NamedNode(RDF_TYPE), NamedNode(f"{FOAF_NS}Person")))
+    g.add((subj, NamedNode(RDF_TYPE), NamedNode(PERSON_TYPE)))
     g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("A")))
     g.add((subj, NamedNode(f"{FOAF_NS}name"), Literal("B")))
     with pytest.raises(ValueError, match="Multiple objects"):
@@ -320,7 +327,7 @@ def test_enum_field_model_roundtrip():
 class Document(TripleModel):
     class Rdf:
         namespace = "http://example.org/docs/"
-        type_uri = "http://example.org/Document"
+        type_uri = DOCUMENT_TYPE
         id_field = "slug"
 
     slug: str

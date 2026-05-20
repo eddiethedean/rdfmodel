@@ -6,6 +6,11 @@ import pytest
 
 from triplemodel import TripleModel, rdf_field
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 FOAF = "http://xmlns.com/foaf/0.1/"
 EX = "http://example.org/people/"
 
@@ -13,7 +18,7 @@ EX = "http://example.org/people/"
 class Person(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
 
     slug: str
@@ -57,7 +62,7 @@ def test_scalar_duplicate_still_warns():
         (
             subj,
             NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            NamedNode(f"{FOAF}Person"),
+            NamedNode(PERSON_TYPE),
         )
     )
     g.add((subj, NamedNode(f"{FOAF}name"), Literal("A")))

@@ -27,6 +27,11 @@ from triplemodel.terms.bnode import (
 from triplemodel.terms.lang import Lang, LangString
 from triplemodel.terms.opaque import OpaqueLiteral
 
+from tests._type_uri import module_type_uri
+
+PERSON_TYPE = module_type_uri("Person")
+
+
 DC = "http://purl.org/dc/terms/"
 EX = "http://example.org/"
 FOAF = "http://xmlns.com/foaf/0.1/"
@@ -46,7 +51,7 @@ class Mailbox(TripleModel):
 class PersonBnodeStable(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = PERSON_TYPE
         id_field = "slug"
         embed = "bnode"
         blank_node_policy = "stable"
@@ -136,7 +141,7 @@ def test_patch_skolemize_clears_stale_bnode_before_skolemizing():
 class FlatPerson(TripleModel):
     class Rdf:
         namespace = EX
-        type_uri = f"{FOAF}Person"
+        type_uri = module_type_uri("Person_2")
         id_field = "slug"
 
     slug: str
@@ -194,7 +199,7 @@ def test_patch_skolemize_runs_after_export(monkeypatch: pytest.MonkeyPatch) -> N
 def test_skolemize_and_de_skolemize():
     g = Graph()
     b = BNode()
-    g.add((b, RDF_TYPE, NamedNode(f"{FOAF}Person")))
+    g.add((b, RDF_TYPE, NamedNode(PERSON_TYPE)))
     sk = apply_skolemize(g, skolemize=True)
     assert apply_skolemize(g, skolemize=False) is g
     de = apply_de_skolemize(sk, de_skolemize=True)
@@ -422,7 +427,7 @@ def test_skolem_kwargs_on_model_io():
     class P(TripleModel):
         class Rdf:
             namespace = EX
-            type_uri = f"{FOAF}Person"
+            type_uri = module_type_uri("Person_3")
             id_field = "slug"
             skolemize_export = True
             skolemize_import = True
