@@ -16,12 +16,12 @@
 **Pre-release checklist (0.10.0)**
 
 - [x] `version` `0.10.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [ ] Local gate: `make ci` and `make release-check`
-- [x] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check` — verified in hygiene pass (run `make ci` before publish)
-- [ ] `sphinx-build -b html docs docs/_build/html -W`
-- [ ] `make examples` (exit_criteria_03–09, `disk_store`, readme_examples)
-- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets
-- [ ] **Tagging deferred** — do not create `v0.10.0` until explicitly approved for PyPI publish
+- [x] Local gate: `make ci` and `make release-check` (verified 2026-05-19)
+- [x] `pytest` (100% cov), `ruff format --check`, `ruff check`, `ty check`
+- [x] `sphinx-build -b html docs docs/_build/html -W` (via `make ci` / `make docs`)
+- [x] `make examples` (exit_criteria_03–09, `disk_store`, readme_examples)
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
+- [ ] **Tag and publish** — create `v0.10.0` only when approved for PyPI (see below)
 
 **Publish (when tagging is approved)**
 

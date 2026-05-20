@@ -7,19 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **Tests** — per-module unique `Rdf.type_uri` values via `tests._type_uri.module_type_uri()` to avoid duplicate registration warnings across test files; removed global pytest filter for that warning.
-- **Docs** — align installation, index, guides index, codegen API, and ROADMAP with pyoxigraph / 0.10.x (see below).
-
-### Changed
-
-- **Docs** — `docs/installation.md`, `docs/index.md`, `docs/guides/index.md`: pyoxigraph as core engine; rdflib only in `[shacl]` extra.
-- **Docs** — `docs/ROADMAP.md`: format matrix split (TriG done; TriX/HexTuples/longTurtle out of scope); 0.9 exit-criteria note for `exit_criteria_09.py`; 1.0 pyoxigraph coverage wording.
-- **Packaging** — `pyproject.toml` keywords: `pyoxigraph` / `oxigraph` instead of `rdflib`.
-- **SPARQL** — `load_sparql()` fails fast with the same `NotImplementedError` as `open_sparql_graph()` (0.10 remote endpoints).
-- **Docs** — `docs/guides/10-file-io.md`: security note for `parse_url` / `parse_url_into_graph` (untrusted URLs).
-
 ## [0.10.0] - 2026-05-19
 
 ### Breaking
@@ -43,12 +30,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CI** — `stores` job installs `[dev,shacl]`; removed pytest `filterwarnings` entries that required optional modules or referenced rdflib-only deprecations.
 - **Examples** — `exit_criteria_09.py` (0.10 Store smoke), `examples/stores/disk_store.py`; `exit_criteria_08` disk store smoke.
 - **Makefile `ci`** — use `compat-pyoxigraph` on Python 3.13+; drop removed `sqlalchemy` extra from install line.
+- **Tests** — per-module unique `Rdf.type_uri` via `tests._type_uri.module_type_uri()`; removed global pytest filter for duplicate registration warnings.
 
 ### Changed
 
 - **SHACL** — optional `rdflib` only in `[shacl]` extra (bridge for pyshacl).
 - **Docs / CI** — guides, cookbook, README, ECOSYSTEM, ROADMAP matrix updated for pyoxigraph 0.10; GitHub Actions `checkout@v5` and `setup-python@v6` (Node 24–ready runners).
-- **Packaging** — removed unused `berkeleydb` optional extra.
+- **Docs** — `docs/installation.md`, `docs/index.md`, `docs/guides/index.md`: pyoxigraph as core engine; rdflib only in `[shacl]` extra; codegen API and ROADMAP format-matrix footnotes; `parse_url` SSRF note in file I/O guide.
+- **Packaging** — removed unused `berkeleydb` optional extra; PyPI keywords `pyoxigraph` / `oxigraph` (not `rdflib`).
+- **SPARQL** — `load_sparql()` fails fast with the same `NotImplementedError` as `open_sparql_graph()` (remote endpoints).
 
 ## [0.9.0] - 2026-05-18
 
