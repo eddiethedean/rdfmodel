@@ -5,16 +5,25 @@
 | Item | Status |
 |------|--------|
 | Version `0.10.1` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `CHANGELOG.md` — `## [0.10.1]` entry | Done |
-| `infer_format` rejects removed formats at inference time | Done |
+| `CHANGELOG.md` — `## [0.10.1]` entry (includes I/O fixes on `main` after `decb741`) | Done |
+| `infer_format` — removed formats + URL `?` / `#` suffix inference | Done |
+| Parse I/O — `bytes` / `BytesIO` / `StringIO` via `data=`; dataset URL parity | Done |
+| `merge_graphs` prefixes; `fetch_url` HTTP errors; JSON-LD / kwargs warnings | Done |
 | `examples/realworld/schema_org_ngos.py` uses `triplemodel.vocab.XSD` | Done |
+| GitHub **CI** + **Docs** green on `main` (`decb741`) | Done |
+| Local `make release-check` (ci + examples + `twine check`) | Done (2026-05-20) |
 
 **Pre-release checklist (0.10.1)**
 
 - [x] `version` `0.10.1` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
-- [x] Regenerate `examples/doc/outputs/` (including `installation_version.txt`)
+- [x] `[Unreleased]` empty in `CHANGELOG.md`
+- [x] Regenerate `examples/doc/outputs/` (including `installation_version.txt` → `0.10.1`)
 - [x] Local gate: `make ci` (2026-05-20)
-- [ ] **Do not tag** until explicitly approved for PyPI (no `v0.10.1` tag by default)
+- [x] Local gate: `make release-check` (2026-05-20)
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
+- [ ] **Tag and publish** — create `v0.10.1` only when approved for PyPI (see below)
+
+**Not yet on PyPI:** latest git tag is `v0.10.0`; `0.10.1` ships when `v0.10.1` is pushed and the Release workflow runs.
 
 When publishing is approved:
 
