@@ -20,7 +20,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.11.0 is beta.** Public API is frozen from 0.9 until 1.0 — see [API stability](https://github.com/eddiethedean/triplemodel/blob/main/docs/API_STABILITY.md), [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md), [migration guides](https://github.com/eddiethedean/triplemodel/blob/main/docs/MIGRATION_0.10.md), and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
+> **0.11.0 is beta.** Public API is frozen from 0.9 until 1.0 — see [API stability](https://github.com/eddiethedean/triplemodel/blob/main/docs/API_STABILITY.md), [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md), [migration 0.11](https://github.com/eddiethedean/triplemodel/blob/main/docs/MIGRATION_0.11.md) (and [0.10 pyoxigraph](https://github.com/eddiethedean/triplemodel/blob/main/docs/MIGRATION_0.10.md)), and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 

@@ -441,6 +441,9 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
+        lenient: bool = False,
+        without_named_graphs: bool = False,
+        rename_blank_nodes: bool = False,
         **format_kwargs: Any,
     ) -> list[Self]:
         """Parse an RDF document and load model instances."""
@@ -457,6 +460,9 @@ class TripleModel(BaseModel):
                 base=resolved_base,
                 bind_prefixes=cfg.prefixes_dict,
                 jsonld_context=cfg.jsonld_context,
+                lenient=lenient,
+                without_named_graphs=without_named_graphs,
+                rename_blank_nodes=rename_blank_nodes,
                 **format_kwargs,
             )
             return cls._instances_from_parsed_dataset(
@@ -476,6 +482,9 @@ class TripleModel(BaseModel):
             base=resolved_base,
             bind_prefixes=cfg.prefixes_dict,
             jsonld_context=cfg.jsonld_context,
+            lenient=lenient,
+            without_named_graphs=without_named_graphs,
+            rename_blank_nodes=rename_blank_nodes,
             **format_kwargs,
         )
         return cls._instances_from_parsed_graph(

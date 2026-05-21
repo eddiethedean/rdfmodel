@@ -27,7 +27,7 @@ help:
 	@echo "  make clean           remove build artifacts"
 
 install:
-	$(PIP) install -e ".[dev,shacl,docs]" build twine
+	$(PIP) install -e ".[dev,docs]" build twine
 
 test:
 	$(PYTHON) -m pytest
@@ -83,6 +83,7 @@ examples:
 	TRIPLEMODEL_BENCH_COUNT=1000 $(PYTHON) examples/exit_criteria_08.py
 	$(PYTHON) examples/exit_criteria_09.py
 	$(PYTHON) examples/stores/disk_store.py
+	$(PYTHON) examples/stores/bulk_load_backup.py
 	$(PYTHON) examples/readme_examples.py
 
 release-check: ci examples build

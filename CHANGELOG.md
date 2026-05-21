@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See `docs/MIGRATION_0.11.md` for migration details.
 
+### Added (pyoxigraph surface)
+
+- **Store ops** — `bulk_load_into_graph`, `dump_store`, `load_store`, `backup_store`, `optimize_store`, `store_flush`, `list_named_graphs`, `ensure_named_graph`, `clear_named_graph`, `remove_named_graph`, `iter_quads_for_pattern` (re-exported from `triplemodel` / `triplemodel.io.stores`).
+- **Parse** — first-class `lenient=`, `without_named_graphs=`, `rename_blank_nodes=` on `parse_into_graph`, dataset/model parse helpers; `infer_format` uses `RdfFormat.from_extension` / `from_media_type` as fallback.
+- **SPARQL** — `run_sparql` / `PreparedModelQuery.execute` passthrough for `use_default_graph_as_union`, `default_graph`, `named_graphs`, `base_iri`; `parse_query_results` and `SparqlResult.serialize`.
+- **Terms** — optional `direction` on `LangString` and `Lang` (RDF 1.2 base direction).
+- **Canonicalize** — `canonicalize_quads` for in-memory blank-node-stable diffs.
+- **Example** — `examples/stores/bulk_load_backup.py`.
+
 ### Removed
 
 - **`triplemodel.validation`** package and all rdflib imports.

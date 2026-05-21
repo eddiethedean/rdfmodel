@@ -77,6 +77,24 @@ rows = Person.select_from_sparql(
 
 With a subject URI variable, set `subject_var="s"` so `Rdf.id_field` is filled from the IRI (or the full IRI when `IriId` is used).
 
+## Dataset union and named graphs
+
+``run_sparql`` and ``PreparedModelQuery.execute`` forward pyoxigraph dataset options:
+
+```python
+from triplemodel import run_sparql
+
+result = run_sparql(
+    graph,
+    "SELECT ?s WHERE { ?s ?p ?o }",
+    use_default_graph_as_union=True,
+    named_graphs=["http://example.org/graph/g1"],
+    default_graph="http://example.org/graph/default",
+)
+```
+
+Save or reload result documents with ``parse_query_results`` and ``SparqlResult.serialize(format="sparql-results+json")``.
+
 ## ASK
 
 ```python

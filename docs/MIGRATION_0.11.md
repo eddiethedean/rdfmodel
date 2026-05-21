@@ -35,6 +35,12 @@ High-level `TripleModel.parse(..., base=)` is unchanged.
 
 `strategy="rdflib"` was an alias for `"core"`. Use `"core"` or `"none"` only.
 
+## Additive store and SPARQL helpers (same 0.11.0 release)
+
+No further breaking changes. New exports include `bulk_load_into_graph`, `dump_store`, `load_store`, `backup_store`, `optimize_store`, `store_flush`, named-graph helpers, `iter_quads_for_pattern`, `parse_query_results`, `canonicalize_quads`, and extended `run_sparql` dataset options. See guide 15 and `examples/stores/bulk_load_backup.py`.
+
+RDF 1.2 **triple terms** as model field values remain out of scope; use raw `pyoxigraph.Triple` at the store layer.
+
 ## Related
 
 - [MIGRATION_0.10.md](MIGRATION_0.10.md) — pyoxigraph engine (0.10.0)

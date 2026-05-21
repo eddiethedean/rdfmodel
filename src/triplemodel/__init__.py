@@ -59,8 +59,20 @@ from triplemodel.io import (
     parse_into_store_graph,
     graph_store_session,
     store_commit,
+    store_flush,
     store_rollback,
+    backup_store,
+    bulk_load_into_graph,
+    clear_named_graph,
     destroy_store,
+    dump_store,
+    ensure_named_graph,
+    iter_quads_for_pattern,
+    list_named_graphs,
+    load_store,
+    optimize_store,
+    parse_query_results,
+    remove_named_graph,
     model_to_dataset,
     model_to_graph,
     model_to_triples,
@@ -110,6 +122,7 @@ from triplemodel.protocols import (
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
 from triplemodel.store import Store
+from triplemodel.store.canonicalize import canonicalize_quads
 
 __version__ = "0.11.0"
 
@@ -117,6 +130,7 @@ __all__ = [
     "EmbedMode",
     "GraphMode",
     "Store",
+    "canonicalize_quads",
     "IriId",
     "InverseOf",
     "Lang",
@@ -176,7 +190,18 @@ __all__ = [
     "graph_to_models",
     "graph_store_session",
     "graph_value",
+    "backup_store",
+    "bulk_load_into_graph",
+    "clear_named_graph",
     "destroy_store",
+    "dump_store",
+    "ensure_named_graph",
+    "iter_quads_for_pattern",
+    "list_named_graphs",
+    "load_store",
+    "optimize_store",
+    "parse_query_results",
+    "remove_named_graph",
     "iter_graph_to_models",
     "id_from_subject_uri",
     "merge_graphs",
@@ -188,6 +213,7 @@ __all__ = [
     "register_literal_type",
     "register_rdf_resource",
     "store_commit",
+    "store_flush",
     "store_rollback",
     "subject_base",
     "sync_to_dataset",

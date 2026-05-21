@@ -67,6 +67,25 @@ with graph_store_session(graph):
 
 See ``examples/stores/disk_store.py``. When ``parse_into_store_graph`` creates a temporary directory, call ``graph.close()`` to remove it. For remote SPARQL as the system of record, use {doc}`13-sparql-and-endpoints` and SparqlModel.
 
+## Bulk load, backup, and optimize
+
+For large files on a **disk** store, use ``bulk_load_into_graph`` (wraps ``Store.bulk_load``) instead of parsing entirely into memory:
+
+```python
+from triplemodel import bulk_load_into_graph, open_graph, optimize_store, backup_store, store_commit
+
+graph = open_graph("disk", "/path/to/store")
+bulk_load_into_graph(graph, "huge.nt", format="nt")
+optimize_store(graph=graph)
+backup_store("/path/to/backup-dir", graph=graph)
+store_commit(graph)
+graph.close()
+```
+
+``dump_store`` / ``load_store`` export and import N-Quads snapshots. ``store_flush`` runs before ``Graph.close`` on supported on-disk stores. See ``examples/stores/bulk_load_backup.py``.
+
+Named-graph helpers: ``list_named_graphs``, ``ensure_named_graph``, ``clear_named_graph``, ``remove_named_graph``. Integrators can use ``iter_quads_for_pattern`` for low-level quad scans.
+
 ## Benchmark
 
 ``examples/exit_criteria_08.py`` loads a FOAF-shaped graph (default 100k people; set ``TRIPLEMODEL_BENCH_COUNT`` for CI smoke runs). Set ``TRIPLEMODEL_STORE=disk`` to exercise the on-disk streaming path.

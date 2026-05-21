@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, TypeVar, cast, overload
 
 from pydantic import BaseModel
-from pyoxigraph import BlankNode, Literal as OxLiteral, NamedNode
+from pyoxigraph import BlankNode, DefaultGraph, Literal as OxLiteral, NamedNode
 from triplemodel.store import RdfGraph as Graph
 from triplemodel.store.sparql_result import (
     SparqlResult,
@@ -45,6 +45,15 @@ SparqlQueryForm = Literal["select", "construct", "describe", "ask", "unknown"]
 _BOOLEAN_RESULT_TYPES = frozenset({"ASK", "boolean"})
 _BINDINGS_RESULT_TYPES = frozenset({"SELECT", "bindings"})
 _GRAPH_RESULT_TYPES = frozenset({"CONSTRUCT", "DESCRIBE", "graph"})
+
+_SPARQL_QUERY_KWARGS = frozenset(
+    {
+        "use_default_graph_as_union",
+        "default_graph",
+        "named_graphs",
+        "base_iri",
+    }
+)
 
 
 def _is_boolean_result(result: SparqlResult) -> bool:
@@ -166,6 +175,49 @@ def _coerce_init_bindings(
     return out
 
 
+def _coerce_query_dataset_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
+    unknown = sorted(set(kwargs) - _SPARQL_QUERY_KWARGS)
+    if unknown:
+        raise TypeError(
+            f"run_sparql() got unexpected keyword arguments: {unknown}. "
+            f"Supported dataset options: {sorted(_SPARQL_QUERY_KWARGS)}."
+        )
+    out: dict[str, Any] = {}
+    if "use_default_graph_as_union" in kwargs:
+        out["use_default_graph_as_union"] = kwargs["use_default_graph_as_union"]
+    if "base_iri" in kwargs:
+        out["base_iri"] = kwargs["base_iri"]
+    if "default_graph" in kwargs:
+        dg = kwargs["default_graph"]
+        if dg is None:
+            out["default_graph"] = None
+        elif isinstance(dg, str):
+            out["default_graph"] = NamedNode(dg)
+        elif isinstance(dg, (DefaultGraph, NamedNode)):
+            out["default_graph"] = dg
+        else:
+            raise TypeError(
+                f"default_graph must be str, NamedNode, or DefaultGraph, got {type(dg)!r}"
+            )
+    if "named_graphs" in kwargs:
+        graphs = kwargs["named_graphs"]
+        if graphs is None:
+            out["named_graphs"] = None
+        else:
+            coerced: list[NamedNode] = []
+            for item in graphs:
+                if isinstance(item, str):
+                    coerced.append(NamedNode(item))
+                elif isinstance(item, NamedNode):
+                    coerced.append(item)
+                else:
+                    raise TypeError(
+                        f"named_graphs items must be str or NamedNode, got {type(item)!r}"
+                    )
+            out["named_graphs"] = coerced
+    return out
+
+
 def run_sparql(
     graph: Graph,
     query: str,
@@ -174,11 +226,24 @@ def run_sparql(
     initNs: Mapping[str, Any] | None = None,  # noqa: N803
     initBindings: Mapping[Variable, Node] | Mapping[str, Node] | None = None,  # noqa: N803
     use_store_provided: bool = True,
+    use_default_graph_as_union: bool = False,
+    default_graph: str | NamedNode | DefaultGraph | None = None,
+    named_graphs: list[str | NamedNode] | None = None,
+    base_iri: str | None = None,
     **kwargs: Any,
 ) -> SparqlResult:
     """Run SPARQL on ``graph.store`` with optional prefixes and bindings."""
     _ = use_store_provided
-    _ = kwargs
+    extra: dict[str, Any] = dict(kwargs)
+    if use_default_graph_as_union:
+        extra["use_default_graph_as_union"] = True
+    if default_graph is not None:
+        extra["default_graph"] = default_graph
+    if named_graphs is not None:
+        extra["named_graphs"] = named_graphs
+    if base_iri is not None:
+        extra["base_iri"] = base_iri
+    dataset_kwargs = _coerce_query_dataset_kwargs(extra)
     if not isinstance(query, str):
         raise TypeError("run_sparql expects a SPARQL query string in TripleModel 0.10.")
     resolved_bindings = _coerce_init_bindings(initBindings)
@@ -203,6 +268,7 @@ def run_sparql(
         resolved_query,
         prefixes=resolved_prefixes,
         substitutions=substitutions,
+        **dataset_kwargs,
     )
     return SparqlResult.from_pyoxigraph(raw, form=form)
 

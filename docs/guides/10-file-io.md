@@ -32,7 +32,21 @@ people = Person.parse_file("alice.ttl")
 people = Person.parse_url("https://example.org/data.ttl")
 ```
 
-Format is inferred from the file suffix when omitted (`.ttl` → Turtle, `.trig` → TriG, and so on).
+Format is inferred from the file suffix when omitted (`.ttl` → Turtle, `.trig` → TriG, and so on). When the suffix is unknown to TripleModel’s map, ``infer_format`` falls back to [pyoxigraph ``RdfFormat.from_extension`` / ``from_media_type``](https://pyoxigraph.readthedocs.io/en/stable/).
+
+### Parse flags
+
+``parse_into_graph``, ``parse_url_into_graph``, dataset/model ``parse`` accept:
+
+- ``lenient=True`` — tolerate certain syntax issues (pyoxigraph parser)
+- ``without_named_graphs=True`` — drop named-graph structure on import
+- ``rename_blank_nodes=True`` — rename blank nodes during parse
+
+You can still pass additional pyoxigraph options via ``**format_kwargs``.
+
+### Canonical N-Triples
+
+``graph.serialize(format="nt")`` uses pyoxigraph’s canonical N-Triples writer — useful for stable file diffs of the same graph shape.
 
 ### URL fetch security
 

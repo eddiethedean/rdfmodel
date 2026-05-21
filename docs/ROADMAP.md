@@ -1,6 +1,8 @@
 # TripleModel roadmap
 
-Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.10.1** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**). This document tracks planned releases from the current **0.11.0** beta through a stable **1.0.0**. Versions follow [Semantic Versioning](https://semver.org/): breaking API changes only on major releases; minors add features; patches fix bugs.
+
+**Engine reference:** [pyoxigraph 0.5.x documentation](https://pyoxigraph.readthedocs.io/en/stable/) (model, I/O, store, SPARQL results, [migration guide](https://pyoxigraph.readthedocs.io/en/stable/migration.html)).
 
 **Vision:** Make RDF a natural persistence and interchange layer for Pydantic-shaped domain models — typed in Python, portable as triples, without bespoke mapping code per project.
 
@@ -9,6 +11,7 @@ Roadmap for the **`triplemodel`** package on PyPI (base class **`TripleModel`**)
 | Document | Purpose |
 |----------|---------|
 | {doc}`changelog` | Release history |
+| {doc}`MIGRATION_0.11` | 0.11.0 breaking changes (rdflib/SHACL removal) |
 | {doc}`releasing` | PyPI publish checklist |
 | {doc}`PLAN` | Strategy, principles, priorities |
 | {doc}`ECOSYSTEM` | Boundary contract (both packages) |
@@ -55,7 +58,8 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | | Custom / unknown datatypes | pluggable `Literal` converters | 0.2 **done** |
 | | `term.bind()` (Python ↔ datatype) | shared registry with rdflib `bind()` | 0.2 **done** |
 | | `Variable` | SPARQL result binding only (not model fields) | 0.6 **done** |
-| | RDF-star / quoted triples (`QuotedGraph`) | deferred unless rdflib 7 usage is stable | **TBD** |
+| | RDF-star / quoted triples | pyoxigraph 0.5 dropped RDF-star; RDF 1.2 `Triple` terms **TBD** | **TBD** |
+| | `Literal.direction` (RDF 1.2 base direction) | extend `LangString` / literal registry | 0.11 **done** |
 | | RDF Containers (`Bag` / `Seq` / `Alt`) | **out of scope** (prefer `rdf:List` in 0.3) | — |
 | **Graph API** | `add` / triple iterators | `to_graph`, `model_to_triples` | 0.1 **done** |
 | | `remove` / `set` | sync cleared fields; functional-property `set` | 0.2 **done** |
@@ -64,10 +68,16 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | | set ops `+` `-` `&` `^` | `merge_graphs` + documented BNode policy | 0.2 **done** |
 | | slice / `__getitem__` triple patterns | **out of scope** (rdflib convenience sugar) | — |
 | | `bind`, `namespaces`, `compute_qname`, `qname` | `Rdf.prefixes`, `Namespace` helpers on models | 0.2 **done** |
-| | `bind_namespaces` strategies (`core` / `rdflib` / `none`) | passthrough when creating `Graph` / `Dataset` | 0.2 **done** |
+| | `bind_namespaces` strategies (`core` / `none`) | passthrough when creating `Graph` / `Dataset` | 0.2 **done** |
 | | `parse` / `serialize` (all registered formats) | `TripleModel.parse`, `.serialize`, `load_*` / `dump_*` | 0.4 **done** |
-| | parse base URI (`publicID`, rdflib 7) | `Rdf.base_uri` / `parse(..., base=)` for relative IRIs | 0.4 **done** |
+| | parse base URI (`base_iri`) | `Rdf.base_uri` / `parse(..., base=)`; `Store.parse(base_iri=)` | 0.4 **done** |
+| | `parse` options (`lenient`, `without_named_graphs`, `rename_blank_nodes`) | first-class kwargs on parse helpers | 0.11 **done** |
+| | `RdfFormat.from_extension` / `from_media_type` | strengthen `infer_format` | 0.11 **done** |
+| | canonical N-Triples serialize | document / expose via `serialize(format=...)` | 0.11 **done** |
 | | `query` (SELECT, ASK, CONSTRUCT, DESCRIBE) | `select_models`, `ask`, `construct_models` | 0.6 **done** |
+| | `query` dataset options (`use_default_graph_as_union`, `default_graph`, `named_graphs`) | `run_sparql` / `prepare_model_query` passthrough | 0.11 **done** |
+| | SPARQL result files (`parse_query_results`, `QueryResultsFormat`) | load/serialize SELECT/ASK/CONSTRUCT result docs | 0.11 **done** |
+| | `QuerySolutions.serialize` / `QueryBoolean.serialize` | `SparqlResult.serialize(...)` | 0.11 **done** |
 | | SPARQL `SERVICE` (federated) | `Graph.query` / guide 13 patterns | 0.6 **done** |
 | | SPARQL UPDATE | `apply_update` + reload | 0.6 **done** |
 | | `prepareQuery`, `initNs`, `initBindings` | `prepare_model_query`, `init_ns_from_model`, `init_bindings_from_model` | 0.6 **done** |
@@ -97,7 +107,16 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | | BerkeleyDB, SQLAlchemy (rdflib stores) | removed; use `open_graph("disk", path)` | 0.10 **out of scope** |
 | | LevelDB, Kyoto Cabinet (rdflib plugins) | **out of scope** for core; link in cookbook | — |
 | | `open` / `close` / `destroy` on store | `graph_store_session`, `destroy_store` | 0.8 **done** |
-| | Store transactions (`commit` / `rollback` / `open`) | `store_commit`, `store_rollback` | 0.8 **done** |
+| | Store transactions (`commit` / `rollback` / `open`) | `store_commit`, `store_rollback` (no-ops on pyoxigraph; documented) | 0.8 **done** |
+| | `Store.bulk_load` | fast ingest into disk `Store` without full in-memory parse | 0.11 **done** |
+| | `Store.dump` / `Store.load` | snapshot export/import of on-disk store | 0.11 **done** |
+| | `Store.backup` | on-disk store backup helper | 0.11 **done** |
+| | `Store.optimize` | compact on-disk store after bulk edits | 0.11 **done** |
+| | `Store.flush` | explicit flush before `Graph.close` on disk stores | 0.11 **done** |
+| | Named-graph lifecycle (`add_graph`, `remove_graph`, `clear_graph`, `named_graphs`) | `Dataset` / `Store` helpers beyond `get_graph_context` | 0.11 **done** |
+| | `Store.quads_for_pattern` | low-level quad pattern iterator (integrators) | 0.11 **done** |
+| | In-memory `pyoxigraph.Dataset` class | **out of scope** — use `RdfDataset` view over `Store` | — |
+| | `Dataset.canonicalize` (URDNA2015) | `canonicalize_quads` in-memory helper for diffing | 0.11 **done** |
 | **Import** | Chunked / streaming model load | `iter_graph_to_models`, `load_models_streaming` | 0.8 **done** |
 | **Import** | Strict / warn on unmapped predicates | `Rdf.strict_import`, `Rdf.warn_unmapped_fields` | 0.8 **done** |
 | **Performance** | Predicate-map cache per class | `predicate_map_for_class`, `owned_predicates_for_class` | 0.8 **done** |
@@ -105,7 +124,8 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | **Namespace** | `Namespace`, `DefinedNamespace`, bundled vocabs | `from triplemodel.vocab import FOAF, SKOS, ...` | 0.2 **done** |
 | **Security** | untrusted parse URLs / files | safe defaults on `parse_url`; document risks | **1.0** |
 | **Plugins** | Register custom Parser/Serializer/Store | removed in 0.10; literals/resolvers only | 0.10 **out of scope** |
-| **SHACL** | Validation (rdflib ecosystem / pyshacl) | optional `triplemodel[shacl]` pre-export hook | 0.4 **done** |
+| **SHACL** | Validation (pyshacl) | removed in **0.11.0** — use pyshacl directly | 0.11 **out of scope** |
+| **Interop** | [oxrdflib](https://github.com/oxigraph/oxrdflib) rdflib store | **out of scope** — no rdflib dependency | — |
 | **contrib** | GraphDB, RDF4J clients | **out of scope** for core; link in cookbook only | — |
 | **Tools** | `rdflib.tools` CLI (csv2rdf, etc.) | **out of scope** (use rdflib directly) | — |
 | **Paths** | Path algebra | **out of scope** (graph traversal, not ORM) | — |
@@ -338,13 +358,80 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 - [x] **SPARQL** — `Store.query` / `update` passthrough; remote `SPARQLStore` **out of scope**
 - [x] **Stores** — `memory` and `disk` (`open_graph`); drop `rdflib-sqlalchemy` extra
 - [x] **Plugins** — remove rdflib `register_parser` / `register_serializer` / `register_store`
-- [x] **SHACL** — optional rdflib bridge in `[shacl]` extra only
+- [x] **SHACL** — optional bridge in `[shacl]` extra (removed in **0.11.0**)
 - [x] **Migration guide** — {doc}`MIGRATION_0.10`
 - [x] **API stability exception** — graph type break documented in {doc}`API_STABILITY`
 
 **Exit criteria:** Core quickstart round-trip; `pytest` green; docs and compat CI updated.
 
 **SparqlModel (SM-7):** Downstream pin `triplemodel>=0.10,<2` when SparqlModel adopts `Store` (see {doc}`ECOSYSTEM_SPARQLMODEL`).
+
+---
+
+## 0.11.0 — rdflib removal ✅
+
+**Status:** Released (beta) — on PyPI as `triplemodel==0.11.0`
+
+**Theme:** Remove the last rdflib integration; align naming with pyoxigraph.
+
+- [x] **SHACL removed** — `triplemodel[shacl]` extra, `validate_graph`, `shacl_shapes=`
+- [x] **API renames** — `**rdflib_kwargs` → `**format_kwargs`; `publicID` → `base_iri` on `Store.parse`
+- [x] **`bind_namespaces`** — drop `strategy="rdflib"` (use `"core"`)
+- [x] **Migration** — {doc}`MIGRATION_0.11`
+
+**Exit criteria:** No `import rdflib` in package source; `make ci` green.
+
+---
+
+## 0.11.0 — pyoxigraph surface completion ✅
+
+**Status:** Shipped in **0.11.0** (additive APIs on the same release line as rdflib removal)
+
+**Theme:** Expose remaining [pyoxigraph 0.5.x](https://pyoxigraph.readthedocs.io/en/stable/) store, I/O, and SPARQL-result APIs that help typed-model workflows — without reintroducing sessions, remote SPARQL graphs, or rdflib.
+
+Reference sections: [RDF Model](https://pyoxigraph.readthedocs.io/en/stable/model.html) · [Parsing and Serialization](https://pyoxigraph.readthedocs.io/en/stable/io.html) · [RDF Store](https://pyoxigraph.readthedocs.io/en/stable/store.html) · [SPARQL utility objects](https://pyoxigraph.readthedocs.io/en/stable/sparql.html).
+
+### Store operations (disk / scale)
+
+- [x] **`bulk_load`** — `bulk_load_into_graph(graph, path, format=, base_iri=, to_graph=)` wrapping `Store.bulk_load`
+- [x] **`dump` / `load`** — `dump_store` / `load_store` for on-disk store snapshots
+- [x] **`backup`** — `backup_store(target_directory, graph=)` for RocksDB-backed stores
+- [x] **`optimize`** — `optimize_store(graph=)` after bulk import or heavy `sync_to_graph` workloads
+- [x] **`flush`** — `store_flush(graph)`; `Graph.close` flushes when supported
+- [x] **Named-graph lifecycle** — `list_named_graphs`, `ensure_named_graph`, `clear_named_graph`, `remove_named_graph`
+- [x] **`quads_for_pattern`** — `iter_quads_for_pattern` over `Store.quads_for_pattern`
+
+### Parse / serialize (I/O)
+
+- [x] **Parse flags** — `lenient=`, `without_named_graphs=`, `rename_blank_nodes=` on `parse_into_graph`, dataset/model parse helpers
+- [x] **`RdfFormat` discovery** — `infer_format` falls back to `RdfFormat.from_extension` / `from_media_type`; `format_supports_datasets` / `format_supports_rdf_star`
+- [x] **Serialize prefixes** — `Graph.serialize` passes bound prefixes (regression-tested for Turtle/TriG)
+- [x] **Canonical N-Triples** — pyoxigraph canonical NT for stable graph comparison (see guide 10)
+
+### SPARQL results
+
+- [x] **`parse_query_results`** — load saved SPARQL result files (JSON/XML/CSV/TSV) into `SparqlResult`
+- [x] **Result serialization** — `SparqlResult.serialize(format=)` for SELECT/ASK results
+- [x] **Advanced `Store.query`** — `use_default_graph_as_union`, `default_graph`, `named_graphs`, `base_iri` on `run_sparql` / `PreparedModelQuery.execute`
+
+### Terms / RDF 1.2
+
+- [x] **`Literal.direction`** — optional `direction` on `LangString` and `Lang` metadata (pyoxigraph `ltr` / `rtl` / `auto`)
+- [ ] **RDF 1.2 triple terms** — **out of scope for 0.11.0** — use raw `pyoxigraph.Triple`; TripleModel fields stay resource-oriented (see {doc}`PLAN`)
+
+### Explicitly deferred in 0.11.x
+
+| pyoxigraph API | TripleModel stance |
+|----------------|-------------------|
+| `Store.query` / `update` `custom_functions`, `custom_aggregate_functions` | Expert SPARQL extension — use raw `Store` |
+| In-memory `pyoxigraph.Dataset` (non-store) | Use `RdfDataset` over `Store` |
+| [oxrdflib](https://github.com/oxigraph/oxrdflib) | No rdflib dependency |
+| Remote SPARQL endpoint store | **out of scope** (0.10); SparqlModel or load-then-query |
+| SHACL / pyshacl | **out of scope** (0.11.0); external validation |
+
+**Exit criteria:** Matrix rows marked **0.11** are **done** or **out of scope**; guide 15 documents disk `bulk_load` / `backup` / `optimize`; one example script under `examples/stores/`.
+
+**SparqlModel:** Disk-store helpers are optional for **SM-7**; session-level remote graphs remain in SparqlModel.
 
 ---
 
@@ -377,10 +464,10 @@ CI: `tests/test_realworld_examples.py` must exercise the new APIs (not only stdo
 | API stability | Semver commitment; deprecations required ≥1 minor earlier |
 | Security | Safe parser defaults; document XML/URL fetch risks |
 | Quality | ≥90% coverage on core; integration tests per supported format and SPARQL |
-| Packaging | PyPI wheels; extras: `shacl`, `dev`, `docs` |
+| Packaging | PyPI wheels; extras: `dev`, `docs` |
 | Governance | `CONTRIBUTING.md`, CODE_OF_CONDUCT, Keep a Changelog |
 
-**Celebration criteria:** A downstream app can depend on `triplemodel~=1.0` knowing rdflib features are available through TripleModel where they apply to typed models, SparqlModel can pin this release for mapping, and patch releases are safe.
+**Celebration criteria:** A downstream app can depend on `triplemodel~=1.0` knowing pyoxigraph store/I/O/SPARQL features needed for typed models are exposed (per matrix), SparqlModel can pin this release for mapping, and patch releases are safe.
 
 ---
 
@@ -432,9 +519,9 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 ## How to influence the roadmap
 
 1. Open an issue with the label `roadmap` describing your use case.
-2. If requesting a new rdflib feature, name the rdflib API (`Graph.method`, format, store plugin).
+2. If requesting a new pyoxigraph feature, name the API (`Store.method`, `parse` flag, `RdfFormat`, etc.) and link to the [pyoxigraph docs](https://pyoxigraph.readthedocs.io/en/stable/).
 3. For SparqlModel integration needs, reference milestone **SM-*** and whether the feature belongs in TripleModel or SparqlModel per [ECOSYSTEM.md](ECOSYSTEM.md).
-4. Link vocabularies, sample data, or SHACL shapes when possible.
+4. Link vocabularies, sample data, or validation shapes when possible.
 
 ---
 
@@ -453,4 +540,6 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | 0.8.0 | Persistent stores, scale | `Store` open/close, plugins | ✅ |
 | **0.9.0** | Matrix audit, API freeze (rdflib) | `plugin` passthrough | **SM-5** prep |
 | **0.10.0** | pyoxigraph engine | `Store`, disk store | **SM-7** |
+| **0.11.0** | rdflib/SHACL removed | API rename (`format_kwargs`, `base_iri`) | — |
+| **0.11.0** | pyoxigraph surface + rdflib removal | `bulk_load`, backup, query results, `LangString.direction` | RDF 1.2 `Triple` field values deferred |
 | **1.0.0** | Stable, documented, governed | oxigraph matrix frozen | **SM-5** pin `triplemodel` |

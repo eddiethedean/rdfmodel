@@ -25,6 +25,7 @@ from triplemodel.io.files import (
     fetch_url,
     infer_format,
     merge_jsonld_kwargs,
+    merge_parse_flags,
 )
 from triplemodel.io.graph import model_to_graph, models_to_graph
 from triplemodel.io.import_ import OnDuplicate, graph_to_model, graph_to_models
@@ -45,6 +46,9 @@ def parse_into_dataset(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
+    lenient: bool = False,
+    without_named_graphs: bool = False,
+    rename_blank_nodes: bool = False,
     **format_kwargs: Any,
 ) -> Dataset:
     """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfDataset`."""
@@ -55,7 +59,16 @@ def parse_into_dataset(
     if data is None and source is not None and isinstance(source, (str, Path)):
         hint = source
     fmt = infer_format(hint, format)
-    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(format_kwargs))
+    parse_kwargs = merge_jsonld_kwargs(
+        fmt,
+        jsonld_context,
+        merge_parse_flags(
+            format_kwargs,
+            lenient=lenient,
+            without_named_graphs=without_named_graphs,
+            rename_blank_nodes=rename_blank_nodes,
+        ),
+    )
     dataset = Dataset()
     if data is not None:
         dataset.parse(data=data, format=fmt, base_iri=base, **parse_kwargs)
@@ -76,6 +89,9 @@ def parse_url_into_dataset(
     timeout: float = 30.0,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
+    lenient: bool = False,
+    without_named_graphs: bool = False,
+    rename_blank_nodes: bool = False,
     **format_kwargs: Any,
 ) -> Dataset:
     """Parse RDF from a URL into a :class:`~triplemodel.store.RdfDataset`."""
@@ -87,6 +103,9 @@ def parse_url_into_dataset(
         base=base,
         bind_prefixes=bind_prefixes,
         jsonld_context=jsonld_context,
+        lenient=lenient,
+        without_named_graphs=without_named_graphs,
+        rename_blank_nodes=rename_blank_nodes,
         **format_kwargs,
     )
 

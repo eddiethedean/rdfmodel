@@ -52,7 +52,13 @@ def _graph_name(graph: GraphName | str | None) -> GraphName:
 class RdfGraph:
     """RDF graph (default graph of a :class:`~pyoxigraph.Store`)."""
 
-    __slots__ = ("_store", "_graph", "_prefixes", "_ephemeral_store_path")
+    __slots__ = (
+        "_store",
+        "_graph",
+        "_prefixes",
+        "_ephemeral_store_path",
+        "_disk_store_path",
+    )
 
     def __init__(
         self,
@@ -60,11 +66,13 @@ class RdfGraph:
         *,
         graph: GraphName | str | None = None,
         ephemeral_store_path: str | None = None,
+        disk_store_path: str | None = None,
     ) -> None:
         self._store = store if store is not None else OxigraphStore()
         self._graph = _graph_name(graph)
         self._prefixes: dict[str, str] = {}
         self._ephemeral_store_path = ephemeral_store_path
+        self._disk_store_path = disk_store_path
 
     @property
     def store(self) -> OxigraphStore:
@@ -87,6 +95,11 @@ class RdfGraph:
         """On-disk temp directory to remove when :meth:`close` is called (if any)."""
         return self._ephemeral_store_path
 
+    @property
+    def disk_store_path(self) -> str | None:
+        """Persistent on-disk store directory when opened with ``open_graph('disk', path)``."""
+        return self._disk_store_path
+
     def close(self) -> None:
         """Close the underlying store and remove an ephemeral on-disk directory.
 
@@ -95,16 +108,16 @@ class RdfGraph:
         """
         import gc
 
-        flush = getattr(self._store, "flush", None)
-        if callable(flush):
-            try:
-                flush()
-            except Exception as exc:
-                warnings.warn(
-                    f"Failed to flush store before close: {exc}",
-                    ResourceWarning,
-                    stacklevel=2,
-                )
+        from triplemodel.store.ops import store_flush
+
+        try:
+            store_flush(self)
+        except Exception as exc:
+            warnings.warn(
+                f"Failed to flush store before close: {exc}",
+                ResourceWarning,
+                stacklevel=2,
+            )
         ephemeral = self._ephemeral_store_path
         self._ephemeral_store_path = None
         self._store = OxigraphStore()

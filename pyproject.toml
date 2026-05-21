@@ -90,6 +90,7 @@ include = [
     "docs/guides",
     "docs/cookbook",
     "docs/API_STABILITY.md",
+    "docs/MIGRATION_0.10.md",
     "docs/MIGRATION_0.11.md",
     "docs/COMPATIBILITY.md",
     "docs/conf.py",

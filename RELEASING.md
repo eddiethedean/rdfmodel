@@ -1,5 +1,43 @@
 # Releasing TripleModel
 
+## 0.11.0 (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.11.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `CHANGELOG.md` — `## [0.11.0]` (breaking + pyoxigraph surface); `[Unreleased]` empty | Done |
+| `docs/MIGRATION_0.11.md`; `docs/API_STABILITY.md` 0.11 exception | Done |
+| rdflib/SHACL removed; no `import rdflib` in `src/` | Done |
+| pyoxigraph surface: `store/ops`, `query_results`, `canonicalize_quads`, parse flags, SPARQL dataset kwargs, `LangString.direction` | Done |
+| `examples/stores/bulk_load_backup.py`; `make examples` includes it | Done |
+| `examples/doc/outputs/installation_version.txt` → `0.11.0` | Done |
+| `make ci` (pytest 100% cov, stores, compat, ruff, ty, sphinx `-W`) | Done (maintainer re-run before tag) |
+| `make release-check` (ci + examples + `twine check`) | Done (maintainer re-run before tag) |
+
+**Pre-release checklist (0.11.0)**
+
+- [x] `version` `0.11.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] `[Unreleased]` empty in `CHANGELOG.md`
+- [x] Regenerate `examples/doc/outputs/` (`installation_version.txt` → `0.11.0`)
+- [x] Local gate: `make ci`
+- [x] Local gate: `make release-check`
+- [ ] Commit all 0.11.0 changes on `main` (rdflib removal + pyoxigraph surface)
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
+- [ ] **Tag and publish** — create `v0.11.0` only when approved for PyPI (see below)
+
+**Publish (when tagging is approved)**
+
+```bash
+make release-check
+
+git tag -a v0.11.0 -m "Release 0.11.0"
+git push origin v0.11.0
+```
+
+Watch the **Release** workflow on GitHub Actions; confirm [PyPI](https://pypi.org/project/triplemodel/) shows `0.11.0`.
+
+---
+
 ## 0.10.1 patch (repo)
 
 | Item | Status |
@@ -23,7 +61,7 @@
 - [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
 - [ ] **Tag and publish** — create `v0.10.1` only when approved for PyPI (see below)
 
-**Not yet on PyPI:** latest git tag is `v0.10.0`; `0.10.1` ships when `v0.10.1` is pushed and the Release workflow runs.
+**Not yet on PyPI:** confirm latest tag on GitHub; ship when `v0.10.1` / `v0.11.0` is pushed and the Release workflow runs.
 
 When publishing is approved:
 

@@ -15,7 +15,7 @@ from triplemodel.store.terms import OxTerm, RdfTerm
 from triplemodel.terms import iri
 from triplemodel.terms.iri import normalize_iri
 from triplemodel.fields.resource_ref import ResourceRef
-from triplemodel.terms.lang import LangString
+from triplemodel.terms.lang import LangString, _base_direction_name, _direction_to_base
 from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -38,8 +38,13 @@ def python_to_term(
     if isinstance(value, OpaqueLiteral):
         return value.to_literal()
     if isinstance(value, LangString):
+        direction = _direction_to_base(value.direction)
         if value.lang:
+            if direction is not None:
+                return Literal(value.value, language=value.lang, direction=direction)
             return Literal(value.value, language=value.lang)
+        if direction is not None:
+            return Literal(value.value, direction=direction)
         return Literal(value.value)
     if isinstance(value, Enum):
         lit = registry.python_to_literal(value, type(value))
@@ -149,7 +154,11 @@ def term_to_python(
         return ResourceRef(str(term.value))
 
     if target_type is LangString:
-        return LangString(str(term.value), term.language or None)
+        return LangString(
+            str(term.value),
+            term.language or None,
+            _base_direction_name(term.direction),
+        )
 
     if target_type is OpaqueLiteral:
         return OpaqueLiteral.from_literal(term)

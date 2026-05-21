@@ -4,9 +4,9 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ---
 
-## Current status (0.10.1)
+## Current status (0.11.0)
 
-**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.10.1`** — pyoxigraph engine swap, `Store` public type, disk stores, migration guide (`docs/MIGRATION_0.10.md`), API stability exception for graph types (see {doc}`ROADMAP`).
+**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.11.0`** — rdflib/SHACL removal, pyoxigraph store/I/O/SPARQL surface completion, migration guides (`docs/MIGRATION_0.10.md`, `docs/MIGRATION_0.11.md`), API stability exceptions (see {doc}`ROADMAP`).
 
 **Next focus:** **1.0.0** — governance, security hardening for `parse_url`, production semver (see {doc}`ROADMAP`).
 

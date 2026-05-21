@@ -11,6 +11,19 @@ from typing import Any
 from pyoxigraph import Store as OxigraphStore
 
 from triplemodel.store import RdfGraph as Graph
+from triplemodel.store.ops import (
+    backup_store,
+    bulk_load_into_graph,
+    clear_named_graph,
+    dump_store,
+    ensure_named_graph,
+    iter_quads_for_pattern,
+    list_named_graphs,
+    load_store,
+    optimize_store,
+    remove_named_graph,
+    store_flush,
+)
 
 _STORE_ALIASES: dict[str, str] = {
     "memory": "memory",
@@ -95,6 +108,7 @@ def open_graph(
     return Graph(
         store=ox,
         ephemeral_store_path=ephemeral_store_path,
+        disk_store_path=str(path),
     )
 
 
@@ -106,9 +120,9 @@ def graph_store_session(graph: Graph) -> Iterator[Graph]:
 
 def store_commit(graph: Graph) -> None:
     """Flush an on-disk store when supported."""
-    flush = getattr(graph.store, "flush", None)
-    if callable(flush):
-        flush()
+    from triplemodel.store.ops import store_flush
+
+    store_flush(graph)
 
 
 def store_rollback(graph: Graph) -> None:
@@ -147,11 +161,22 @@ def cleanup_ephemeral_store_path(path: str) -> None:
 
 
 __all__ = [
+    "backup_store",
+    "bulk_load_into_graph",
     "cleanup_ephemeral_store_path",
+    "clear_named_graph",
     "coerce_store_name",
     "destroy_store",
+    "dump_store",
+    "ensure_named_graph",
     "graph_store_session",
+    "iter_quads_for_pattern",
+    "list_named_graphs",
+    "load_store",
     "open_graph",
+    "optimize_store",
+    "remove_named_graph",
     "store_commit",
+    "store_flush",
     "store_rollback",
 ]

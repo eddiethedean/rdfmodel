@@ -14,7 +14,7 @@ from triplemodel.store import RdfGraph as Graph
 from urllib.request import Request, urlopen
 
 from triplemodel.namespaces import bind_namespaces
-from triplemodel.store.formats import raise_if_unsupported_format
+from triplemodel.store.formats import format_from_hint, raise_if_unsupported_format
 
 TModel = TypeVar("TModel", bound=BaseModel)
 T1 = TypeVar("T1", bound=BaseModel)
@@ -86,7 +86,26 @@ def infer_format(
         fmt = _SUFFIX_TO_FORMAT[suffix]
         raise_if_unsupported_format(fmt)
         return fmt
+    fallback = format_from_hint(hint, None)
+    if fallback is not None:
+        raise_if_unsupported_format(fallback)
+        return fallback
     raise ValueError(f"Cannot infer RDF format from {hint!r}; pass format= explicitly.")
+
+
+def merge_parse_flags(
+    format_kwargs: dict[str, Any],
+    *,
+    lenient: bool = False,
+    without_named_graphs: bool = False,
+    rename_blank_nodes: bool = False,
+) -> dict[str, Any]:
+    """Merge first-class parse flags into kwargs (explicit flags win)."""
+    merged = dict(format_kwargs)
+    merged["lenient"] = lenient
+    merged["without_named_graphs"] = without_named_graphs
+    merged["rename_blank_nodes"] = rename_blank_nodes
+    return merged
 
 
 def _normalize_parse_source_data(
@@ -142,6 +161,9 @@ def parse_into_graph(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
+    lenient: bool = False,
+    without_named_graphs: bool = False,
+    rename_blank_nodes: bool = False,
     **format_kwargs: Any,
 ) -> Graph:
     """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfGraph`."""
@@ -152,7 +174,16 @@ def parse_into_graph(
     if data is None and source is not None and isinstance(source, (str, Path)):
         hint = source
     fmt = infer_format(hint, format)
-    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(format_kwargs))
+    parse_kwargs = merge_jsonld_kwargs(
+        fmt,
+        jsonld_context,
+        merge_parse_flags(
+            format_kwargs,
+            lenient=lenient,
+            without_named_graphs=without_named_graphs,
+            rename_blank_nodes=rename_blank_nodes,
+        ),
+    )
     graph = Graph()
     if data is not None:
         graph.parse(data=data, format=fmt, base_iri=base, **parse_kwargs)
@@ -191,6 +222,9 @@ def parse_url_into_graph(
     timeout: float = 30.0,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
+    lenient: bool = False,
+    without_named_graphs: bool = False,
+    rename_blank_nodes: bool = False,
     **format_kwargs: Any,
 ) -> Graph:
     """Parse RDF from a URL."""
@@ -202,6 +236,9 @@ def parse_url_into_graph(
         base=base,
         bind_prefixes=bind_prefixes,
         jsonld_context=jsonld_context,
+        lenient=lenient,
+        without_named_graphs=without_named_graphs,
+        rename_blank_nodes=rename_blank_nodes,
         **format_kwargs,
     )
 
