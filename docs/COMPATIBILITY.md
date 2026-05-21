@@ -14,8 +14,8 @@ TripleModel is tested against the dependency ranges declared in `pyproject.toml`
 
 | Extra | Purpose |
 |-------|---------|
-| `shacl` | `pyshacl` + `rdflib` (bridge for validation only) |
 | `dev` | pytest, ruff, ty, coverage |
+| `docs` | Sphinx, myst-parser, theme |
 
 ## CI
 

@@ -439,14 +439,6 @@ def test_sync_to_dataset_instance_method() -> None:
     )
 
 
-def test_to_dataset_shacl(tmp_path: Path) -> None:
-    from rdflib import Graph as RdfGraph
-
-    p = Person(slug="a", name="A")
-    shape = RdfGraph()
-    p.to_dataset(shacl_shapes=shape)
-
-
 def test_parse_dispatch_from_dataset(tmp_path: Path) -> None:
     from triplemodel.protocols import register_rdf_resource
 

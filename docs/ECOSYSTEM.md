@@ -141,7 +141,7 @@ When choosing a package (or deciding where a feature belongs):
 | `Model.field == value` queries | **SparqlModel** |
 | SPARQL endpoint over HTTP | **SparqlModel** |
 | FastAPI RDF responses | **SparqlModel** |
-| Raw `graph.query("SELECT …")` without a DSL | **rdflib** or TripleModel passthrough; not a SparqlModel requirement |
+| Raw `graph.query("SELECT …")` without a DSL | TripleModel passthrough on `Store`; not a SparqlModel requirement |
 
 ## Triple ownership (0.2+)
 
@@ -193,7 +193,6 @@ SparqlModel-specific behaviour (cascade, query compiler, session, async stores) 
 
 | Extra | Package |
 |-------|---------|
-| `triplemodel[shacl]` | TripleModel (rdflib bridge for pyshacl only) |
 | `sparqlmodel[fastapi]` | SparqlModel |
 | `httpx` remote SPARQL | SparqlModel dev / optional extra |
 

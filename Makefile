@@ -12,7 +12,7 @@ help:
 	@echo "TripleModel — local CI targets"
 	@echo ""
 	@echo "  make ci              Run all PR CI checks (test, stores, lint, docs)"
-	@echo "  make install         Editable install with dev+shacl+docs extras"
+	@echo "  make install         Editable install with dev+docs extras"
 	@echo "  make test            pytest (100% coverage)"
 	@echo "  make stores          Store-focused pytest subset (--no-cov, like CI)"
 	@echo "  make compat          pytest with min pydantic/pyoxigraph pins (like CI compat job)"
@@ -37,13 +37,13 @@ stores:
 
 # pydantic 2.5 has no Python 3.13 wheels; on 3.13 use compat-pyoxigraph instead.
 compat:
-	$(PIP) install "pydantic==2.5.0" "pyoxigraph==0.5.0" -e ".[dev,shacl]"
+	$(PIP) install "pydantic==2.5.0" "pyoxigraph==0.5.0" -e ".[dev]"
 	rm -rf dist
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest
 
 compat-pyoxigraph:
-	$(PIP) install "pyoxigraph==0.5.0" -e ".[dev,shacl]"
+	$(PIP) install "pyoxigraph==0.5.0" -e ".[dev]"
 	rm -rf dist
 	$(PYTHON) -m build
 	$(PYTHON) -m pytest
@@ -98,7 +98,7 @@ ci: install
 	else \
 		$(MAKE) compat; \
 	fi
-	$(PIP) install --upgrade "pydantic>=2.5,<3" "pyoxigraph>=0.5,<0.6" -e ".[dev,shacl,docs]"
+	$(PIP) install --upgrade "pydantic>=2.5,<3" "pyoxigraph>=0.5,<0.6" -e ".[dev,docs]"
 	$(PYTHON) -m ruff format --check src tests
 	$(PYTHON) -m ruff check src tests
 	$(PYTHON) -m ty check src tests

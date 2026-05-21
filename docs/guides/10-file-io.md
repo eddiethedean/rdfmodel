@@ -40,7 +40,7 @@ Format is inferred from the file suffix when omitted (`.ttl` → Turtle, `.trig`
 
 ## Base URI for relative IRIs
 
-Set `Rdf.base_uri` (or pass `base=` to `parse`) so relative IRIs in Turtle resolve correctly (`publicID` / base IRI on parse):
+Set `Rdf.base_uri` (or pass `base=` to `parse`) so relative IRIs in Turtle resolve correctly (`base_iri` on low-level `Store.parse`):
 
 ```python
 class Person(TripleModel):
@@ -73,15 +73,6 @@ Low-level helpers: `graph_to_model_dispatch` and `all_from_graph_dispatch` (acce
 ## Inverse predicates
 
 Map `owl:inverseOf`-style data on import with `inverse=` on `rdf_field` or `InverseOf` metadata (not on `list` / `set` fields). Export writes only the forward predicate. On `sync_to_graph(..., mode="replace")` or `mode="patch"`, all incoming inverse triples for inverse fields are cleared before re-export (including reassignment and dropped nested IRI/bnode children). If both forward and inverse triples exist for the same field, import uses the forward objects and warns (or raises with `on_duplicate="error"`).
-
-## SHACL validation (optional)
-
-Install `pip install triplemodel[shacl]`, then validate before export:
-
-```python
-person.to_graph(shacl_shapes="shapes.ttl")
-person.serialize(format="turtle", shacl_shapes=shapes_graph)
-```
 
 ## Multi-class load (one parse)
 

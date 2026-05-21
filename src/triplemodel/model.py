@@ -106,13 +106,12 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
-        shacl_shapes: Graph | str | Path | Any | None = None,
     ) -> Graph:
         """Serialize this instance into a :class:`~triplemodel.Store` graph.
 
         When ``mode`` is omitted, uses ``Rdf.graph_mode`` (default ``"add"``).
         """
-        result = model_to_graph(
+        return model_to_graph(
             self,
             graph,
             uri=uri,
@@ -121,11 +120,6 @@ class TripleModel(BaseModel):
             registry=registry,
             skolemize=skolemize,
         )
-        if shacl_shapes is not None:
-            from triplemodel.validation.shacl import validate_graph
-
-            validate_graph(result, shacl_shapes)
-        return result
 
     def to_dataset(
         self,
@@ -137,10 +131,9 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
-        shacl_shapes: Graph | str | Path | Any | None = None,
     ) -> Dataset:
         """Serialize this instance into a named-graph dataset."""
-        result = model_to_dataset(
+        return model_to_dataset(
             self,
             dataset,
             uri=uri,
@@ -150,17 +143,6 @@ class TripleModel(BaseModel):
             registry=registry,
             skolemize=skolemize,
         )
-        if shacl_shapes is not None:
-            from triplemodel.validation.shacl import validate_graph
-
-            cfg = get_rdf_config(type(self))
-            from triplemodel.config import get_graph_context, resolve_graph_iri
-
-            context = get_graph_context(
-                result, graph_iri or resolve_graph_iri(self, cfg)
-            )
-            validate_graph(context, shacl_shapes)
-        return result
 
     def serialize(
         self,
@@ -172,8 +154,7 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         skolemize: bool | None = None,
-        shacl_shapes: Graph | str | Path | Any | None = None,
-        **rdflib_kwargs: Any,
+        **format_kwargs: Any,
     ) -> str | bytes | None:
         """Serialize this instance to an RDF document string or file."""
         cfg = get_rdf_config(type(self))
@@ -187,14 +168,13 @@ class TripleModel(BaseModel):
                 resolver=resolver,
                 registry=registry,
                 skolemize=skolemize,
-                shacl_shapes=shacl_shapes,
             )
             return dump_dataset(
                 ds,
                 destination,
                 format=format,
                 jsonld_context=cfg.jsonld_context,
-                **rdflib_kwargs,
+                **format_kwargs,
             )
         graph = model_to_graph(
             self,
@@ -206,16 +186,12 @@ class TripleModel(BaseModel):
             registry=registry,
             skolemize=skolemize,
         )
-        if shacl_shapes is not None:
-            from triplemodel.validation.shacl import validate_graph
-
-            validate_graph(graph, shacl_shapes)
         return dump_graph(
             graph,
             destination,
             format=format,
             jsonld_context=cfg.jsonld_context,
-            **rdflib_kwargs,
+            **format_kwargs,
         )
 
     def sync_to_graph(
@@ -465,7 +441,7 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
-        **rdflib_kwargs: Any,
+        **format_kwargs: Any,
     ) -> list[Self]:
         """Parse an RDF document and load model instances."""
         cfg = get_rdf_config(cls)
@@ -481,7 +457,7 @@ class TripleModel(BaseModel):
                 base=resolved_base,
                 bind_prefixes=cfg.prefixes_dict,
                 jsonld_context=cfg.jsonld_context,
-                **rdflib_kwargs,
+                **format_kwargs,
             )
             return cls._instances_from_parsed_dataset(
                 dataset,
@@ -500,7 +476,7 @@ class TripleModel(BaseModel):
             base=resolved_base,
             bind_prefixes=cfg.prefixes_dict,
             jsonld_context=cfg.jsonld_context,
-            **rdflib_kwargs,
+            **format_kwargs,
         )
         return cls._instances_from_parsed_graph(
             graph,
@@ -527,7 +503,7 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
-        **rdflib_kwargs: Any,
+        **format_kwargs: Any,
     ) -> list[Self]:
         """Parse RDF from a local file path."""
         path_obj = Path(path)
@@ -543,7 +519,7 @@ class TripleModel(BaseModel):
             resolver=resolver,
             registry=registry,
             de_skolemize=de_skolemize,
-            **rdflib_kwargs,
+            **format_kwargs,
         )
 
     @classmethod
@@ -561,7 +537,7 @@ class TripleModel(BaseModel):
         resolver: PredicateResolver | None = None,
         registry: LiteralRegistry = default_registry,
         de_skolemize: bool | None = None,
-        **rdflib_kwargs: Any,
+        **format_kwargs: Any,
     ) -> list[Self]:
         """Parse RDF from a URL."""
         cfg = get_rdf_config(cls)
@@ -577,7 +553,7 @@ class TripleModel(BaseModel):
                 timeout=timeout,
                 bind_prefixes=cfg.prefixes_dict,
                 jsonld_context=cfg.jsonld_context,
-                **rdflib_kwargs,
+                **format_kwargs,
             )
             return cls._instances_from_parsed_dataset(
                 dataset,
@@ -596,7 +572,7 @@ class TripleModel(BaseModel):
             timeout=timeout,
             bind_prefixes=cfg.prefixes_dict,
             jsonld_context=cfg.jsonld_context,
-            **rdflib_kwargs,
+            **format_kwargs,
         )
         return cls._instances_from_parsed_graph(
             graph,

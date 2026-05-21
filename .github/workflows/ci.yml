@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev,shacl]" build
+      - run: pip install -e ".[dev]" build
       - run: python -m build
       - run: pytest
       - run: ruff format --check src tests
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: pip install -e ".[dev,shacl]"
+      - run: pip install -e ".[dev]"
       - run: pytest tests/test_stores.py tests/test_streaming.py tests/test_stores_extra.py -q --no-cov
 
   compat:
@@ -53,9 +53,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install (min pydantic + pyoxigraph)
         if: matrix.min-pydantic
-        run: pip install "pydantic==2.5.0" "pyoxigraph==0.5.0" -e ".[dev,shacl]" build
+        run: pip install "pydantic==2.5.0" "pyoxigraph==0.5.0" -e ".[dev]" build
       - name: Install (min pyoxigraph only)
         if: "!matrix.min-pydantic"
-        run: pip install "pyoxigraph==0.5.0" -e ".[dev,shacl]" build
+        run: pip install "pyoxigraph==0.5.0" -e ".[dev]" build
       - run: python -m build
       - run: pytest

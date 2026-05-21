@@ -8,11 +8,7 @@
 pip install 'triplemodel>=0.10,<2'
 ```
 
-Core install no longer pulls in rdflib. Optional SHACL still uses rdflib as a **bridge** only:
-
-```bash
-pip install 'triplemodel[shacl]'
-```
+Core install no longer pulls in rdflib. (SHACL was removed entirely in **0.11.0** — see [MIGRATION_0.11.md](MIGRATION_0.11.md).)
 
 ## Replace `rdflib.Graph` with `triplemodel.Store`
 
@@ -44,10 +40,6 @@ graph = open_graph("disk", "/path/to/store")
 | `open_sparql_graph` (rdflib `SPARQLStore`) | Load remote data into a local `Store`, or use SparqlModel |
 | `triplemodel[sqlalchemy]` extra | `open_graph("disk", path)` |
 | Formats: `hext`, `longTurtle`, `trix` | Turtle, TriG, N-Triples, N-Quads, RDF/XML, N3, JSON-LD |
-
-## SHACL
-
-`validate_graph` converts your `Store` to rdflib for `pyshacl` when `[shacl]` is installed.
 
 ## SparqlModel
 

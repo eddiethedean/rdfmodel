@@ -59,7 +59,7 @@ class RdfDataset:
         self,
         pattern: tuple[Any, Any, Any, Any] | None = None,
     ) -> Iterator[Any]:
-        """Iterate quads, optionally filtered by ``(s, p, o, graph)`` (rdflib-compatible)."""
+        """Iterate quads, optionally filtered by ``(s, p, o, graph)``."""
         from pyoxigraph import DefaultGraph
 
         if pattern is None:
@@ -86,14 +86,14 @@ class RdfDataset:
         *,
         data: str | bytes | None = None,
         format: str | None = None,
-        publicID: str | None = None,
+        base_iri: str | None = None,
         **kwargs: Any,
     ) -> None:
         ox_kwargs = warn_ignored_parse_kwargs(kwargs, stacklevel=3)
         if format is None:
             raise ValueError("parse() requires format=")
         rdf_format = to_rdf_format(format)
-        base = publicID
+        base = base_iri
         if data is not None:
             payload = data.encode("utf-8") if isinstance(data, str) else data
             quads = ox_parse(payload, format=rdf_format, base_iri=base, **ox_kwargs)

@@ -74,7 +74,6 @@ myst_fence_as_directive = ["mermaid"]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "pydantic": ("https://docs.pydantic.dev/latest/", None),
-    "rdflib": ("https://rdflib.readthedocs.io/en/stable/", None),
 }
 
 # Signatures reference pyoxigraph types and internal TypeVars without intersphinx entries.
@@ -104,7 +103,6 @@ linkcheck_ignore = [
 
 linkcheck_allowed_redirects = {
     "https://docs.pydantic.dev/": r"https://pydantic\.dev/.*",
-    "https://rdflib.readthedocs.io/": r"https://rdflib\.readthedocs\.io/en/stable/.*",
     "https://pypi.org/manage/account/token/": r"https://pypi\.org/account/login/.*",
     "https://readthedocs.org/": r"https://about\.readthedocs\.com/.*",
 }

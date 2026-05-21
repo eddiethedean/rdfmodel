@@ -344,31 +344,6 @@ def test_cbd_without_reifications() -> None:
     assert len(sub) >= 1
 
 
-def test_shacl_rdflib_bridge_literal_forms() -> None:
-    pytest.importorskip("rdflib")
-    from triplemodel.validation.shacl import _to_rdflib_graph
-
-    g = RdfGraph()
-    g.add(
-        (
-            NamedNode("http://ex/s"),
-            NamedNode("http://ex/p"),
-            Literal("v", language="en"),
-        )
-    )
-    g.add(
-        (
-            NamedNode("http://ex/s"),
-            NamedNode("http://ex/p2"),
-            Literal(
-                "1", datatype=NamedNode("http://www.w3.org/2001/XMLSchema#integer")
-            ),
-        )
-    )
-    rg = _to_rdflib_graph(g)
-    assert len(rg) >= 2
-
-
 def test_codegen_cli_writes_file(tmp_path: Path) -> None:
     from triplemodel.codegen.cli import main
 
@@ -568,15 +543,6 @@ def test_convert_fallback_literal_and_return_term() -> None:
     assert isinstance(python_to_term(123.45), Literal)
     weird = BlankNode("w")
     assert term_to_python(weird, None) is weird
-
-
-def test_shacl_plain_literal_bridge() -> None:
-    pytest.importorskip("rdflib")
-    from triplemodel.validation.shacl import _to_rdflib_graph
-
-    g = RdfGraph()
-    g.add((NamedNode("http://ex/s"), NamedNode("http://ex/p"), Literal("plain")))
-    assert len(_to_rdflib_graph(g)) == 1
 
 
 def test_vocab_getattr() -> None:

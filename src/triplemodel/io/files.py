@@ -142,7 +142,7 @@ def parse_into_graph(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Graph:
     """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfGraph`."""
     if data is None and source is None:
@@ -152,12 +152,12 @@ def parse_into_graph(
     if data is None and source is not None and isinstance(source, (str, Path)):
         hint = source
     fmt = infer_format(hint, format)
-    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
+    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(format_kwargs))
     graph = Graph()
     if data is not None:
-        graph.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
+        graph.parse(data=data, format=fmt, base_iri=base, **parse_kwargs)
     elif source is not None:
-        graph.parse(source=source, format=fmt, publicID=base, **parse_kwargs)
+        graph.parse(source=source, format=fmt, base_iri=base, **parse_kwargs)
     else:
         raise ValueError("parse_into_graph requires source= or data=.")
     if bind_prefixes:
@@ -191,7 +191,7 @@ def parse_url_into_graph(
     timeout: float = 30.0,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Graph:
     """Parse RDF from a URL."""
     fmt = infer_format(url, format)
@@ -202,7 +202,7 @@ def parse_url_into_graph(
         base=base,
         bind_prefixes=bind_prefixes,
         jsonld_context=jsonld_context,
-        **rdflib_kwargs,
+        **format_kwargs,
     )
 
 
@@ -214,7 +214,7 @@ def load_graph(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Graph:
     """Parse RDF into an in-memory graph (alias for :func:`parse_into_graph`)."""
     return parse_into_graph(
@@ -224,7 +224,7 @@ def load_graph(
         base=base,
         bind_prefixes=bind_prefixes,
         jsonld_context=jsonld_context,
-        **rdflib_kwargs,
+        **format_kwargs,
     )
 
 
@@ -356,7 +356,7 @@ def parse_into_store_graph(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Graph:
     """Parse a document into a store-backed ``Graph`` (recommended for large N-Triples/N-Quads).
 
@@ -371,8 +371,8 @@ def parse_into_store_graph(
     ident, ephemeral = _streaming_store_identifier(path, store, identifier)
     graph = open_graph(store, ident, ephemeral_store_path=ephemeral)
     try:
-        parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
-        graph.parse(source=str(path), format=fmt, publicID=base, **parse_kwargs)
+        parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(format_kwargs))
+        graph.parse(source=str(path), format=fmt, base_iri=base, **parse_kwargs)
         store_commit(graph)
         if bind_prefixes:
             bind_namespaces(graph, dict(bind_prefixes))
@@ -482,10 +482,10 @@ def dump_graph(
     *,
     format: str = "turtle",
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> str | bytes | None:
     """Serialize ``graph`` to a string, bytes, or file."""
-    ser_kwargs = merge_jsonld_kwargs(format, jsonld_context, dict(rdflib_kwargs))
+    ser_kwargs = merge_jsonld_kwargs(format, jsonld_context, dict(format_kwargs))
     return graph.serialize(
         destination=destination,
         format=format,

@@ -153,18 +153,3 @@ def test_person_parse_url() -> None:
     with patch("triplemodel.io.files.fetch_url", return_value=ttl.encode()):
         loaded = Mini.parse_url("http://example.org/a.ttl")
     assert loaded[0].slug == "a"
-
-
-def test_person_serialize_with_shacl(tmp_path: Path) -> None:
-    pyshacl = pytest.importorskip("pyshacl")
-    _ = pyshacl
-    shapes = f"""@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix foaf: <{FOAF_NS}> .
-@prefix ex: <http://example.org/> .
-ex:Shape a sh:NodeShape ;
-    sh:targetClass foaf:Person ;
-    sh:property [ sh:path foaf:name ; sh:minCount 1 ] .
-"""
-    m = Mini(slug="s", name="S")
-    text = m.serialize(format="turtle", shacl_shapes=shapes)
-    assert "S" in str(text)

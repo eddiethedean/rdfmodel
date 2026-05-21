@@ -36,9 +36,9 @@ def test_resolve_predicate_without_colon():
     assert resolve_predicate("localname", {"ex": EX}) == "localname"
 
 
-def test_bind_namespaces_rdflib_strategy():
+def test_bind_namespaces_core_strategy():
     g = Graph()
-    bind_namespaces(g, {"ex": EX}, strategy="rdflib")
+    bind_namespaces(g, {"ex": EX}, strategy="core")
     assert ("ex", EX) in list(g.namespaces())
 
 

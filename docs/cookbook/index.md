@@ -37,11 +37,6 @@ Use `apply_update` against a **writable local** `Store` after loading data; remo
 - **TriG / N-Quads** — {doc}`../guides/12-datasets-and-named-graphs`
 - **`Rdf.graph_iri`**, `load_dataset`, `model_to_dataset`
 
-## SHACL validation
-
-- Install: `pip install triplemodel[shacl]`
-- Pre-export validation — {doc}`../guides/10-file-io` (SHACL section) and `validate_graph`
-
 ## Persistent stores
 
 - **On-disk pyoxigraph** — `open_graph("disk", path)`; call `graph.close()` when using a temporary directory from `parse_into_store_graph`; see `examples/stores/disk_store.py` and {doc}`../guides/15-stores-scale-and-strict`

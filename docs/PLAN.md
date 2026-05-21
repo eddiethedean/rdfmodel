@@ -42,7 +42,7 @@ sparqlmodel  →  triplemodel  →  pyoxigraph, pydantic
 2. **Orchestrate pyoxigraph** — do not reimplement parsers, stores, or SPARQL engines.
 3. **One mapping implementation** — term conversion and subject-IRI rules live here once; downstream packages must not fork them.
 4. **Explicit over magic** — `to_graph` / `from_graph` behavior is documented; merge and null semantics are testable.
-5. **Optional heaviness** — SHACL (rdflib bridge), JSON-LD context extras are install extras, not core deps.
+5. **Optional heaviness** — JSON-LD context extras are install extras, not core deps (SHACL removed in 0.11).
 6. **Stable mapping before ORM sugar** — prioritize releases that unblock SparqlModel’s `triplemodel` dependency over duplicating SparqlModel features in TripleModel.
 
 ---
@@ -55,7 +55,7 @@ sparqlmodel  →  triplemodel  →  pyoxigraph, pydantic
 | `pyoxigraph` | Store, parse/serialize, SPARQL query/update |
 | `typing-extensions` | `Self` and typing on Python 3.10 |
 
-Runtime core stays **pydantic + pyoxigraph + typing-extensions**. Optional **`rdflib`** only in `[shacl]`.
+Runtime core stays **pydantic + pyoxigraph + typing-extensions** (no rdflib).
 
 ---
 
@@ -85,7 +85,7 @@ See also [ROADMAP.md § Explicitly out of scope](ROADMAP.md#explicitly-out-of-sc
 | SPARQL compiler (WHERE generation from expressions) | SparqlModel |
 | Hydration depth and relationship loading policy | SparqlModel |
 | `HttpStore`, FastAPI, identity map | SparqlModel |
-| Full OWL reasoning, path algebra, HTML scraping | Other tools / rdflib direct |
+| Full OWL reasoning, path algebra, HTML scraping | Other tools |
 
 TripleModel **may** add `select_models`-style helpers in 0.6 for users who want SPARQL without SparqlModel; SparqlModel remains the home for ergonomic app queries.
 
@@ -155,10 +155,10 @@ TripleModel must support subclassing without breaking:
 |-------|----------|------|
 | **Foundation** | 0.1.x | Flat round-trip, CI, typing, docs |
 | **Model-complete** | 0.2–0.3 | Fields, sync, namespaces, literals, blanks, lists — **SparqlModel gate** |
-| **Document I/O** | 0.4 | Files and optional SHACL |
+| **Document I/O** | 0.4 | Files (SHACL removed 0.11) |
 | **Real-world ergonomics** | 0.4.1 | Multi-class load, Wikidata typing, XSD dates, mapping validation |
 | **Graph contexts** | 0.5 | Dataset / Trig |
-| **Query passthrough** | 0.6 | rdflib SPARQL helpers (not ORM) |
+| **Query passthrough** | 0.6 | SPARQL helpers on Store (not ORM) |
 | **Algorithms** | 0.7 | CBD, isomorphism, RDFS import helpers |
 | **Scale** | 0.8 | Store extras, batch import |
 | **Freeze** | 0.9 | Matrix audit, API stable for downstream |

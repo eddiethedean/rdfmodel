@@ -45,7 +45,7 @@ def parse_into_dataset(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Dataset:
     """Parse RDF into a new in-memory :class:`~triplemodel.store.RdfDataset`."""
     if data is None and source is None:
@@ -55,12 +55,12 @@ def parse_into_dataset(
     if data is None and source is not None and isinstance(source, (str, Path)):
         hint = source
     fmt = infer_format(hint, format)
-    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(rdflib_kwargs))
+    parse_kwargs = merge_jsonld_kwargs(fmt, jsonld_context, dict(format_kwargs))
     dataset = Dataset()
     if data is not None:
-        dataset.parse(data=data, format=fmt, publicID=base, **parse_kwargs)
+        dataset.parse(data=data, format=fmt, base_iri=base, **parse_kwargs)
     elif source is not None:
-        dataset.parse(source=source, format=fmt, publicID=base, **parse_kwargs)
+        dataset.parse(source=source, format=fmt, base_iri=base, **parse_kwargs)
     else:
         raise ValueError("parse_into_dataset requires source= or data=.")
     if bind_prefixes:
@@ -76,7 +76,7 @@ def parse_url_into_dataset(
     timeout: float = 30.0,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Dataset:
     """Parse RDF from a URL into a :class:`~triplemodel.store.RdfDataset`."""
     fmt = infer_format(url, format)
@@ -87,7 +87,7 @@ def parse_url_into_dataset(
         base=base,
         bind_prefixes=bind_prefixes,
         jsonld_context=jsonld_context,
-        **rdflib_kwargs,
+        **format_kwargs,
     )
 
 
@@ -99,7 +99,7 @@ def load_dataset(
     base: str | None = None,
     bind_prefixes: Mapping[str, str] | None = None,
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> Dataset:
     """Parse RDF into an in-memory dataset (alias for :func:`parse_into_dataset`)."""
     return parse_into_dataset(
@@ -109,7 +109,7 @@ def load_dataset(
         base=base,
         bind_prefixes=bind_prefixes,
         jsonld_context=jsonld_context,
-        **rdflib_kwargs,
+        **format_kwargs,
     )
 
 
@@ -119,10 +119,10 @@ def dump_dataset(
     *,
     format: str = "trig",
     jsonld_context: dict[str, Any] | str | None = None,
-    **rdflib_kwargs: Any,
+    **format_kwargs: Any,
 ) -> str | bytes | None:
     """Serialize ``dataset`` to a string, bytes, or file."""
-    ser_kwargs = merge_jsonld_kwargs(format, jsonld_context, dict(rdflib_kwargs))
+    ser_kwargs = merge_jsonld_kwargs(format, jsonld_context, dict(format_kwargs))
     return dataset.serialize(
         destination=destination,
         format=format,

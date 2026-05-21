@@ -13,7 +13,7 @@ These guides explain how to use TripleModel **0.10.x** in order of increasing co
 | 6 | {doc}`06-namespaces-and-curies` | Prefixes, compact predicates |
 | 7 | {doc}`07-custom-literals-and-types` | Registry, `Decimal`, `Enum` |
 | 8 | {doc}`08-working-with-graphs` | Batch export/import, helpers |
-| 10 | {doc}`10-file-io` | Parse/serialize files, base URI, SHACL |
+| 10 | {doc}`10-file-io` | Parse/serialize files, base URI |
 | 11 | {doc}`11-real-world-patterns` | Multi-class load, Wikidata typing, `ref_field`, `gYear` |
 | 12 | {doc}`12-datasets-and-named-graphs` | `Rdf.graph_iri`, `Dataset`, TriG / N-Quads |
 | 13 | {doc}`13-sparql-and-endpoints` | SPARQL SELECT/CONSTRUCT/ASK/UPDATE, remote endpoints |

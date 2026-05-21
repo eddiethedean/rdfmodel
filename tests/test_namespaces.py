@@ -66,7 +66,7 @@ def test_bind_namespaces_strategies():
     g = Graph()
     bind_namespaces(g, {"ex": EX}, strategy="none")
     bind_namespaces(g, {"foaf": FOAF}, strategy="core")
-    bind_namespaces(g, {}, strategy="rdflib")
+    bind_namespaces(g, {}, strategy="core")
 
 
 def test_rdf_prefixes_as_list_of_tuples_roundtrip():

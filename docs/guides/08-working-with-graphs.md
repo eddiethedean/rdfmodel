@@ -41,7 +41,7 @@ people = load_models("people.ttl", Person)
 dump_model(people[0], "alice.ttl", format="turtle")
 ```
 
-See {doc}`10-file-io` for `parse_url`, subclass `dispatch=True`, and SHACL.
+See {doc}`10-file-io` for `parse_url` and subclass `dispatch=True`.
 
 ## Merge graphs
 

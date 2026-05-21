@@ -25,7 +25,7 @@ _LEGACY_STORE_ALIASES: dict[str, str] = {
 
 
 def coerce_store_name(store: str, *, stacklevel: int = 2) -> str:
-    """Normalize ``store``; map deprecated rdflib backend names to ``disk``."""
+    """Normalize ``store``; map legacy backend alias names to ``disk``."""
     key = store.strip().lower()
     if key in _LEGACY_STORE_ALIASES:
         warnings.warn(

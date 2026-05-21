@@ -19,13 +19,17 @@ def test_warn_ignored_parse_supported_kwargs() -> None:
             "without_named_graphs": True,
             "rename_blank_nodes": False,
             "base": "http://example.org/",
-            "publicID": "http://example.org/base/",
         }
     )
     assert out["lenient"] is True
     assert out["without_named_graphs"] is True
     assert out["rename_blank_nodes"] is False
     assert out["base_iri"] == "http://example.org/"
+
+
+def test_warn_ignored_parse_legacy_publicid() -> None:
+    out = warn_ignored_parse_kwargs({"publicID": "http://example.org/base/"})
+    assert out == {}
 
 
 def test_warn_ignored_parse_unsupported() -> None:

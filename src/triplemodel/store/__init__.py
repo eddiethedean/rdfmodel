@@ -1,4 +1,4 @@
-"""pyoxigraph-backed RDF store with rdflib-compatible helpers."""
+"""pyoxigraph-backed RDF store."""
 
 from pyoxigraph import BlankNode, Literal, NamedNode, Quad, Store as OxigraphStore
 

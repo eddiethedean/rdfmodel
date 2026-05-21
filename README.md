@@ -20,7 +20,7 @@ Person(slug="alice", name="Alice")  →  (ex:alice, foaf:name, "Alice")  →  Pe
 
 TripleModel is the **mapping layer** between Pydantic-shaped domain models and RDF triples: subject IRIs, XSD literals, nested resources, `rdf:List`, language tags, graph sync, and file parse/serialize. It is **stateless** (no ORM session); [SparqlModel](https://github.com/eddiethedean/sqarqlmodel) (sessions, SPARQL, ORM) builds on top — see the [ecosystem guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/ECOSYSTEM.md).
 
-> **0.10.1 is beta.** Public API is frozen from 0.9 until 1.0 — see [API stability](https://github.com/eddiethedean/triplemodel/blob/main/docs/API_STABILITY.md), [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md), [migration guide](https://github.com/eddiethedean/triplemodel/blob/main/docs/MIGRATION_0.10.md), and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md). Optional extra: `pip install triplemodel[shacl]`.
+> **0.11.0 is beta.** Public API is frozen from 0.9 until 1.0 — see [API stability](https://github.com/eddiethedean/triplemodel/blob/main/docs/API_STABILITY.md), [changelog](https://github.com/eddiethedean/triplemodel/blob/main/CHANGELOG.md), [migration guides](https://github.com/eddiethedean/triplemodel/blob/main/docs/MIGRATION_0.10.md), and [roadmap](https://github.com/eddiethedean/triplemodel/blob/main/docs/ROADMAP.md).
 
 ## Install
 
@@ -77,7 +77,6 @@ Unmapped fields are ignored on export/import — useful for computed or applicat
 | **File I/O** | `parse` / `parse_file` / `parse_url`, `serialize`, `load_graph`, `load_dataset`, `load_models`, `load_models_from_graph`, `load_models_from_dataset`, `dump_model` (Turtle, TriG, N-Triples, JSON-LD, …) |
 | **Dispatch** | `parse(..., dispatch=True)`, `graph_to_model_dispatch`, `all_from_graph_dispatch` by `rdf:type` |
 | **Inverse predicates** | `rdf_field(..., inverse=...)` for import; forward predicate on export |
-| **Validation** | Optional SHACL via `triplemodel[shacl]` and `shacl_shapes=` on export |
 | **Package typing** | PEP 561 `py.typed` |
 | **SPARQL** | `ask`, `construct_models`, `select_models`, `load_sparql`, `apply_update`, `prepare_model_query` |
 | **Graph algorithms** | `graphs_equal`, `graph_diff`, `model_diff`, `cbd_graph` / `cbd_model`, `hydrate_refs`, `model_join` |
@@ -165,7 +164,7 @@ Runnable version: [`examples/exit_criteria_03.py`](examples/exit_criteria_03.py)
 | `graph_mode` | Default `to_graph` mode when `mode=` is omitted |
 | `blank_node_policy` | `"fresh"` or `"stable"` nested bnodes |
 | `skolemize_export` / `skolemize_import` | Blank-node skolemization defaults |
-| `base_uri` | Default `publicID` for resolving relative IRIs on parse |
+| `base_uri` | Default base IRI for resolving relative IRIs on parse |
 | `jsonld_context` | Reserved for API stability; **not applied** on pyoxigraph (issues `UserWarning`) |
 
 Override the subject per call with `uri=` when the IRI still lives under `namespace`:
@@ -335,7 +334,7 @@ Details: [user guides](https://triplemodel.readthedocs.io/en/latest/guides/index
 ```bash
 git clone https://github.com/eddiethedean/triplemodel.git && cd triplemodel
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev,shacl,docs]"
+pip install -e ".[dev,docs]"
 make ci              # pytest, lint, docs (matches GitHub Actions)
 make release-check   # before tagging: examples + twine check
 ```

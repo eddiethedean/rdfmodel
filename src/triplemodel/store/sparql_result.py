@@ -1,4 +1,4 @@
-"""SPARQL result wrappers compatible with former rdflib ``Result`` usage."""
+"""SPARQL result wrappers for query results."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ SparqlResultKind = Literal[
 
 
 class Variable:
-    """Minimal SPARQL variable (rdflib-compatible ``Variable('x')``)."""
+    """Minimal SPARQL variable (e.g. ``Variable('x')``)."""
 
     __slots__ = ("_name",)
 

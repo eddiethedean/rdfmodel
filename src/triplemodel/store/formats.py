@@ -1,4 +1,4 @@
-"""Map format names to pyoxigraph ``RdfFormat`` and reject removed rdflib-era formats."""
+"""Map format names to pyoxigraph ``RdfFormat`` and reject unsupported legacy formats."""
 
 from __future__ import annotations
 

@@ -84,7 +84,7 @@ from triplemodel.plugins import (
 register_predicate_resolver(MyResolver)
 ```
 
-``register_parser``, ``register_serializer``, and ``register_store`` were removed in **0.10.0** (pyoxigraph has no rdflib plugin registry). See {doc}`../api/plugins` and {doc}`../MIGRATION_0.10`.
+``register_parser``, ``register_serializer``, and ``register_store`` were removed in **0.10.0** (pyoxigraph has no plugin registry). See {doc}`../api/plugins` and {doc}`../MIGRATION_0.10`.
 
 ## Codegen (experimental)
 

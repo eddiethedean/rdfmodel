@@ -41,7 +41,7 @@ def register_predicate_resolver(
 
 def _removed_plugin_api(name: str, *_args: object, **_kwargs: object) -> None:
     warnings.warn(
-        f"triplemodel.plugins.{name} was removed in 0.10.0 (pyoxigraph has no rdflib plugin registry).",
+        f"triplemodel.plugins.{name} was removed in 0.10.0 (pyoxigraph has no plugin registry).",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -51,12 +51,12 @@ def _removed_plugin_api(name: str, *_args: object, **_kwargs: object) -> None:
 
 
 def register_parser(name: str, module_path: str, class_name: str) -> None:
-    """Removed in 0.10.0 — pyoxigraph does not use rdflib parser plugins."""
+    """Removed in 0.10.0 — pyoxigraph has no parser plugin registry."""
     _removed_plugin_api("register_parser", name, module_path, class_name)
 
 
 def register_serializer(name: str, module_path: str, class_name: str) -> None:
-    """Removed in 0.10.0 — pyoxigraph does not use rdflib serializer plugins."""
+    """Removed in 0.10.0 — pyoxigraph has no serializer plugin registry."""
     _removed_plugin_api("register_serializer", name, module_path, class_name)
 
 

@@ -60,7 +60,6 @@ bind_namespaces(graph, {"foaf": "http://xmlns.com/foaf/0.1/"}, strategy="core")
 | `strategy` | Effect |
 |------------|--------|
 | `"core"` | `graph.bind(prefix, namespace)` for each entry |
-| `"rdflib"` | Legacy alias for `"core"` (records prefixes on the `Store` only) |
 | `"none"` | No-op |
 
 Pass `bind=False` to module-level `sync_to_graph` or `model_to_graph` when merging into a graph that already has prefix bindings.

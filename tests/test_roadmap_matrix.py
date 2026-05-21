@@ -1,4 +1,4 @@
-"""Guard rdflib coverage matrix: no stray 'planned' status in ROADMAP table."""
+"""Guard ROADMAP coverage matrix: no stray 'planned' status in ROADMAP table."""
 
 from __future__ import annotations
 

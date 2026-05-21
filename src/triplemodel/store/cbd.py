@@ -1,4 +1,4 @@
-"""Concise bounded description (CBD) without rdflib."""
+"""Concise bounded description (CBD) over pyoxigraph stores."""
 
 from __future__ import annotations
 

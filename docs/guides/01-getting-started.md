@@ -89,7 +89,7 @@ ttl = alice.serialize(format="turtle")
 restored = Person.parse(data=ttl, format="turtle")[0]
 ```
 
-See {doc}`10-file-io` for `parse_file`, `parse_url`, format autodetection, and optional SHACL.
+See {doc}`10-file-io` for `parse_file`, `parse_url`, and format autodetection.
 
 See the {doc}`guides index <index>` for multi-value fields, sync/update semantics, nested models, and prefixes.
 

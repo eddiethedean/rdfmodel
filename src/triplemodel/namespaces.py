@@ -7,7 +7,7 @@ from typing import Literal, Protocol
 
 from triplemodel.terms.iri import looks_like_iri
 
-BindStrategy = Literal["core", "rdflib", "none"]
+BindStrategy = Literal["core", "none"]
 
 
 class _NamespaceBindable(Protocol):

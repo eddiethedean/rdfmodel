@@ -81,7 +81,7 @@ When a parent exports an embedded child, nested triples are written to the **par
 If you previously used rdflib’s `ConjunctiveGraph`, use TripleModel’s `Dataset` (from `triplemodel.io` or `load_dataset`):
 
 - Use `parse_into_dataset` / `load_dataset` instead of `parse_into_graph` for TriG and N-Quads.
-- `Rdf.base_uri` (`base=` / `publicID` on parse) resolves relative IRIs as before.
+- `Rdf.base_uri` (`base=` / `base_iri` on parse) resolves relative IRIs as before.
 
 ## Helpers
 

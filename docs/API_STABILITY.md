@@ -15,6 +15,17 @@ From **0.9.0**, the public API is frozen for downstream packages (including [Spa
 
 **Unchanged:** symbols in `triplemodel.__all__` for mapping (`TripleModel`, `rdf_field`, `to_graph`, `from_graph`, `sync_to_graph`, `load_models`, …) — method **names** kept; arguments expecting rdflib graphs now expect `Store`.
 
+## 0.11.0 rdflib cleanup exception
+
+**0.11.0** removes all remaining rdflib integration (see [MIGRATION_0.11.md](MIGRATION_0.11.md)):
+
+| Breaking | Detail |
+|----------|--------|
+| SHACL | `triplemodel[shacl]` extra, `validate_graph`, `shacl_shapes=` removed |
+| Parse/serialize kwargs | `**rdflib_kwargs` → `**format_kwargs` |
+| `bind_namespaces` | `strategy="rdflib"` removed (use `"core"`) |
+| Low-level parse | `publicID=` → `base_iri=` on `Store.parse` / `Dataset.parse` |
+
 ## Stable surface
 
 Import from the package root:
@@ -29,7 +40,7 @@ Symbols in `triplemodel.__all__` are **semver-stable** from 0.9 through 1.x for 
 
 | Module | Use |
 |--------|-----|
-| `triplemodel.plugins` | Literals, predicate resolvers (not rdflib plugins) |
+| `triplemodel.plugins` | Literals, predicate resolvers |
 | `triplemodel.io` | Advanced graph/dataset/SPARQL helpers |
 | `triplemodel.config` | `RdfConfig`, constants |
 | `triplemodel.vocab` | Bundled namespace objects |

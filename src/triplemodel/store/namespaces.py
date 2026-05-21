@@ -14,7 +14,7 @@ RDF_NIL = f"{RDF}nil"
 
 
 class _XSDNamespace:
-    """XSD datatype IRIs (``NamedNode``), matching former rdflib ``XSD`` usage."""
+    """XSD datatype IRIs as ``NamedNode`` values."""
 
     string = NamedNode(f"{XSD_BASE}string")
     boolean = NamedNode(f"{XSD_BASE}boolean")

@@ -107,12 +107,11 @@ from triplemodel.protocols import (
     register_rdf_resource,
     resolve_model_class,
 )
-from triplemodel.validation import validate_graph
 from triplemodel.terms import LiteralRegistry, default_registry, register_literal_type
 
 from triplemodel.store import Store
 
-__version__ = "0.10.1"
+__version__ = "0.11.0"
 
 __all__ = [
     "EmbedMode",
@@ -153,7 +152,6 @@ __all__ = [
     "quads_in_context",
     "resolve_graph_iri",
     "resolve_model_class",
-    "validate_graph",
     "LangString",
     "LiteralRegistry",
     "OpaqueLiteral",

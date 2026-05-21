@@ -77,7 +77,7 @@ class RdfGraph:
 
     @property
     def identifier(self) -> str | None:
-        """rdflib-compatible graph identifier (named graph IRI or ``None``)."""
+        """Named graph IRI for this view, or ``None`` for the default graph."""
         if isinstance(self._graph, NamedNode):
             return str(self._graph.value)
         return None
@@ -247,14 +247,14 @@ class RdfGraph:
         *,
         data: str | bytes | None = None,
         format: str | None = None,
-        publicID: str | None = None,
+        base_iri: str | None = None,
         **kwargs: Any,
     ) -> Self:
         ox_kwargs = warn_ignored_parse_kwargs(kwargs, stacklevel=3)
         if format is None:
             raise ValueError("parse() requires format=")
         rdf_format = to_rdf_format(format)
-        base = publicID
+        base = base_iri
         if data is not None:
             payload: str | bytes | io.IOBase
             if isinstance(data, str):

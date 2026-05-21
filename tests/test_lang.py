@@ -46,7 +46,7 @@ def test_annotated_lang_roundtrip():
 
     lit = list(g.objects(NamedNode(doc.subject_uri()), NamedNode(f"{DC}title")))[0]
     assert isinstance(lit, Literal)
-    assert lit.language == "en"  # noqa: SLF001 — rdflib Literal.language
+    assert lit.language == "en"  # noqa: SLF001 — literal language tag
     restored = TaggedTitle.from_graph(g, doc.subject_uri())
     assert restored.title == "Hello"
 

@@ -69,7 +69,7 @@ class RdfConfig:
     skolemize_export: bool = False
     skolemize_import: bool = False
     base_uri: str | None = None
-    """Default base IRI for ``Graph.parse`` (rdflib ``publicID``)."""
+    """Default base IRI for ``Graph.parse`` (``base_iri``)."""
     jsonld_context: dict[str, Any] | str | None = None
     """Reserved for API stability; not applied on pyoxigraph (warns if set)."""
     graph_iri: str | None = None
@@ -174,7 +174,7 @@ def get_graph_context(
     container: Graph | Dataset,
     graph_iri: str | None = None,
 ) -> Graph:
-    """Return the rdflib ``Graph`` context for triple I/O within ``container``."""
+    """Return the named-graph view for triple I/O within ``container``."""
     if not isinstance(container, Dataset):
         return container
     dataset = container

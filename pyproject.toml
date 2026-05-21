@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "triplemodel"
-version = "0.10.1"
+version = "0.11.0"
 description = "Pydantic TripleModel classes ↔ RDF triples via pyoxigraph (beta)."
 readme = "README.md"
 license = "MIT"
@@ -45,11 +45,6 @@ docs = [
     "sphinx-autodoc-typehints>=3.0,<4",
     "linkify-it-py>=2.0,<3",
 ]
-shacl = [
-    "pyshacl>=0.25",
-    "rdflib>=7.0,<8",
-]
-
 [project.scripts]
 triplemodel-codegen = "triplemodel.codegen.cli:main"
 
@@ -95,6 +90,7 @@ include = [
     "docs/guides",
     "docs/cookbook",
     "docs/API_STABILITY.md",
+    "docs/MIGRATION_0.11.md",
     "docs/COMPATIBILITY.md",
     "docs/conf.py",
     "docs/api",

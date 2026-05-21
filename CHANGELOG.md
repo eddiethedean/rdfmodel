@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-20
+
+### Breaking
+
+- **SHACL removed** — `triplemodel[shacl]` extra, `validate_graph`, and `shacl_shapes=` on `to_graph` / `to_dataset` / `serialize` are removed. Use `pyshacl` directly if you need SHACL validation.
+- **`**rdflib_kwargs`** renamed to **`**format_kwargs`** on parse/serialize helpers and `TripleModel.parse` / `serialize`.
+- **`bind_namespaces(..., strategy="rdflib")`** removed; use `"core"` (same behavior).
+- **`Graph.parse` / `Dataset.parse`** — `publicID=` renamed to `base_iri=`.
+
+See `docs/MIGRATION_0.11.md` for migration details.
+
+### Removed
+
+- **`triplemodel.validation`** package and all rdflib imports.
+- Direct **`rdflib`** dependency (previously only in `[shacl]` extra).
+
 ## [0.10.1] - 2026-05-20
 
 ### Fixed
