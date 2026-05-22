@@ -22,6 +22,7 @@ from triplemodel.terms.lang import (
     _direction_to_base,
 )
 from triplemodel.terms.opaque import OpaqueLiteral
+from triplemodel.terms.typed_literal import TypedLiteral
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
 RegistryLike = LiteralRegistry
@@ -41,6 +42,8 @@ def python_to_term(
     if isinstance(value, ResourceRef):
         return NamedNode(value.iri)
     if isinstance(value, OpaqueLiteral):
+        return value.to_literal()
+    if isinstance(value, TypedLiteral):
         return value.to_literal()
     if isinstance(value, MultiLangString):
         raise TypeError(
@@ -147,6 +150,13 @@ def term_to_python(
     """Deserialize an RDF term to a Python value."""
     if isinstance(term, Triple):
         raise TypeError("RDF-star triple terms cannot be converted to Python values.")
+    if target_type is TypedLiteral:
+        if not isinstance(term, Literal):
+            raise TypeError(
+                f"Cannot convert {term!r} to TypedLiteral; expected a literal."
+            )
+        return TypedLiteral.from_literal(term)
+
     if isinstance(term, NamedNode):
         if target_type is ResourceRef:
             return ResourceRef(str(term.value))

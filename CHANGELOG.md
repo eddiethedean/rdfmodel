@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`MultiLangString`** — one model field for multiple `@lang` literals on a single predicate; round-trips through `from_graph`, `sync_to_graph`, and `model_to_triples`. Closes [#1](https://github.com/eddiethedean/triplemodel/issues/1).
+- **`TypedLiteral`** / **`TypedLiteralList`** — `set[TypedLiteral]` and `list[TypedLiteral]` preserve per-object XSD datatypes on one predicate. Closes [#2](https://github.com/eddiethedean/triplemodel/issues/2).
 
 ## [0.11.0] - 2026-05-20
 

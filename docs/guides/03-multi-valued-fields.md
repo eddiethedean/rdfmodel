@@ -19,6 +19,35 @@ On import, duplicate objects in the graph collapse to one set member. Export ord
 - **`None` elements** are skipped on export.
 - **Empty set** `set()` exports no triples for that predicate.
 
+## `set[TypedLiteral]` — per-object XSD datatypes
+
+Use **`set[TypedLiteral]`** (or **`list[TypedLiteral]`** for an ordered `rdf:List`) when several objects on one predicate may each carry a **different** ``^^datatype`` IRI. This differs from **`set[int]`** with **`literal_datatype=`**, which forces the same XSD type on every object.
+
+```python
+from triplemodel import TypedLiteral, TripleModel, rdf_field
+from triplemodel.store.namespaces import XSD
+
+class Measured(TripleModel):
+    class Rdf:
+        namespace = "http://example.org/"
+        id_field = "slug"
+
+    slug: str
+    amount: set[TypedLiteral] = rdf_field(
+        "http://example.org/amount", default_factory=set
+    )
+
+m = Measured(
+    slug="m1",
+    amount={
+        TypedLiteral("1", str(XSD.integer.value)),
+        TypedLiteral("1.0", str(XSD.decimal.value)),
+    },
+)
+```
+
+Import keeps both literals (same lexical form, different datatypes). Duplicate **identical** `(value, datatype)` pairs respect `on_duplicate` on `from_graph`. For a single scalar with an unknown datatype, use **`OpaqueLiteral`** instead.
+
 ## Scalars vs collections
 
 | Field shape | Multiple objects in graph |

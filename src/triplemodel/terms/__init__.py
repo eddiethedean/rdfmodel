@@ -4,6 +4,7 @@ from triplemodel.terms.collection import read_rdf_list, remove_rdf_list, write_r
 from triplemodel.terms.convert import python_to_term, term_to_python
 from triplemodel.terms.lang import Lang, LangString, MultiLangString
 from triplemodel.terms.opaque import OpaqueLiteral
+from triplemodel.terms.typed_literal import TypedLiteral, TypedLiteralList
 from triplemodel.terms.iri import looks_like_iri, subject_node, subject_ref
 from triplemodel.terms.registry import (
     LiteralRegistry,
@@ -19,6 +20,8 @@ __all__ = [
     "LangString",
     "MultiLangString",
     "OpaqueLiteral",
+    "TypedLiteral",
+    "TypedLiteralList",
     "LiteralRegistry",
     "read_rdf_list",
     "remove_rdf_list",
