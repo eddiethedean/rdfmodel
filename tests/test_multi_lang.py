@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import warnings
+from typing import cast
 
+import pytest
 from pyoxigraph import Literal, NamedNode
 
 from triplemodel import (
@@ -31,6 +33,31 @@ class Resource(TripleModel):
 
     slug: str
     label: MultiLangString = rdf_field(RDFS_LABEL)
+
+
+def test_multi_lang_by_lang_is_immutable():
+    from types import MappingProxyType
+
+    res = Resource(slug="r1", label=MultiLangString(en="Hello"))
+    assert isinstance(res.label.by_lang, MappingProxyType)
+    before = dict(res.label.by_lang)
+    with pytest.raises(TypeError):
+        cast("dict[str, LangString]", res.label.by_lang)["fr"] = LangString("x", "fr")
+    assert dict(res.label.by_lang) == before
+
+
+def test_multi_lang_normalizes_language_tag_case_on_import():
+    from pyoxigraph import NamedNode
+
+    res = Resource(slug="r1", label=MultiLangString())
+    g = res.to_graph()
+    subj = NamedNode(f"{EX}r1")
+    pred = NamedNode(RDFS_LABEL)
+    g.add((subj, pred, Literal("Hello", language="EN")))
+    g.add((subj, pred, Literal("Bonjour", language="fr")))
+    restored = Resource.from_graph(g, f"{EX}r1")
+    assert restored.label["en"] == LangString("Hello", "en")
+    assert restored.label["fr"] == LangString("Bonjour", "fr")
 
 
 def test_multi_lang_roundtrip():

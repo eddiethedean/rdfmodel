@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from pyoxigraph import Literal, NamedNode
@@ -92,6 +93,8 @@ def test_open_graph_disk_create_false_missing(tmp_path: Path) -> None:
 
 
 def test_open_graph_disk_read_only(tmp_path: Path) -> None:
+    from triplemodel.store.ops import store_flush
+
     store_dir = tmp_path / "ro-store"
     g = open_graph("disk", str(store_dir))
     subj = NamedNode(f"{EX}bob")
@@ -101,9 +104,44 @@ def test_open_graph_disk_read_only(tmp_path: Path) -> None:
     g_ro = open_graph("disk", str(store_dir), read_only=True)
     try:
         assert len(g_ro) >= 1
+        store_flush(g_ro)
     finally:
         g_ro.close()
     destroy_store(str(store_dir), store="disk")
+
+
+def test_store_flush_reraises_unrelated_runtime_error() -> None:
+    from triplemodel.store import RdfGraph
+    from triplemodel.store.ops import store_flush
+
+    class FlushStore:
+        def flush(self) -> None:
+            raise RuntimeError("disk full")
+
+    g = RdfGraph(store=cast(Any, FlushStore()))
+    with pytest.raises(RuntimeError, match="disk full"):
+        store_flush(g)
+
+
+def test_graph_close_flush_failure_warns(monkeypatch: pytest.MonkeyPatch) -> None:
+    import warnings
+
+    from triplemodel.store.ops import store_flush as real_flush
+
+    def boom(graph):  # type: ignore[no-untyped-def]
+        raise OSError("flush failed")
+
+    monkeypatch.setattr("triplemodel.store.ops.store_flush", boom)
+    g = open_graph("memory")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        g.close()
+    assert any(
+        issubclass(w.category, ResourceWarning)
+        and "Failed to flush store" in str(w.message)
+        for w in caught
+    )
+    real_flush  # keep import used
 
 
 def test_graph_close_destroy_failure(tmp_path: Path, monkeypatch) -> None:

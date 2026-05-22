@@ -85,6 +85,9 @@ def test_graph_algorithms_helpers_importable_from_top_level() -> None:
         "subjects_via_back_populates",
         "models_via_back_populates",
         "Transitive",
+        "MultiLangString",
+        "TypedLiteral",
+        "TypedLiteralList",
     ):
         assert name in triplemodel.__all__
         assert getattr(triplemodel, name) is not None

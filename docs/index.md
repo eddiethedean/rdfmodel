@@ -83,7 +83,10 @@ releasing
 
 - **Pydantic v2** with declarative RDF mapping (`class Rdf`, `rdf_field`, `Predicate`)
 - **Multi-valued fields** — `set[T]` for multiple objects per predicate; `list[T]` for ordered `rdf:List`
-- **Language tags & opaque literals** — `LangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef`
+- **Language tags & opaque literals** — `LangString`, `MultiLangString`, `Lang()`, `OpaqueLiteral`, `ResourceRef`
+- **Typed literals per object** — `TypedLiteral`, `TypedLiteralList` on `set` / `list` fields
+- **Ontology hints** — `OntologyRegistry`, `apply_hints_to_model` (`owl:inverseOf`, subclasses)
+- **Paired inverse metadata** — `BackPopulates`, `inverse_pair`, `subjects_via_back_populates`
 - **Nested models** — embed child `TripleModel` resources (IRI or experimental blank node)
 - **Sync modes** — `sync_to_graph` and `to_graph(..., mode=)` (`add`, `replace`, `patch`)
 - **Prefixes & CURIEs** — `Rdf.prefixes`, compact predicates, Turtle `PREFIX` output

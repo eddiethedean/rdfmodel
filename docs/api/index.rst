@@ -32,5 +32,8 @@ Module reference
    vocab_registry
    cardinality
    types
+   terms_lang
+   terms_typed_literal
+   ontology_registry
    protocols
    vocab

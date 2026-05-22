@@ -39,8 +39,10 @@ class OntologyRegistry:
 
     _graph: Graph | None = None
     _parent_to_children: dict[str, set[str]] = field(default_factory=dict)
-    _inverse_forward: dict[str, str] = field(default_factory=dict)
-    _inverse_reverse: dict[str, str] = field(default_factory=dict)
+    _registered_inverse_forward: dict[str, str] = field(default_factory=dict)
+    _registered_inverse_reverse: dict[str, str] = field(default_factory=dict)
+    _graph_inverse_forward: dict[str, str] = field(default_factory=dict)
+    _graph_inverse_reverse: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_graph(cls, graph: Graph) -> OntologyRegistry:
@@ -69,6 +71,8 @@ class OntologyRegistry:
     def load_graph(self, graph: Graph) -> None:
         """Use ``graph`` for :meth:`subtypes_of` and :meth:`inverse_of` queries."""
         self._graph = graph
+        self._graph_inverse_forward.clear()
+        self._graph_inverse_reverse.clear()
         self._index_inverse_from_graph(graph)
 
     def register_subclasses(
@@ -83,8 +87,8 @@ class OntologyRegistry:
 
     def register_inverse(self, forward_predicate: str, inverse_predicate: str) -> None:
         """Register an ``owl:inverseOf`` pair (both directions are queryable)."""
-        self._inverse_forward[forward_predicate] = inverse_predicate
-        self._inverse_reverse[inverse_predicate] = forward_predicate
+        self._registered_inverse_forward[forward_predicate] = inverse_predicate
+        self._registered_inverse_reverse[inverse_predicate] = forward_predicate
 
     def subtypes_of(self, type_uri: str) -> frozenset[str]:
         """Return ``type_uri`` and all registered or inferred **subclass** IRIs."""
@@ -98,10 +102,14 @@ class OntologyRegistry:
 
     def inverse_of(self, predicate_uri: str) -> str | None:
         """Return the inverse property IRI for ``predicate_uri``, if known."""
-        if predicate_uri in self._inverse_forward:
-            return self._inverse_forward[predicate_uri]
-        if predicate_uri in self._inverse_reverse:
-            return self._inverse_reverse[predicate_uri]
+        if predicate_uri in self._registered_inverse_forward:
+            return self._registered_inverse_forward[predicate_uri]
+        if predicate_uri in self._registered_inverse_reverse:
+            return self._registered_inverse_reverse[predicate_uri]
+        if predicate_uri in self._graph_inverse_forward:
+            return self._graph_inverse_forward[predicate_uri]
+        if predicate_uri in self._graph_inverse_reverse:
+            return self._graph_inverse_reverse[predicate_uri]
         if self._graph is None:
             return None
         pred = NamedNode(predicate_uri)
@@ -131,8 +139,8 @@ class OntologyRegistry:
                 if isinstance(obj, NamedNode):
                     forward = term_str(subj)
                     inverse = term_str(obj)
-                    self._inverse_forward[forward] = inverse
-                    self._inverse_reverse[inverse] = forward
+                    self._graph_inverse_forward[forward] = inverse
+                    self._graph_inverse_reverse[inverse] = forward
 
 
 def apply_hints_to_model(
@@ -179,9 +187,9 @@ def apply_hints_to_model(
                 else {}
             )
             merged["rdf_inverse"] = inv
-            new_fields[name] = FieldInfo.merge_field_infos(
+            new_fields[name] = FieldInfo.merge_field_infos(  # ty: ignore[deprecated]
                 field_info,
-                json_schema_extra=cast(dict[str, object], merged),
+                json_schema_extra=merged,
             )
             changed = True
 

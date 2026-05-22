@@ -264,6 +264,38 @@ def _validate_link(link: _PendingLink) -> bool:
     return True
 
 
+def _misconfigured_pending_reason(link: _PendingLink) -> str | None:
+    """Return an error message when the peer model exists but the link is invalid."""
+    try:
+        peer_model = _resolve_model_qualname(link.peer_model_qualname)
+    except LookupError:
+        return None
+    if link.field not in link.owner.model_fields:
+        return (
+            f"{link.owner.__name__}: back_populates references missing field "
+            f"{link.field!r}."
+        )
+    peer_fields = peer_model.model_fields
+    if link.peer_field not in peer_fields:
+        return (
+            f"{link.owner.__name__}.{link.field}: back_populates references missing "
+            f"field {link.peer_field!r} on {peer_model.__name__}."
+        )
+    peer_info = peer_fields[link.peer_field]
+    if back_populates_for_field(peer_info, owner=peer_model) is not None:
+        return None
+    peer_extra = peer_info.json_schema_extra
+    if isinstance(peer_extra, dict) and (
+        peer_extra.get(_BACK_POPULATES_FIELD) is not None
+        and peer_extra.get(_BACK_POPULATES_MODEL) is not None
+    ):
+        return None
+    return (
+        f"{peer_model.__name__}.{link.peer_field} must declare back_populates "
+        f"to {link.owner.__name__}.{link.field!r}."
+    )
+
+
 def register_back_populates(model_cls: type[BaseModel]) -> None:
     """Record and validate ``back_populates`` links declared on ``model_cls``."""
     for name, field_info in model_cls.model_fields.items():
@@ -287,6 +319,10 @@ def register_back_populates(model_cls: type[BaseModel]) -> None:
         if _validate_link(link):
             continue
         still_pending.append(link)
+    for link in still_pending:
+        msg = _misconfigured_pending_reason(link)
+        if msg is not None:
+            raise ValueError(msg)
     _PENDING_LINKS[:] = still_pending
 
 

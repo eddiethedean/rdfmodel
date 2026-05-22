@@ -76,6 +76,8 @@ nicks = objects_for_field(g, uri, Person, "nick")  # list[str] for list fields
 
 These helpers use the model’s predicate resolution (including CURIE expansion from `Rdf.prefixes`).
 
+For **`MultiLangString`** fields, `graph_value` returns a `MultiLangString`, while `objects_for_field` returns `list[LangString]`. `graph_set` does not accept `MultiLangString` — update the model and use `sync_to_graph` instead (see {doc}`09-rdf-lists-and-lang`).
+
 ## Low-level triple access
 
 ```python

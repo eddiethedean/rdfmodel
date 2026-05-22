@@ -187,7 +187,12 @@ def store_flush(graph: Graph) -> None:
     """Flush pending writes on an on-disk store (no-op if unsupported)."""
     flush = getattr(graph.store, "flush", None)
     if callable(flush):
-        flush()
+        try:
+            flush()
+        except RuntimeError as exc:
+            if "read-write" in str(exc).lower():
+                return
+            raise
 
 
 def list_named_graphs(graph: Graph) -> list[str]:

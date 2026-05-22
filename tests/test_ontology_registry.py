@@ -143,8 +143,23 @@ def test_index_skips_non_named_inverse_subjects():
     bnode = BlankNode("inv1")
     g.add((bnode, NamedNode(f"{OWL}inverseOf"), NamedNode(PART)))
     reg = OntologyRegistry.from_graph(g)
-    assert reg._inverse_forward == {}
+    assert reg._graph_inverse_forward == {}
     assert reg.inverse_of(HAS) is None
+
+
+def test_load_graph_clears_stale_graph_inverse_index():
+    g_with_inverse = Graph()
+    g_with_inverse.parse(str(FIXTURE), format="turtle")
+    reg = OntologyRegistry.from_graph(g_with_inverse)
+    assert reg.inverse_of(HAS) == PART
+
+    g_empty = Graph()
+    reg.load_graph(g_empty)
+    assert reg.inverse_of(HAS) is None
+    assert reg.inverse_of(PART) is None
+
+    reg.register_inverse(HAS, PART)
+    assert reg.inverse_of(HAS) == PART
 
 
 def test_apply_hints_skips_unresolved_predicate_and_no_inverse():

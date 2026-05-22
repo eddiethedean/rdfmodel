@@ -53,7 +53,12 @@ from triplemodel.metadata.cardinality import (
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.collection import read_rdf_list
 from triplemodel.terms.convert import term_to_python
-from triplemodel.terms.lang import LangString, MultiLangString, _base_direction_name
+from triplemodel.terms.lang import (
+    LangString,
+    MultiLangString,
+    _base_direction_name,
+    normalize_lang_tag,
+)
 from triplemodel.terms.typed_literal import TypedLiteral
 from triplemodel.terms.iri import normalize_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
@@ -301,9 +306,10 @@ def import_multi_lang_field(
     for term in objects:
         if not isinstance(term, RdfLiteral):
             continue
-        lang = term.language
-        if lang is None:
+        raw_lang = term.language
+        if raw_lang is None:
             continue
+        lang = normalize_lang_tag(raw_lang)
         ls = LangString(
             str(term.value),
             lang,

@@ -51,6 +51,8 @@ Import hydrates the linked resource from the same graph. Export writes the URI l
 
 `ref_field` always follows **URI** semantics on import (the object must be a `URIRef`), regardless of the parent model’s `Rdf.embed` setting. Parent `embed` applies only to full nested embeds, not foreign-key links.
 
+For **bare IRIs** without hydrating a nested model type, use **`rdf_field`** with **`set[ResourceRef]`** or **`list[ResourceRef]`** (ordered list uses `rdf:List`). **`ref_field`** on `list[ResourceRef]` does not enable ref-collection import — use `rdf_field` for URI-only collections.
+
 ## XSD partial dates (`gYear`)
 
 ```python

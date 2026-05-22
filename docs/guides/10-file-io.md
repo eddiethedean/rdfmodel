@@ -107,7 +107,7 @@ class Organization(TripleModel):
     )
 ```
 
-At class creation, TripleModel validates that each side’s `back_populates` points back to the other field and that `inverse=` predicates match the peer’s forward predicate. Optional `Rdf.ontology_registry = OntologyRegistry(...)` checks `owl:inverseOf` in the ontology file.
+When both model classes are defined, TripleModel validates that each side’s `back_populates` points back to the other field and that `inverse=` predicates match the peer’s forward predicate. If the peer class exists but its field does not declare reciprocal `back_populates`, class creation raises `ValueError`. Links whose peer class is not imported yet stay pending until that class is defined (typical for split modules). Optional `Rdf.ontology_registry = OntologyRegistry(...)` checks `owl:inverseOf` in the ontology file.
 
 Read-only graph navigation (no ORM session):
 

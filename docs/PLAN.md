@@ -6,7 +6,7 @@ This document is the **strategic plan** for **TripleModel** (PyPI package **`tri
 
 ## Current status (0.12.0)
 
-**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.12.0`** — rdflib/SHACL removal, pyoxigraph store/I/O/SPARQL surface completion, migration guides (`docs/MIGRATION_0.10.md`, `docs/MIGRATION_0.11.md`), API stability exceptions (see {doc}`ROADMAP`).
+**Release-ready (beta) on `main`:** PyPI target **`triplemodel==0.12.0`** — additive SparqlModel 0.13 mapping parity (`MultiLangString`, `TypedLiteral`, `OntologyRegistry`, `BackPopulates`); prior breaking releases documented in `docs/MIGRATION_0.10.md` and `docs/MIGRATION_0.11.md` (see {doc}`ROADMAP`).
 
 **Next focus:** **1.0.0** — governance, security hardening for `parse_url`, production semver (see {doc}`ROADMAP`).
 

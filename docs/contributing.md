@@ -14,6 +14,8 @@ pip install -e ".[dev,docs]"
 
 ## Checks (match CI)
 
+The project disables the third-party **`pytest_green_light`** plugin in `pyproject.toml` (it injects an async autouse fixture into every test). If you still see hundreds of `ensure_greenlet_context` warnings, uninstall that package from your environment or run `pytest` from the repo root so project `addopts` apply.
+
 ```bash
 pytest
 ruff format --check src tests

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`OntologyRegistry.load_graph`** — clear graph-derived `owl:inverseOf` index before re-indexing (stale inverses after reload).
+- **`back_populates`** — raise `ValueError` when the peer class exists but its field lacks reciprocal metadata.
+- **`MultiLangString`** — immutable `by_lang` mapping; normalize language tags to lowercase on import.
+- **`store_flush`** — skip flush on read-only disk stores (no `ResourceWarning` on `close()`).
+
+### Changed
+
+- **Docs** — 0.12.x guides, API reference pages, ROADMAP matrix; pytest disables `pytest_green_light` in project config.
+
 ## [0.12.0] - 2026-05-22
 
 ### Added

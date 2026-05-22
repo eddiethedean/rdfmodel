@@ -26,6 +26,18 @@ From **0.9.0**, the public API is frozen for downstream packages (including [Spa
 | `bind_namespaces` | `strategy="rdflib"` removed (use `"core"`) |
 | Low-level parse | `publicID=` → `base_iri=` on `Store.parse` / `Dataset.parse` |
 
+## 0.12.0 additive release
+
+**0.12.0** adds mapping helpers only (no migration guide). New symbols in `triplemodel.__all__`:
+
+| API | Role |
+|-----|------|
+| `MultiLangString` | One field for several `@lang` literals on one predicate |
+| `TypedLiteral`, `TypedLiteralList` | Per-object XSD datatypes on `set` / `list` fields |
+| `OntologyRegistry`, `apply_hints_to_model` | OWL/RDFS subclass and inverse hints |
+| `BackPopulates`, `inverse_pair` | Paired-field metadata (SparqlModel parity) |
+| `subjects_via_back_populates`, `models_via_back_populates` | Read-only inverse navigation on a `Store` |
+
 ## Stable surface
 
 Import from the package root:
@@ -44,6 +56,10 @@ Symbols in `triplemodel.__all__` are **semver-stable** from 0.9 through 1.x for 
 | `triplemodel.io` | Advanced graph/dataset/SPARQL helpers |
 | `triplemodel.config` | `RdfConfig`, constants |
 | `triplemodel.vocab` | Bundled namespace objects |
+| `triplemodel.ontology_registry` | `OntologyRegistry`, `apply_hints_to_model` |
+| `triplemodel.terms.lang` | `LangString`, `MultiLangString`, `Lang` |
+| `triplemodel.terms.typed_literal` | `TypedLiteral`, `TypedLiteralList` |
+| `triplemodel.fields.back_populates` | `BackPopulates`, `register_back_populates` (internal) |
 
 ## Integrator tier (SparqlModel / Option A)
 

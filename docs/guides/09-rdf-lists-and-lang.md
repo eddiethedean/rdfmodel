@@ -75,9 +75,15 @@ class Term(TripleModel):
 term = Term(slug="t1", label=MultiLangString({"en": "Cat", "fr": "Chat"}))
 ```
 
-Import collects every object on the predicate that has a `language` tag (untagged literals are skipped). Export writes one triple per map entry. Conflicting values for the **same** language respect `on_duplicate` on `from_graph` (`"error"`, `"warn"`, or keep the first).
+Import collects every object on the predicate that has a `language` tag (untagged literals are skipped). Language tags are normalized to lowercase on import (for example `EN` and `en` map to the same key). Export writes one triple per map entry. Conflicting values for the **same** language respect `on_duplicate` on `from_graph` (`"error"`, `"warn"`, or keep the first).
 
 Pydantic accepts a plain `dict[str, str]` for the field value. Prefer **`MultiLangString`** when you want one field for a language map; use **`set[LangString]`** only if you need an unordered bag of tags without a single keyed map API.
+
+### Helpers and `MultiLangString`
+
+- **`graph_value(graph, subject, field)`** on a `MultiLangString` field returns a **`MultiLangString`** instance.
+- **`objects_for_field`** returns a **`list[LangString]`** (one per language), not a `MultiLangString`.
+- **`graph_set`** does not accept a `MultiLangString` value; update the model field and use **`sync_to_graph`** or assign on the instance before export.
 
 ## Related
 

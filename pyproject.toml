@@ -103,7 +103,13 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = ["--cov=triplemodel", "--cov-report=term-missing", "--cov-fail-under=100"]
+addopts = [
+    "-p",
+    "no:pytest_green_light",
+    "--cov=triplemodel",
+    "--cov-report=term-missing",
+    "--cov-fail-under=100",
+]
 [tool.coverage.run]
 source = ["triplemodel"]
 

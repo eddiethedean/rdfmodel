@@ -60,6 +60,11 @@ Status key: **done** · **partial** · **TBD** · **out of scope** (—)
 | | `Variable` | SPARQL result binding only (not model fields) | 0.6 **done** |
 | | RDF-star / quoted triples | pyoxigraph 0.5 dropped RDF-star; RDF 1.2 `Triple` terms **TBD** | **TBD** |
 | | `Literal.direction` (RDF 1.2 base direction) | extend `LangString` / literal registry | 0.11 **done** |
+| | Multiple `@lang` on one predicate | `MultiLangString` field type | 0.12 **done** |
+| | Per-object XSD datatypes on one predicate | `TypedLiteral`, `set` / `list` | 0.12 **done** |
+| | Multi-valued URI refs | `set[ResourceRef]`, `list[ResourceRef]` | 0.12 **done** |
+| | OWL/RDFS ontology hints | `OntologyRegistry`, `apply_hints_to_model` | 0.12 **done** |
+| | Paired inverse field metadata | `BackPopulates`, `inverse_pair`, navigation helpers | 0.12 **done** |
 | | RDF Containers (`Bag` / `Seq` / `Alt`) | **out of scope** (prefer `rdf:List` in 0.3) | — |
 | **Graph API** | `add` / triple iterators | `to_graph`, `model_to_triples` | 0.1 **done** |
 | | `remove` / `set` | sync cleared fields; functional-property `set` | 0.2 **done** |
@@ -542,4 +547,5 @@ Full boundaries: **[ECOSYSTEM.md](ECOSYSTEM.md)** · Strategy: **[PLAN.md](PLAN.
 | **0.10.0** | pyoxigraph engine | `Store`, disk store | **SM-7** |
 | **0.11.0** | rdflib/SHACL removed | API rename (`format_kwargs`, `base_iri`) | — |
 | **0.11.0** | pyoxigraph surface + rdflib removal | `bulk_load`, backup, query results, `LangString.direction` | RDF 1.2 `Triple` field values deferred |
+| **0.12.0** | SparqlModel 0.13 mapping parity (additive) | `MultiLangString`, `TypedLiteral`, `OntologyRegistry`, `BackPopulates` | No migration file (see `CHANGELOG`) |
 | **1.0.0** | Stable, documented, governed | oxigraph matrix frozen | **SM-5** pin `triplemodel` |

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, cast
 
 from pydantic_core import core_schema
@@ -11,6 +12,11 @@ from pydantic_core.core_schema import CoreSchema
 from pyoxigraph import BaseDirection
 
 _VALID_DIRECTIONS = frozenset({"ltr", "rtl", "auto"})
+
+
+def normalize_lang_tag(lang: str) -> str:
+    """Normalize an RDF language tag for map keys (case-insensitive per BCP 47)."""
+    return lang.lower()
 
 
 def _direction_to_base(value: str | BaseDirection | None) -> BaseDirection | None:
@@ -68,7 +74,7 @@ class MultiLangString:
     one triple per entry; import collects all language-tagged literals on the field.
     """
 
-    by_lang: dict[str, LangString]
+    by_lang: Mapping[str, LangString]
 
     def __init__(
         self,
@@ -78,16 +84,20 @@ class MultiLangString:
     ) -> None:
         combined: dict[str, str | LangString | None] = {}
         if mapping is not None:
-            combined.update(mapping)
-        combined.update(langs)
+            for lang, val in mapping.items():
+                combined[normalize_lang_tag(lang)] = val
+        for lang, val in langs.items():
+            combined[normalize_lang_tag(lang)] = val
         object.__setattr__(
             self,
             "by_lang",
-            {
-                lang: _lang_string_for_key(lang, val)
-                for lang, val in combined.items()
-                if val is not None
-            },
+            MappingProxyType(
+                {
+                    lang: _lang_string_for_key(lang, val)
+                    for lang, val in combined.items()
+                    if val is not None
+                }
+            ),
         )
 
     @classmethod

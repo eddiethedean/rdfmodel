@@ -12,9 +12,10 @@
 
 - [x] `version` `0.12.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
 - [x] Regenerate `examples/doc/outputs/` (`installation_version.txt` → `0.12.0`)
-- [ ] `make lint` and `make test` on `main`
-- [ ] Commit 0.12.0 version bump on `main`
-- [ ] **Tag and publish** — create `v0.12.0` when approved for PyPI
+- [x] Local gate: `make ci` (maintainer re-run before tag)
+- [x] Local gate: `make release-check` (maintainer re-run before tag)
+- [ ] Commit 0.12.0 remediation on `main` (if not already committed)
+- [ ] **Tag and publish** — create `v0.12.0` when approved for PyPI (deferred per maintainer)
 
 ```bash
 git tag -a v0.12.0 -m "Release 0.12.0"
@@ -42,9 +43,9 @@ git push origin v0.12.0
 - [x] Regenerate `examples/doc/outputs/` (`installation_version.txt` → `0.11.0`)
 - [x] Local gate: `make ci`
 - [x] Local gate: `make release-check`
-- [ ] Commit all 0.11.0 changes on `main` (rdflib removal + pyoxigraph surface)
+- [x] Commit all 0.11.0 changes on `main` (superseded by 0.12.0 on `main`)
 - [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
-- [ ] **Tag and publish** — create `v0.11.0` only when approved for PyPI (see below)
+- [ ] **Tag and publish** — create `v0.11.0` only when approved for PyPI (superseded; ship `v0.12.0` instead)
 
 **Publish (when tagging is approved)**
 
@@ -82,7 +83,7 @@ Watch the **Release** workflow on GitHub Actions; confirm [PyPI](https://pypi.or
 - [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
 - [ ] **Tag and publish** — create `v0.10.1` only when approved for PyPI (see below)
 
-**Not yet on PyPI:** confirm latest tag on GitHub; ship when `v0.10.1` / `v0.11.0` is pushed and the Release workflow runs.
+**PyPI:** confirm [pypi.org/project/triplemodel](https://pypi.org/project/triplemodel/) matches the latest tag on GitHub before publishing a new version.
 
 When publishing is approved:
 

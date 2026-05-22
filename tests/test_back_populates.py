@@ -403,8 +403,129 @@ def test_models_via_requires_back_populates():
         models_via_back_populates(Person.model_validate({"slug": "a"}), "slug", g)
 
 
-def test_validate_link_returns_false_without_peer_back_populates():
-    from triplemodel.fields.back_populates import _PendingLink, _validate_link
+def test_misconfigured_pending_reason_missing_owner_field(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from triplemodel.fields.back_populates import (
+        _PendingLink,
+        _misconfigured_pending_reason,
+    )
+
+    Person, _ = _define_models()
+    monkeypatch.setattr(
+        "triplemodel.fields.back_populates._resolve_model_qualname",
+        lambda _q: Person,
+    )
+    link = _PendingLink(
+        owner=Person,
+        field="no_such",
+        peer_model_qualname="x.Person",
+        peer_field="employer",
+    )
+    msg = _misconfigured_pending_reason(link)
+    assert msg is not None
+    assert "missing field 'no_such'" in msg
+
+
+def test_misconfigured_pending_reason_missing_peer_field(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from triplemodel.fields.back_populates import (
+        _PendingLink,
+        _misconfigured_pending_reason,
+    )
+
+    Person, Organization = _define_models()
+    monkeypatch.setattr(
+        "triplemodel.fields.back_populates._resolve_model_qualname",
+        lambda _q: Organization,
+    )
+    link = _PendingLink(
+        owner=Person,
+        field="employer",
+        peer_model_qualname="x.Organization",
+        peer_field="no_such",
+    )
+    msg = _misconfigured_pending_reason(link)
+    assert msg is not None
+    assert "missing field 'no_such'" in msg
+
+
+def test_misconfigured_pending_reason_defers_when_peer_back_populates_unresolved(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pydantic.fields import FieldInfo
+
+    from triplemodel.fields.back_populates import (
+        _BACK_POPULATES_FIELD,
+        _BACK_POPULATES_MODEL,
+        _PendingLink,
+        _misconfigured_pending_reason,
+        store_back_populates_extra,
+    )
+
+    Person, _ = _define_models()
+
+    class FakeOrg:
+        __name__ = "Organization"
+        model_fields = {
+            "linked_person": FieldInfo(
+                json_schema_extra={
+                    _BACK_POPULATES_FIELD: "employer",
+                    _BACK_POPULATES_MODEL: "tests.test_back_populates.Person",
+                }
+            ),
+        }
+
+    monkeypatch.setattr(
+        "triplemodel.fields.back_populates._resolve_model_qualname",
+        lambda _q: FakeOrg,
+    )
+    monkeypatch.setattr(
+        "triplemodel.fields.back_populates.back_populates_for_field",
+        lambda *_a, **_k: None,
+    )
+    link = _PendingLink(
+        owner=Person,
+        field="employer",
+        peer_model_qualname="x.Organization",
+        peer_field="linked_person",
+    )
+    assert _misconfigured_pending_reason(link) is None
+    store_back_populates_extra  # silence import lint in module
+
+
+def test_misconfigured_pending_reason_none_when_peer_reciprocal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from triplemodel.fields.back_populates import (
+        _PendingLink,
+        _misconfigured_pending_reason,
+    )
+
+    Person, Organization = _define_models()
+    monkeypatch.setattr(
+        "triplemodel.fields.back_populates._resolve_model_qualname",
+        lambda _q: Organization,
+    )
+    link = _PendingLink(
+        owner=Person,
+        field="employer",
+        peer_model_qualname=f"{Organization.__module__}.Organization",
+        peer_field="linked_person",
+    )
+    assert _misconfigured_pending_reason(link) is None
+
+
+def test_misconfigured_pending_reason_without_peer_back_populates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pydantic.fields import FieldInfo
+
+    from triplemodel.fields.back_populates import (
+        _PendingLink,
+        _misconfigured_pending_reason,
+    )
 
     class OnlyA(TripleModel):
         class Rdf:
@@ -421,23 +542,53 @@ def test_validate_link_returns_false_without_peer_back_populates():
             default=None,
         )
 
-    class OnlyB(TripleModel):
-        class Rdf:
-            namespace = EX
-            type_uri = f"{EX}OnlyB"
-            id_field = "slug"
-            prefixes = {"ex": EX}
+    class FakeOnlyB:
+        __name__ = "OnlyB"
+        model_fields = {"slug": FieldInfo(), "y": FieldInfo()}
 
-        slug: str
-        y: str | None = rdf_field(EE, default=None)
-
+    qual = f"{FakeOnlyB.__module__}.OnlyB"
+    monkeypatch.setattr(
+        "triplemodel.fields.back_populates._resolve_model_qualname",
+        lambda _q: FakeOnlyB,
+    )
     link = _PendingLink(
         owner=OnlyA,
         field="x",
-        peer_model_qualname=f"{OnlyB.__module__}.OnlyB",
+        peer_model_qualname=qual,
         peer_field="y",
     )
-    assert _validate_link(link) is False
+    msg = _misconfigured_pending_reason(link)
+    assert msg is not None
+    assert "must declare back_populates" in msg
+
+
+def test_register_back_populates_raises_when_peer_lacks_reciprocal():
+    with pytest.raises(ValueError, match="must declare back_populates"):
+
+        class PersonOne(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = f"{EX}PersonOne"
+                id_field = "slug"
+                prefixes = {"ex": EX}
+
+            slug: str
+            employer: str | None = rdf_field(
+                EMP,
+                inverse=EE,
+                back_populates=inverse_pair("OrgOne", "linked_person"),
+                default=None,
+            )
+
+        class OrgOne(TripleModel):
+            class Rdf:
+                namespace = EX
+                type_uri = f"{EX}OrgOne"
+                id_field = "slug"
+                prefixes = {"ex": EX}
+
+            slug: str
+            linked_person: str | None = rdf_field(EE, default=None)
 
 
 def test_validate_link_returns_false_for_unknown_peer():

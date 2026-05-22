@@ -74,7 +74,7 @@ m = Measured(
 )
 ```
 
-Import keeps both literals (same lexical form, different datatypes). Duplicate **identical** `(value, datatype)` pairs respect `on_duplicate` on `from_graph`. For a single scalar with an unknown datatype, use **`OpaqueLiteral`** instead.
+Import keeps both literals (same lexical form, different datatypes). For **`set[TypedLiteral]`**, duplicate **identical** `(value, datatype)` pairs respect `on_duplicate` on `from_graph`. For **`list[TypedLiteral]`** (`rdf:List`), duplicate entries in the list are preserved (no set-style deduplication). For a single scalar with an unknown datatype, use **`OpaqueLiteral`** instead.
 
 ## Scalars vs collections
 
