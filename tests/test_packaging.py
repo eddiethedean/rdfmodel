@@ -80,6 +80,10 @@ def test_graph_algorithms_helpers_importable_from_top_level() -> None:
         "VocabularyRegistry",
         "OntologyRegistry",
         "apply_hints_to_model",
+        "BackPopulates",
+        "inverse_pair",
+        "subjects_via_back_populates",
+        "models_via_back_populates",
         "Transitive",
     ):
         assert name in triplemodel.__all__

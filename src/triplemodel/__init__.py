@@ -18,12 +18,16 @@ from triplemodel.config import (
     subject_base,
 )
 from triplemodel.fields import (
+    BackPopulates,
     IriId,
     InverseOf,
     Predicate,
     Transitive,
+    inverse_pair,
+    models_via_back_populates,
     rdf_field,
     ref_field,
+    subjects_via_back_populates,
 )
 from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.terms.lang import Lang, LangString, MultiLangString
@@ -133,8 +137,12 @@ __all__ = [
     "GraphMode",
     "Store",
     "canonicalize_quads",
+    "BackPopulates",
     "IriId",
     "InverseOf",
+    "inverse_pair",
+    "models_via_back_populates",
+    "subjects_via_back_populates",
     "Lang",
     "all_from_dataset",
     "all_from_dataset_dispatch",
