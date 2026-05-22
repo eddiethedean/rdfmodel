@@ -3,7 +3,7 @@ API reference
 
 .. automodule:: triplemodel
    :members:
-   :exclude-members: Predicate, IriId, InverseOf, Transitive, RdfConfig, PreparedModelQuery, SparqlQueryForm
+   :exclude-members: Predicate, IriId, InverseOf, Transitive, BackPopulates, RdfConfig, PreparedModelQuery, SparqlQueryForm, inverse_pair, subjects_via_back_populates, models_via_back_populates
    :show-inheritance:
 
 Module reference
