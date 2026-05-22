@@ -19,6 +19,34 @@ On import, duplicate objects in the graph collapse to one set member. Export ord
 - **`None` elements** are skipped on export.
 - **Empty set** `set()` exports no triples for that predicate.
 
+## URI references (`set` / `list`)
+
+### `set[ResourceRef]` / `list[ResourceRef]`
+
+Multiple object IRIs on one predicate (unordered set or ordered `rdf:List`):
+
+```python
+from triplemodel import ResourceRef, TripleModel, rdf_field
+
+refs: set[ResourceRef] = rdf_field("http://example.org/mentions", default_factory=set)
+```
+
+### `ref_field` collections
+
+Link to related `TripleModel` classes without embedding each resource (URI-only objects in the graph):
+
+```python
+from triplemodel import TripleModel, ref_field
+
+tags: list[Tag] = ref_field("http://example.org/tagged", model=Tag, default_factory=list)
+```
+
+Use **`list[SomeModel]`** with `ref_field` for several URI links on one predicate (not an RDF list — one triple per member). Use **`set[ResourceRef]`** or **`list[ResourceRef]`** for bare IRIs (`list` uses an **`rdf:List`**). Pydantic model instances are not hashable, so `set[TripleModel]` with `ref_field` is rejected at class definition.
+
+Import hydrates each object URI into a `Tag` instance. Export writes one triple per member (`subject`, predicate, object IRI). Use `hydrate_refs(instances, graph, "tags")` to batch-load linked models and reuse one Python instance per shared URI.
+
+`list[TripleModel]` / `set[TripleModel]` **without** `ref_field` remain rejected (use a single nested embed field instead).
+
 ## `set[TypedLiteral]` — per-object XSD datatypes
 
 Use **`set[TypedLiteral]`** (or **`list[TypedLiteral]`** for an ordered `rdf:List`) when several objects on one predicate may each carry a **different** ``^^datatype`` IRI. This differs from **`set[int]`** with **`literal_datatype=`**, which forces the same XSD type on every object.

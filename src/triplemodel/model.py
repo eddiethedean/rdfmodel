@@ -71,10 +71,12 @@ class TripleModel(BaseModel):
         from triplemodel.metadata.cardinality import (
             raise_if_inverse_collection,
             raise_if_nested_collection,
+            raise_if_unhashable_ref_set,
         )
 
         for field_info in cls.model_fields.values():
             raise_if_nested_collection(field_info)
+            raise_if_unhashable_ref_set(field_info)
             raise_if_inverse_collection(field_info)
         from triplemodel.fields.validation import validate_model_predicates
 

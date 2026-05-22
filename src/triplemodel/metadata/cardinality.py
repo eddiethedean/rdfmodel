@@ -69,14 +69,34 @@ def raise_if_inverse_collection(field_info: FieldInfo) -> None:
         raise ValueError(_INVERSE_COLLECTION_MSG)
 
 
+_UNHASHABLE_REF_SET_MSG = (
+    "set[TripleModel] with ref_field is not supported; use list[...] "
+    "(Pydantic model instances are not hashable)."
+)
+
+
+def raise_if_unhashable_ref_set(field_info: FieldInfo) -> None:
+    """Reject ``set[TripleModel]`` on ``ref_field`` (use ``list`` instead)."""
+    if not _ref_link_for_field(field_info):
+        return
+    ann = unwrap_annotation(field_annotation(field_info))
+    if get_origin(ann) is not set:
+        return
+    inner = element_type(field_annotation(field_info))
+    if isinstance(inner, type) and is_triple_model_type(inner):
+        raise ValueError(_UNHASHABLE_REF_SET_MSG)
+
+
 def raise_if_nested_collection(field_info: FieldInfo) -> None:
-    """Reject ``list[TripleModel]`` / ``set[TripleModel]`` field annotations."""
+    """Reject embedded ``list[TripleModel]`` / ``set[TripleModel]`` (not ``ref_field``)."""
     ann = unwrap_annotation(field_annotation(field_info))
     origin = get_origin(ann)
     if origin not in (list, set):
         return
     inner = element_type(field_annotation(field_info))
     if isinstance(inner, type) and is_triple_model_type(inner):
+        if _ref_link_for_field(field_info):
+            return
         raise ValueError(_NESTED_COLLECTION_MSG)
 
 
@@ -141,9 +161,21 @@ def scalar_python_type(field_info: FieldInfo) -> type | None:
     return ann if isinstance(ann, type) else None
 
 
+def ref_collection_element_type(field_info: FieldInfo) -> type | None:
+    """Return linked model class for ``ref_field`` on ``set`` / ``list``, if any."""
+    if not _ref_link_for_field(field_info):
+        return None
+    if field_cardinality(field_info) not in ("list", "set"):
+        return None
+    inner = element_type(field_annotation(field_info))
+    if isinstance(inner, type) and is_triple_model_type(inner):
+        return inner
+    return None
+
+
 def nested_model_type(field_info: FieldInfo) -> type | None:
     """Return nested :class:`TripleModel` subclass for a field, if any."""
     ann = unwrap_annotation(field_annotation(field_info))
     if isinstance(ann, type) and is_triple_model_type(ann):
         return ann
-    return None
+    return ref_collection_element_type(field_info)

@@ -44,6 +44,7 @@ from triplemodel.metadata.predicate_map import (
 from triplemodel.metadata.cardinality import (
     field_cardinality,
     nested_model_type,
+    ref_collection_element_type,
     raise_if_inverse_collection,
     raise_if_nested_collection,
     scalar_python_type,
@@ -199,6 +200,34 @@ def _term_to_field(
     raise ValueError(f"{msg}: {last_exc}") from last_exc
 
 
+def _import_ref_resource(
+    graph: Graph,
+    term: OxTerm,
+    nested_type: type[BaseModel],
+    field_name: str,
+    predicate: str,
+    uri: str,
+    *,
+    on_duplicate: OnDuplicate,
+    registry: LiteralRegistry,
+    de_skolemize: bool,
+) -> BaseModel:
+    node = cast(Node, term)
+    if not is_named(node):
+        raise ValueError(
+            f"Cannot import ref field {field_name!r} from term {term!r}; "
+            "expected a URI resource."
+        )
+    return graph_to_model(
+        graph,
+        nested_type,
+        node,
+        on_duplicate=on_duplicate,
+        registry=registry,
+        de_skolemize=de_skolemize,
+    )
+
+
 def _import_set_field_values(
     objects: list[OxTerm],
     py_type: type | None,
@@ -352,12 +381,59 @@ def import_field_value(
         )
 
     if card == "list":
+        ref_cls = ref_collection_element_type(field_info)
+        if ref_cls is not None:
+            nested_type = cast(type[BaseModel], ref_cls)
+            return cast(
+                ModelFieldValue,
+                [
+                    cast(
+                        ModelFieldScalar,
+                        _import_ref_resource(
+                            graph,
+                            o,
+                            nested_type,
+                            field_name,
+                            predicate,
+                            uri,
+                            on_duplicate=on_duplicate,
+                            registry=registry,
+                            de_skolemize=de_skolemize,
+                        ),
+                    )
+                    for o in objects
+                ],
+            )
         if len(objects) > 1 and on_duplicate != "ignore":
             _handle_duplicate(field_name, predicate, uri, len(objects), on_duplicate)
         py_type = scalar_python_type(field_info)
         return read_rdf_list(graph, objects[0], py_type, registry=registry)
 
     if card == "set":
+        ref_cls = ref_collection_element_type(field_info)
+        if ref_cls is not None:
+            nested_type = cast(type[BaseModel], ref_cls)
+            loaded = [
+                cast(
+                    ModelFieldScalar,
+                    _import_ref_resource(
+                        graph,
+                        o,
+                        nested_type,
+                        field_name,
+                        predicate,
+                        uri,
+                        on_duplicate=on_duplicate,
+                        registry=registry,
+                        de_skolemize=de_skolemize,
+                    ),
+                )
+                for o in objects
+            ]
+            try:
+                return set(loaded)
+            except TypeError:
+                return loaded
         py_type = scalar_python_type(field_info)
         if transitive_for_field(field_info):
             pred_uri = predicate_for_field(field_info) or predicate

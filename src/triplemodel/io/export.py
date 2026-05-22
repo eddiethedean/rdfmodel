@@ -19,6 +19,7 @@ from triplemodel.metadata.predicate_map import predicate_map_for_class
 from triplemodel.terms.lang import LangString, MultiLangString
 from triplemodel.metadata.cardinality import (
     field_cardinality,
+    ref_collection_element_type,
     raise_if_inverse_collection,
     raise_if_nested_collection,
 )
@@ -100,6 +101,17 @@ def model_to_triples(
                 continue
             child_cfg = get_rdf_config(type(value))
             triples.append((subject, predicate, child_cfg.subject_uri(value)))
+            continue
+
+        ref_cls = ref_collection_element_type(field_info)
+        if card in ("set", "list") and ref_cls is not None:
+            if value is None:
+                continue
+            link_cfg = get_rdf_config(ref_cls)
+            for item in value:
+                if item is None:
+                    continue
+                triples.append((subject, predicate, link_cfg.subject_uri(item)))
             continue
 
         if card == "list":
