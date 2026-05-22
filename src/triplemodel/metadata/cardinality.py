@@ -12,6 +12,7 @@ from triplemodel.protocols import is_rdf_resource_class
 from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.terms.lang import LangString, MultiLangString
 from triplemodel.terms.opaque import OpaqueLiteral
+from triplemodel.terms.typed_literal import TypedLiteral
 
 FieldCardinality = Literal["scalar", "list", "set", "nested", "ref"]
 
@@ -135,6 +136,8 @@ def scalar_python_type(field_info: FieldInfo) -> type | None:
         return ResourceRef
     if ann is OpaqueLiteral:
         return OpaqueLiteral
+    if ann is TypedLiteral:
+        return TypedLiteral
     return ann if isinstance(ann, type) else None
 
 

@@ -28,6 +28,7 @@ from triplemodel.fields import (
 from triplemodel.fields.resource_ref import ResourceRef
 from triplemodel.terms.lang import Lang, LangString, MultiLangString
 from triplemodel.terms.opaque import OpaqueLiteral
+from triplemodel.terms.typed_literal import TypedLiteral, TypedLiteralList
 from triplemodel.vocab_registry import VocabularyRegistry
 from triplemodel.io import (
     OnDuplicate,
@@ -170,6 +171,8 @@ __all__ = [
     "MultiLangString",
     "LiteralRegistry",
     "OpaqueLiteral",
+    "TypedLiteral",
+    "TypedLiteralList",
     "OnDuplicate",
     "Predicate",
     "Transitive",

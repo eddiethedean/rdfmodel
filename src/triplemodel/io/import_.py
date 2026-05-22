@@ -53,6 +53,7 @@ from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.collection import read_rdf_list
 from triplemodel.terms.convert import term_to_python
 from triplemodel.terms.lang import LangString, MultiLangString, _base_direction_name
+from triplemodel.terms.typed_literal import TypedLiteral
 from triplemodel.terms.iri import normalize_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -198,6 +199,66 @@ def _term_to_field(
     raise ValueError(f"{msg}: {last_exc}") from last_exc
 
 
+def _import_set_field_values(
+    objects: list[OxTerm],
+    py_type: type | None,
+    field_name: str,
+    predicate: str,
+    uri: str,
+    *,
+    field_info: FieldInfo,
+    registry: LiteralRegistry,
+    on_duplicate: OnDuplicate,
+) -> set[ModelFieldScalar]:
+    """Import a ``set`` field, with per-element duplicate handling for ``TypedLiteral``."""
+    if py_type is not TypedLiteral:
+        return {
+            _term_to_field(
+                o,
+                py_type,
+                field_name,
+                predicate,
+                uri,
+                field_info=field_info,
+                registry=registry,
+            )
+            for o in objects
+        }
+    result: set[TypedLiteral] = set()
+    seen: set[tuple[str, str | None]] = set()
+    for o in objects:
+        item = cast(
+            TypedLiteral,
+            _term_to_field(
+                o,
+                TypedLiteral,
+                field_name,
+                predicate,
+                uri,
+                field_info=field_info,
+                registry=registry,
+            ),
+        )
+        key = (item.value, item.datatype)
+        if key in seen:
+            _handle_duplicate(
+                field_name,
+                predicate,
+                uri,
+                2,
+                on_duplicate,
+                message=(
+                    f"Duplicate TypedLiteral ({item.value!r}, datatype={item.datatype!r}) "
+                    f"for field {field_name!r} (predicate {predicate!r}, subject {uri!r}); "
+                    "using the first only."
+                ),
+            )
+            continue
+        seen.add(key)
+        result.add(item)
+    return cast(set[ModelFieldScalar], result)
+
+
 def import_multi_lang_field(
     objects: list[OxTerm],
     field_name: str,
@@ -313,18 +374,16 @@ def import_field_value(
                 )
                 for o in object_uris
             }
-        return {
-            _term_to_field(
-                o,
-                py_type,
-                field_name,
-                predicate,
-                uri,
-                field_info=field_info,
-                registry=registry,
-            )
-            for o in objects
-        }
+        return _import_set_field_values(
+            objects,
+            py_type,
+            field_name,
+            predicate,
+            uri,
+            field_info=field_info,
+            registry=registry,
+            on_duplicate=on_duplicate,
+        )
 
     py_type = scalar_python_type(field_info)
     if py_type is MultiLangString:

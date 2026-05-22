@@ -35,9 +35,15 @@ if TYPE_CHECKING:
     from triplemodel.fields.resource_ref import ResourceRef
     from triplemodel.terms.lang import LangString, MultiLangString
     from triplemodel.terms.opaque import OpaqueLiteral
+    from triplemodel.terms.typed_literal import TypedLiteral
 
     RdfTermValue: TypeAlias = (
-        RdfScalar | LangString | MultiLangString | ResourceRef | OpaqueLiteral
+        RdfScalar
+        | LangString
+        | MultiLangString
+        | ResourceRef
+        | OpaqueLiteral
+        | TypedLiteral
     )
 else:
     RdfTermValue: TypeAlias = RdfScalar
