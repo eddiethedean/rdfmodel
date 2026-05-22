@@ -78,10 +78,12 @@ class TripleModel(BaseModel):
             raise_if_nested_collection(field_info)
             raise_if_unhashable_ref_set(field_info)
             raise_if_inverse_collection(field_info)
+        from triplemodel.fields.back_populates import register_back_populates
         from triplemodel.fields.validation import validate_model_predicates
 
         validate_model_predicates(cls)
         register_rdf_resource(cls)
+        register_back_populates(cls)
 
     def subject_uri(self, *, uri: str | None = None) -> str:
         """Return the RDF subject IRI for this instance."""

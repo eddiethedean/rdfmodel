@@ -88,6 +88,36 @@ Low-level helpers: `graph_to_model_dispatch` and `all_from_graph_dispatch` (acce
 
 Map `owl:inverseOf`-style data on import with `inverse=` on `rdf_field` or `InverseOf` metadata (not on `list` / `set` fields). Export writes only the forward predicate. On `sync_to_graph(..., mode="replace")` or `mode="patch"`, all incoming inverse triples for inverse fields are cleared before re-export (including reassignment and dropped nested IRI/bnode children). If both forward and inverse triples exist for the same field, import uses the forward objects and warns (or raises with `on_duplicate="error"`).
 
+### Paired fields (`back_populates`)
+
+For bidirectional navigation metadata across two model classes (SparqlModel `Relationship(..., back_populates=...)` parity), link the inverse-side field with `back_populates=` on `rdf_field`. This does **not** change import/export: one side still uses `inverse=` for reading inverse triples; the peer field declares the matching forward predicate.
+
+```python
+class Person(TripleModel):
+    employer: str | None = rdf_field(
+        "ex:employer",
+        inverse="ex:employee",
+        back_populates=inverse_pair("Organization", "linked_person"),
+    )
+
+class Organization(TripleModel):
+    linked_person: str | None = rdf_field(
+        "ex:employee",
+        back_populates=inverse_pair("Person", "employer"),
+    )
+```
+
+At class creation, TripleModel validates that each side’s `back_populates` points back to the other field and that `inverse=` predicates match the peer’s forward predicate. Optional `Rdf.ontology_registry = OntologyRegistry(...)` checks `owl:inverseOf` in the ontology file.
+
+Read-only graph navigation (no ORM session):
+
+```python
+uris = subjects_via_back_populates(person, "employer", graph)
+orgs = models_via_back_populates(person, "employer", graph)
+```
+
+Use a string model name in `inverse_pair("Organization", ...)` when the peer class is declared later in the same module. Single-field `inverse=` without a peer model remains valid for one-sided mappings.
+
 ## Multi-class load (one parse)
 
 When one Turtle file contains several `rdf:type`s (Nobel laureates and prizes, DCAT catalog and datasets):

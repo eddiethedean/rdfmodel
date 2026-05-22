@@ -1,5 +1,12 @@
 """RDF field metadata and predicate resolution."""
 
+from triplemodel.fields.back_populates import (
+    BackPopulates,
+    inverse_pair,
+    back_populates_for_field,
+    models_via_back_populates,
+    subjects_via_back_populates,
+)
 from triplemodel.fields.metadata import (
     IriId,
     InverseOf,
@@ -24,12 +31,17 @@ from triplemodel.fields.resolver import (
 )
 
 __all__ = [
+    "BackPopulates",
     "FieldPredicateResolver",
     "IriId",
     "InverseOf",
     "Predicate",
     "Transitive",
+    "back_populates_for_field",
+    "inverse_pair",
     "inverse_for_field",
+    "models_via_back_populates",
+    "subjects_via_back_populates",
     "transitive_for_field",
     "annotation_has_iri_id",
     "default_resolver",

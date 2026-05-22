@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`TypedLiteral`** / **`TypedLiteralList`** — `set[TypedLiteral]` and `list[TypedLiteral]` preserve per-object XSD datatypes on one predicate. Closes [#2](https://github.com/eddiethedean/triplemodel/issues/2).
 - **Multi-valued URI refs** — `set[ResourceRef]`, `list[ResourceRef]`, and `ref_field` on `set`/`list` (export/import + `hydrate_refs` for collections). Closes [#3](https://github.com/eddiethedean/triplemodel/issues/3).
 - **`OntologyRegistry`** — load OWL/RDFS TTL (or static registration) for `subtypes_of`, `inverse_of`, and optional `apply_hints_to_model`. Closes [#4](https://github.com/eddiethedean/triplemodel/issues/4).
+- **`BackPopulates` / `back_populates=`** — paired inverse metadata across two models; `inverse_pair`, optional `Rdf.ontology_registry` validation, `subjects_via_back_populates` / `models_via_back_populates`. Closes [#5](https://github.com/eddiethedean/triplemodel/issues/5).
 
 ## [0.11.0] - 2026-05-20
 

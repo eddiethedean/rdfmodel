@@ -64,6 +64,7 @@ def rdf_field(
     predicate: str,
     *,
     inverse: str | None = None,
+    back_populates: Any | None = None,
     literal_datatype: str | None = None,
     transitive: bool = False,
     default: _T | EllipsisType = ...,
@@ -79,6 +80,16 @@ def rdf_field(
     }
     if inverse is not None:
         merged_extra["rdf_inverse"] = inverse
+    if back_populates is not None:
+        from triplemodel.fields.back_populates import (
+            normalize_back_populates,
+            store_back_populates_extra,
+        )
+
+        store_back_populates_extra(
+            cast(dict[str, object], merged_extra),
+            normalize_back_populates(back_populates),
+        )
     if literal_datatype is not None:
         merged_extra["rdf_literal_datatype"] = literal_datatype
     if transitive:
