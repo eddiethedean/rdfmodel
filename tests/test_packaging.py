@@ -78,6 +78,8 @@ def test_graph_algorithms_helpers_importable_from_top_level() -> None:
         "transitive_objects",
         "transitive_subjects",
         "VocabularyRegistry",
+        "OntologyRegistry",
+        "apply_hints_to_model",
         "Transitive",
     ):
         assert name in triplemodel.__all__
