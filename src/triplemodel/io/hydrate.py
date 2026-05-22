@@ -79,6 +79,31 @@ def hydrate_refs(
             raw = getattr(inst, field_name, None)
             if raw is None:
                 continue
+            if isinstance(raw, (list, set)):
+                hydrated_items: list[BaseModel] = []
+                for item in raw:
+                    uri = _ref_uri(item)
+                    if uri is None:
+                        continue
+                    key = (nested_cls, uri)
+                    if key not in cache:
+                        cache[key] = graph_to_model(
+                            graph,
+                            nested_cls,
+                            uri,
+                            validate_type=validate_type,
+                            on_duplicate=on_duplicate,
+                            resolver=resolver,
+                            registry=registry,
+                            de_skolemize=False,
+                        )
+                    hydrated_items.append(cache[key])
+                if not hydrated_items:
+                    continue
+                updates[field_name] = (
+                    set(hydrated_items) if isinstance(raw, set) else hydrated_items
+                )
+                continue
             uri = _ref_uri(raw)
             if uri is None:
                 continue

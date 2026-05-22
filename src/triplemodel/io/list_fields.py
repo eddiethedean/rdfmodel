@@ -15,6 +15,7 @@ from triplemodel.fields.resolver import default_resolver
 from triplemodel.metadata.cardinality import (
     field_cardinality,
     nested_model_type,
+    ref_collection_element_type,
     scalar_python_type,
 )
 from triplemodel.terms.lang import MultiLangString
@@ -85,6 +86,8 @@ def export_model_rdf_lists(
         if id_field and name == id_field:
             continue
         if field_cardinality(field_info) != "list":
+            continue
+        if ref_collection_element_type(field_info) is not None:
             continue
         predicate = r.resolve_field_predicate(field_info, prefixes)
         if predicate is None:
