@@ -10,7 +10,7 @@ from pydantic.fields import FieldInfo
 from triplemodel._typing import AnnotationExpr
 from triplemodel.protocols import is_rdf_resource_class
 from triplemodel.fields.resource_ref import ResourceRef
-from triplemodel.terms.lang import LangString
+from triplemodel.terms.lang import LangString, MultiLangString
 from triplemodel.terms.opaque import OpaqueLiteral
 
 FieldCardinality = Literal["scalar", "list", "set", "nested", "ref"]
@@ -129,6 +129,8 @@ def scalar_python_type(field_info: FieldInfo) -> type | None:
         return None
     if ann is LangString:
         return LangString
+    if ann is MultiLangString:
+        return MultiLangString
     if ann is ResourceRef:
         return ResourceRef
     if ann is OpaqueLiteral:

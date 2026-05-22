@@ -26,7 +26,7 @@ from triplemodel.fields import (
     ref_field,
 )
 from triplemodel.fields.resource_ref import ResourceRef
-from triplemodel.terms.lang import Lang, LangString
+from triplemodel.terms.lang import Lang, LangString, MultiLangString
 from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.vocab_registry import VocabularyRegistry
 from triplemodel.io import (
@@ -167,6 +167,7 @@ __all__ = [
     "resolve_graph_iri",
     "resolve_model_class",
     "LangString",
+    "MultiLangString",
     "LiteralRegistry",
     "OpaqueLiteral",
     "OnDuplicate",

@@ -16,7 +16,7 @@ from triplemodel.fields.metadata import lang_for_field, literal_datatype_for_fie
 from triplemodel.namespaces import resolve_predicate
 from triplemodel.fields.resolver import default_resolver
 from triplemodel.metadata.predicate_map import predicate_map_for_class
-from triplemodel.terms.lang import LangString
+from triplemodel.terms.lang import LangString, MultiLangString
 from triplemodel.metadata.cardinality import (
     field_cardinality,
     raise_if_inverse_collection,
@@ -40,6 +40,8 @@ def _field_values_for_export(
     if card == "set":
         items = cast(set[ModelFieldScalar], value)
         return [v for v in items if v is not None]
+    if isinstance(value, MultiLangString):
+        return cast(list[ModelFieldScalar], value.values())
     return [cast(ModelFieldScalar, value)]
 
 

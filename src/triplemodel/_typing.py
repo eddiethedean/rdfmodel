@@ -33,10 +33,12 @@ RdfScalar: TypeAlias = str | int | float | bool | date | datetime | Decimal | UU
 
 if TYPE_CHECKING:
     from triplemodel.fields.resource_ref import ResourceRef
-    from triplemodel.terms.lang import LangString
+    from triplemodel.terms.lang import LangString, MultiLangString
     from triplemodel.terms.opaque import OpaqueLiteral
 
-    RdfTermValue: TypeAlias = RdfScalar | LangString | ResourceRef | OpaqueLiteral
+    RdfTermValue: TypeAlias = (
+        RdfScalar | LangString | MultiLangString | ResourceRef | OpaqueLiteral
+    )
 else:
     RdfTermValue: TypeAlias = RdfScalar
 
