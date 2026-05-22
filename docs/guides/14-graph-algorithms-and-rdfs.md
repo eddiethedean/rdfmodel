@@ -13,6 +13,7 @@ TripleModel adds thin wrappers over pyoxigraph-backed graph operations for testi
 | Batch-load shared ref targets (e.g. countries) | `hydrate_refs`, `model_join` |
 | Walk `rdfs:subClassOf` or transitive predicates | `subclass_uris`, `transitive_objects`, `transitive_subjects` |
 | Central prefix + type registry | `VocabularyRegistry` |
+| Subclass / inverse hints from OWL TTL or static maps | `OntologyRegistry`, `apply_hints_to_model` |
 
 ## Graph comparison
 
@@ -60,6 +61,30 @@ agent = graph_to_model_dispatch(graph, alice_uri)
 `Rdf.resolve_subclass` (default `True` on `RdfConfig`) controls this behavior when `resolve_model_class()` is called without `use_subclass=`. Disable per class with `class Rdf: resolve_subclass = False`, or pass `use_subclass=False` to `resolve_model_class_with_rdfs` for exact `rdf:type` matching only.
 
 Bulk loading via `all_from_graph_dispatch()` uses the same resolution rules as single-subject `graph_to_model_dispatch()`.
+
+## Ontology hints (`OntologyRegistry`)
+
+For SparqlModel-style **subclass** and **inverse** metadata without a full reasoner, load a small OWL/RDFS file or register hints statically:
+
+```python
+from triplemodel import OntologyRegistry, apply_hints_to_model
+
+reg = OntologyRegistry.from_ttl("ontology.ttl")
+assert reg.subtypes_of("http://example.org/Animal")  # includes Dog, etc.
+assert reg.inverse_of("http://example.org/hasPart") == "http://example.org/partOf"
+
+reg.register_subclasses("http://example.org/Animal", ["http://example.org/Dog"])
+reg.register_inverse("http://example.org/hasPart", "http://example.org/partOf")
+
+apply_hints_to_model(MyModel, reg, mutate=True)  # sets inverse= on fields when unambiguous
+```
+
+| API | Direction on `rdfs:subClassOf` |
+|-----|--------------------------------|
+| `OntologyRegistry.subtypes_of(type_uri)` | **Descendants** (subtypes / subclasses of `type_uri`) |
+| `subclass_uris(graph, type_uri)` | **Ancestors** (superclasses of `type_uri`) in a **data graph** |
+
+Use graph-backed `subclass_uris` when the **instance graph** carries `rdfs:subClassOf` axioms; use `OntologyRegistry` when you ship a separate ontology file or maintain a static map.
 
 ## Batch reference hydration
 
