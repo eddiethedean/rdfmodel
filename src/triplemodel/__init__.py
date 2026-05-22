@@ -130,7 +130,7 @@ from triplemodel.terms import LiteralRegistry, default_registry, register_litera
 from triplemodel.store import Store
 from triplemodel.store.canonicalize import canonicalize_quads
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 __all__ = [
     "EmbedMode",

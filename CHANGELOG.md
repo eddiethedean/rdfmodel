@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-05-22
+
 ### Added
 
 - **`MultiLangString`** — one model field for multiple `@lang` literals on a single predicate; round-trips through `from_graph`, `sync_to_graph`, and `model_to_triples`. Closes [#1](https://github.com/eddiethedean/triplemodel/issues/1).
@@ -14,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Multi-valued URI refs** — `set[ResourceRef]`, `list[ResourceRef]`, and `ref_field` on `set`/`list` (export/import + `hydrate_refs` for collections). Closes [#3](https://github.com/eddiethedean/triplemodel/issues/3).
 - **`OntologyRegistry`** — load OWL/RDFS TTL (or static registration) for `subtypes_of`, `inverse_of`, and optional `apply_hints_to_model`. Closes [#4](https://github.com/eddiethedean/triplemodel/issues/4).
 - **`BackPopulates` / `back_populates=`** — paired inverse metadata across two models; `inverse_pair`, optional `Rdf.ontology_registry` validation, `subjects_via_back_populates` / `models_via_back_populates`. Closes [#5](https://github.com/eddiethedean/triplemodel/issues/5).
+
+Closes [#6](https://github.com/eddiethedean/triplemodel/issues/6) (SparqlModel 0.13 mapping parity tracking).
 
 ## [0.11.0] - 2026-05-20
 

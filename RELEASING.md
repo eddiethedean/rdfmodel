@@ -1,5 +1,26 @@
 # Releasing TripleModel
 
+## 0.12.0 (repo)
+
+| Item | Status |
+|------|--------|
+| Version `0.12.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
+| `CHANGELOG.md` — `## [0.12.0]` (SparqlModel 0.13 mapping APIs); `[Unreleased]` empty | Done |
+| `examples/doc/outputs/installation_version.txt` → `0.12.0` | Done |
+
+**Pre-release checklist (0.12.0)**
+
+- [x] `version` `0.12.0` in `pyproject.toml`, `src/triplemodel/__init__.py`, and `CHANGELOG.md`
+- [x] Regenerate `examples/doc/outputs/` (`installation_version.txt` → `0.12.0`)
+- [ ] `make lint` and `make test` on `main`
+- [ ] Commit 0.12.0 version bump on `main`
+- [ ] **Tag and publish** — create `v0.12.0` when approved for PyPI
+
+```bash
+git tag -a v0.12.0 -m "Release 0.12.0"
+git push origin v0.12.0
+```
+
 ## 0.11.0 (repo)
 
 | Item | Status |
