@@ -25,7 +25,6 @@ from triplemodel.fields.back_populates import (
     back_populates_for_field,
     normalize_back_populates,
     store_back_populates_extra,
-    subjects_via_back_populates,
 )
 from triplemodel.fields.metadata import inverse_for_field
 
@@ -94,7 +93,11 @@ def test_person_organization_pair_metadata():
     o_info = Organization.model_fields["linked_person"]
     bp_p = back_populates_for_field(p_info, owner=Person)
     bp_o = back_populates_for_field(o_info, owner=Organization)
-    assert bp_p is not None and bp_p.model is Organization and bp_p.field == "linked_person"
+    assert (
+        bp_p is not None
+        and bp_p.model is Organization
+        and bp_p.field == "linked_person"
+    )
     assert bp_o is not None and bp_o.model is Person and bp_o.field == "employer"
     assert inverse_for_field(p_info) == EE
     assert inverse_for_field(o_info) is None
@@ -264,9 +267,7 @@ def test_no_inverse_raises_for_navigation():
         )
 
     with pytest.raises(ValueError, match="no inverse predicate"):
-        subjects_via_back_populates(
-            Solo(slug="s"), "peer", g
-        )
+        subjects_via_back_populates(Solo.model_validate({"slug": "s"}), "peer", g)
 
 
 def test_back_populates_wrong_peer_model_raises():
@@ -399,7 +400,7 @@ def test_models_via_requires_back_populates():
     Person, _ = _define_models()
     g = Graph()
     with pytest.raises(ValueError, match="no back_populates metadata"):
-        models_via_back_populates(Person(slug="a"), "slug", g)
+        models_via_back_populates(Person.model_validate({"slug": "a"}), "slug", g)
 
 
 def test_validate_link_returns_false_without_peer_back_populates():
@@ -479,15 +480,24 @@ def test_models_via_resolves_string_peer_model(monkeypatch):
         "triplemodel.fields.back_populates.back_populates_for_field",
         lambda _fi, owner=None: BackPopulates("linked_person", "Organization"),
     )
-    assert models_via_back_populates(Person(slug="a"), "employer", Graph()) == []
+    assert (
+        models_via_back_populates(
+            Person.model_validate({"slug": "a"}), "employer", Graph()
+        )
+        == []
+    )
 
 
 def test_navigation_unknown_field_raises():
     Person, _ = _define_models()
     with pytest.raises(ValueError, match="no field"):
-        subjects_via_back_populates(Person(slug="a"), "missing", Graph())
+        subjects_via_back_populates(
+            Person.model_validate({"slug": "a"}), "missing", Graph()
+        )
     with pytest.raises(ValueError, match="no field"):
-        models_via_back_populates(Person(slug="a"), "missing", Graph())
+        models_via_back_populates(
+            Person.model_validate({"slug": "a"}), "missing", Graph()
+        )
 
 
 def test_resolve_model_qualname_from_module_attr():
