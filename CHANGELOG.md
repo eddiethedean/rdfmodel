@@ -7,17 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **`OntologyRegistry.load_graph`** — clear graph-derived `owl:inverseOf` index before re-indexing (stale inverses after reload).
-- **`back_populates`** — raise `ValueError` when the peer class exists but its field lacks reciprocal metadata.
-- **`MultiLangString`** — immutable `by_lang` mapping; normalize language tags to lowercase on import.
-- **`store_flush`** — skip flush on read-only disk stores (no `ResourceWarning` on `close()`).
-
-### Changed
-
-- **Docs** — 0.12.x guides, API reference pages, ROADMAP matrix; pytest disables `pytest_green_light` in project config.
-
 ## [0.12.0] - 2026-05-22
 
 ### Added
@@ -29,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`BackPopulates` / `back_populates=`** — paired inverse metadata across two models; `inverse_pair`, optional `Rdf.ontology_registry` validation, `subjects_via_back_populates` / `models_via_back_populates`. Closes [#5](https://github.com/eddiethedean/triplemodel/issues/5).
 
 Closes [#6](https://github.com/eddiethedean/triplemodel/issues/6) (SparqlModel 0.13 mapping parity tracking).
+
+### Fixed
+
+- **`OntologyRegistry.load_graph`** — clear graph-derived `owl:inverseOf` index before re-indexing (stale inverses after reload).
+- **`back_populates`** — raise `ValueError` when the peer class exists but its field lacks reciprocal metadata.
+- **`MultiLangString`** — immutable `by_lang` mapping; normalize language tags to lowercase on import.
+- **`store_flush`** — skip flush on read-only disk stores (no `ResourceWarning` on `close()`).
+
+### Changed
+
+- **Docs** — 0.12.x guides, API reference pages (`ontology_registry`, `terms.lang`, `terms.typed_literal`), ROADMAP matrix; pytest disables `pytest_green_light` in project config.
 
 ## [0.11.0] - 2026-05-20
 

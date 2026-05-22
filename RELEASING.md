@@ -5,7 +5,7 @@
 | Item | Status |
 |------|--------|
 | Version `0.12.0` in `pyproject.toml` and `src/triplemodel/__init__.py` | Done |
-| `CHANGELOG.md` — `## [0.12.0]` (SparqlModel 0.13 mapping APIs); `[Unreleased]` empty | Done |
+| `CHANGELOG.md` — `## [0.12.0]` includes features + post-beta fixes; `[Unreleased]` empty | Done |
 | `examples/doc/outputs/installation_version.txt` → `0.12.0` | Done |
 
 **Pre-release checklist (0.12.0)**
@@ -14,13 +14,20 @@
 - [x] Regenerate `examples/doc/outputs/` (`installation_version.txt` → `0.12.0`)
 - [x] Local gate: `make ci` (maintainer re-run before tag)
 - [x] Local gate: `make release-check` (maintainer re-run before tag)
-- [ ] Commit 0.12.0 remediation on `main` (if not already committed)
-- [ ] **Tag and publish** — create `v0.12.0` when approved for PyPI (deferred per maintainer)
+- [x] Commit 0.12.0 remediation on `main` (`be37e3a` and follow-ups)
+- [ ] Confirm `PYPI_API_TOKEN` in GitHub Actions secrets (maintainer)
+- [ ] **Tag and publish** — create `v0.12.0` when approved for PyPI (PyPI latest is **0.11.0** as of last check)
+
+**Publish (when tagging is approved)**
 
 ```bash
+make release-check
+
 git tag -a v0.12.0 -m "Release 0.12.0"
 git push origin v0.12.0
 ```
+
+Watch the **Release** workflow; confirm [PyPI](https://pypi.org/project/triplemodel/) shows `0.12.0`.
 
 ## 0.11.0 (repo)
 
