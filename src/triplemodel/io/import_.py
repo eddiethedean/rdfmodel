@@ -52,6 +52,7 @@ from triplemodel.metadata.cardinality import (
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.collection import read_rdf_list
 from triplemodel.terms.convert import term_to_python
+from triplemodel.terms.lang import LangString, MultiLangString, _base_direction_name
 from triplemodel.terms.iri import normalize_iri
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -197,6 +198,45 @@ def _term_to_field(
     raise ValueError(f"{msg}: {last_exc}") from last_exc
 
 
+def import_multi_lang_field(
+    objects: list[OxTerm],
+    field_name: str,
+    predicate: str,
+    uri: str,
+    *,
+    on_duplicate: OnDuplicate,
+) -> MultiLangString:
+    """Build a :class:`~triplemodel.terms.lang.MultiLangString` from RDF literals."""
+    by_lang: dict[str, LangString] = {}
+    for term in objects:
+        if not isinstance(term, RdfLiteral):
+            continue
+        lang = term.language
+        if lang is None:
+            continue
+        ls = LangString(
+            str(term.value),
+            lang,
+            _base_direction_name(term.direction),
+        )
+        if lang in by_lang:
+            _handle_duplicate(
+                field_name,
+                predicate,
+                uri,
+                2,
+                on_duplicate,
+                message=(
+                    f"Conflicting values for language {lang!r} on field "
+                    f"{field_name!r} (predicate {predicate!r}, subject {uri!r}); "
+                    "using the first only."
+                ),
+            )
+            continue
+        by_lang[lang] = ls
+    return MultiLangString(by_lang)
+
+
 def import_field_value(
     graph: Graph,
     objects: list[OxTerm],
@@ -286,9 +326,18 @@ def import_field_value(
             for o in objects
         }
 
+    py_type = scalar_python_type(field_info)
+    if py_type is MultiLangString:
+        return import_multi_lang_field(
+            objects,
+            field_name,
+            predicate,
+            uri,
+            on_duplicate=on_duplicate,
+        )
+
     if len(objects) > 1:
         _handle_duplicate(field_name, predicate, uri, len(objects), on_duplicate)
-    py_type = scalar_python_type(field_info)
     return _term_to_field(
         objects[0],
         py_type,

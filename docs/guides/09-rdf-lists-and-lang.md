@@ -56,6 +56,29 @@ title: Annotated[str, Lang("en")] = rdf_field("http://purl.org/dc/terms/title")
 
 Export emits `Literal(..., lang=...)`; import restores the tag.
 
+### `MultiLangString`
+
+When one predicate carries **several** language-tagged literals (for example `rdfs:label@en` and `rdfs:label@fr`), use `MultiLangString` instead of `set[LangString]`:
+
+```python
+from triplemodel import MultiLangString, TripleModel, rdf_field
+from triplemodel.vocab import RDFS
+
+class Term(TripleModel):
+    class Rdf:
+        namespace = "http://example.org/terms/"
+        id_field = "slug"
+
+    slug: str
+    label: MultiLangString = rdf_field(f"{RDFS}label")
+
+term = Term(slug="t1", label=MultiLangString({"en": "Cat", "fr": "Chat"}))
+```
+
+Import collects every object on the predicate that has a `language` tag (untagged literals are skipped). Export writes one triple per map entry. Conflicting values for the **same** language respect `on_duplicate` on `from_graph` (`"error"`, `"warn"`, or keep the first).
+
+Pydantic accepts a plain `dict[str, str]` for the field value. Prefer **`MultiLangString`** when you want one field for a language map; use **`set[LangString]`** only if you need an unordered bag of tags without a single keyed map API.
+
 ## Related
 
 - {doc}`03-multi-valued-fields` — `set[T]` multi-object fields

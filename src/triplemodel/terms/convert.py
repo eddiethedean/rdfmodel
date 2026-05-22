@@ -15,7 +15,12 @@ from triplemodel.store.terms import OxTerm, RdfTerm
 from triplemodel.terms import iri
 from triplemodel.terms.iri import normalize_iri
 from triplemodel.fields.resource_ref import ResourceRef
-from triplemodel.terms.lang import LangString, _base_direction_name, _direction_to_base
+from triplemodel.terms.lang import (
+    LangString,
+    MultiLangString,
+    _base_direction_name,
+    _direction_to_base,
+)
 from triplemodel.terms.opaque import OpaqueLiteral
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 
@@ -37,6 +42,11 @@ def python_to_term(
         return NamedNode(value.iri)
     if isinstance(value, OpaqueLiteral):
         return value.to_literal()
+    if isinstance(value, MultiLangString):
+        raise TypeError(
+            "MultiLangString cannot be serialized as a single term; "
+            "export expands it to one triple per language."
+        )
     if isinstance(value, LangString):
         direction = _direction_to_base(value.direction)
         if value.lang:

@@ -14,7 +14,9 @@ from triplemodel.fields.resolver import default_resolver
 from triplemodel.metadata.cardinality import field_cardinality, scalar_python_type
 from triplemodel.terms.collection import read_rdf_list
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
+from triplemodel.terms.lang import MultiLangString
 from triplemodel.terms.convert import python_to_term, term_to_python
+from triplemodel.io.import_ import import_multi_lang_field
 from triplemodel.terms.registry import LiteralRegistry, default_registry
 from triplemodel._typing import ModelFieldScalar, OnDuplicate, PythonToTermInput
 
@@ -54,6 +56,17 @@ def graph_value(
     objects = list(graph.objects(NamedNode(subject), NamedNode(resolved_pred)))
     if not objects:
         return None
+    if py_type is MultiLangString:
+        return cast(
+            ModelFieldScalar,
+            import_multi_lang_field(
+                objects,
+                field_name,
+                resolved_pred,
+                subject,
+                on_duplicate=on_duplicate,
+            ),
+        )
     if len(objects) > 1:
         from triplemodel.io.import_ import _handle_duplicate
 
@@ -124,6 +137,15 @@ def objects_for_field(
         if not objects:
             return []
         return read_rdf_list(graph, objects[0], py_type, registry=registry)
+    if py_type is MultiLangString:
+        ml = import_multi_lang_field(
+            objects,
+            field_name,
+            pred,
+            uri,
+            on_duplicate="first",
+        )
+        return cast(list[ModelFieldScalar], ml.values())
     return [
         cast(ModelFieldScalar, term_to_python(o, py_type, registry=registry))
         for o in objects

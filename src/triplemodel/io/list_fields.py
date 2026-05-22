@@ -12,7 +12,12 @@ from triplemodel.store.terms import RdfTerm as Node
 from triplemodel._typing import TripleRow
 from triplemodel.config import RdfConfig, get_rdf_config
 from triplemodel.fields.resolver import default_resolver
-from triplemodel.metadata.cardinality import field_cardinality, nested_model_type
+from triplemodel.metadata.cardinality import (
+    field_cardinality,
+    nested_model_type,
+    scalar_python_type,
+)
+from triplemodel.terms.lang import MultiLangString
 from triplemodel.protocols import PredicateResolver as PredicateResolverProtocol
 from triplemodel.terms.bnode import nested_bnode_key, stable_bnode
 from triplemodel.terms.collection import remove_rdf_list, write_rdf_list
@@ -220,6 +225,8 @@ def predicates_to_patch_for_model(
         elif card == "list" and (value == [] or _list_effectively_empty(value)):
             clear.add(pred)
         elif card == "set" and value in (set(), frozenset()):
+            clear.add(pred)
+        elif scalar_python_type(field_info) is MultiLangString and not value:
             clear.add(pred)
     return clear
 
